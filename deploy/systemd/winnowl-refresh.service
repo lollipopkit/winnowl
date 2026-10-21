@@ -1,0 +1,9 @@
+[Unit]
+Description=winnowl daily image refresh (newest alpine, prune old images)
+After=docker.service
+
+[Service]
+Type=oneshot
+ExecStart=/usr/bin/env bash %h/winnowl/deploy/refresh-images.sh
+StandardOutput=append:%h/winnowl-deploy-logs/refresh.log
+StandardError=append:%h/winnowl-deploy-logs/refresh.log

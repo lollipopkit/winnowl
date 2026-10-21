@@ -1,0 +1,509 @@
+{
+  "fields": [
+    {
+      "path": "version",
+      "type": "1",
+      "default": "1",
+      "description": "Config format version. Always 1."
+    },
+    {
+      "path": "language",
+      "type": "string",
+      "default": "en",
+      "description": "Language for review output (`en`, `zh`, `zh-Hant`, `ja`, `ko`, `es`, `fr`, `de`, `pt`, `ru`). Common regional aliases are canonicalized; unknown values fall back to English."
+    },
+    {
+      "path": "reviews.auto.enabled",
+      "type": "boolean",
+      "default": "true",
+      "description": "Review pull requests automatically. Turning this off also disables manual `@winnowl review`."
+    },
+    {
+      "path": "reviews.auto.drafts",
+      "type": "boolean",
+      "default": "false",
+      "description": "Also review draft pull requests."
+    },
+    {
+      "path": "reviews.auto.base_branches",
+      "type": "string[]",
+      "default": "[]",
+      "description": "Only review pull requests targeting these base branches. Entries are globs (`release/*`; `**` matches any branch). Empty = the repository’s default branch, as set on the forge."
+    },
+    {
+      "path": "reviews.auto.ignore_authors",
+      "type": "string[]",
+      "default": "[]",
+      "description": "Skip pull requests opened by these accounts (e.g. other bots)."
+    },
+    {
+      "path": "reviews.auto.ignore_bot_authors",
+      "type": "boolean",
+      "default": "true",
+      "description": "Skip pull requests opened by a bot. On by default: a review of a bot’s pull request usually reviews generated output nobody is going to change, and it costs the same as a review of hand-written code. Turn it off to review dependency bumps and the like. This does not affect an explicit `@winnowl review`, and the bot never auto-reviews its own pull requests regardless — that loops."
+    },
+    {
+      "path": "reviews.auto.required_labels",
+      "type": "string[]",
+      "default": "[]",
+      "description": "If set, only review pull requests carrying at least one of these labels."
+    },
+    {
+      "path": "reviews.auto.pause_after_reviewed_commits",
+      "type": "integer",
+      "default": "0",
+      "description": "Stop re-reviewing after this many reviewed commits on one pull request. 0 = no limit."
+    },
+    {
+      "path": "reviews.auto.max_changed_files",
+      "type": "integer",
+      "default": "0",
+      "description": "Skip automatic review entirely when a pull request has more files to review than this. Files excluded by `ignored_paths`, generated or vendored files (`skip_generated`) and deleted files are not counted. Manual `@winnowl review` bypasses it. 0 = no limit (large pull requests are reviewed in rounds, see `reviews.files_per_round`)."
+    },
+    {
+      "path": "reviews.profile",
+      "type": "conservative | balanced | thorough",
+      "default": "balanced",
+      "description": "How much to spend per review and how aggressively to suppress low-value findings."
+    },
+    {
+      "path": "reviews.scope.analyze_related_code",
+      "type": "boolean",
+      "default": "true",
+      "description": "Read unchanged code the change depends on, instead of only the diff."
+    },
+    {
+      "path": "reviews.scope.analyze_preexisting_relevant",
+      "type": "boolean",
+      "default": "true",
+      "description": "Report existing problems that the change makes reachable or worse."
+    },
+    {
+      "path": "reviews.scope.report_preexisting_unrelated",
+      "type": "summary | issue | off",
+      "default": "summary",
+      "description": "What to do with existing problems unrelated to the change: fold into the summary, open an issue, or drop them."
+    },
+    {
+      "path": "reviews.scope.auto_issue_preexisting",
+      "type": "boolean",
+      "default": "false",
+      "description": "Open issues for unrelated existing problems without asking."
+    },
+    {
+      "path": "reviews.scope.max_dependency_depth",
+      "type": "integer",
+      "default": "4",
+      "description": "How many levels of callers/callees to follow when reading related code."
+    },
+    {
+      "path": "reviews.publication.max_inline_comments",
+      "type": "integer",
+      "description": "Maximum inline comments posted per review. The rest fold into the summary. 0 = no inline comments. Unset = follow the review profile."
+    },
+    {
+      "path": "reviews.publication.max_inline_per_file",
+      "type": "integer",
+      "description": "Maximum inline comments on a single file. Unset = 3."
+    },
+    {
+      "path": "reviews.publication.max_inline_nitpicks",
+      "type": "integer",
+      "description": "Maximum inline nitpick comments per review, counted separately from max_inline_comments. Unset = follow the review profile."
+    },
+    {
+      "path": "reviews.publication.summary_overflow",
+      "type": "boolean",
+      "default": "true",
+      "description": "List findings that exceeded the inline budget in the summary instead of dropping them."
+    },
+    {
+      "path": "reviews.publication.min_confirmation",
+      "type": "hypothesis | code-supported | independently-verified | tool-confirmed",
+      "default": "independently-verified",
+      "description": "Minimum evidence level a finding must reach to be posted inline."
+    },
+    {
+      "path": "reviews.publication.show_unverified_risks",
+      "type": "boolean",
+      "default": "true",
+      "description": "Include high-impact risks that could not be confirmed, in a folded section."
+    },
+    {
+      "path": "reviews.publication.show_suppressed_details",
+      "type": "boolean",
+      "default": "false",
+      "description": "Include what was suppressed or deduplicated, for auditing the noise filter."
+    },
+    {
+      "path": "reviews.publication.committable_suggestions",
+      "type": "boolean",
+      "default": "true",
+      "description": "Attach one-click committable suggestions to inline comments when the replacement is verified against the current lines."
+    },
+    {
+      "path": "reviews.publication.committable_suggestion_max_lines",
+      "type": "integer",
+      "default": "10",
+      "description": "Largest replacement a committable suggestion may span. Bigger changes go through `@winnowl fix` instead."
+    },
+    {
+      "path": "reviews.auto_approve",
+      "type": "boolean",
+      "default": "true",
+      "description": "Approve the pull request when nothing blocking was found."
+    },
+    {
+      "path": "reviews.block_preexisting",
+      "type": "boolean",
+      "default": "false",
+      "description": "Let problems that this change did not introduce block as well. Off by default: pre-existing problems are reported but never block."
+    },
+    {
+      "path": "reviews.dependency_gate",
+      "type": "critical | high | off",
+      "default": "high",
+      "description": "Severity at which a newly introduced dependency advisory blocks. Pre-existing advisories are reported but never block."
+    },
+    {
+      "path": "reviews.reviewers",
+      "type": "object",
+      "description": "Suggest reviewers from the people who most recently changed the files this pull request touches. The author, bots and accounts without write access are never suggested."
+    },
+    {
+      "path": "reviews.reviewers.mode",
+      "type": "off | suggest | request",
+      "default": "suggest",
+      "description": "`suggest` lists suggested reviewers in the status comment; `request` also requests them on the pull request, once, and only when it has no reviewers yet; `off` does neither."
+    },
+    {
+      "path": "reviews.reviewers.max",
+      "type": "integer",
+      "default": "2",
+      "description": "How many reviewers to suggest or request."
+    },
+    {
+      "path": "reviews.skip_generated",
+      "type": "boolean",
+      "default": "true",
+      "description": "Do not review generated, vendored or binary files: those marked `linguist-generated` / `linguist-vendored` in the base branch `.gitattributes`, lockfiles, well-known generator outputs (`*.g.dart`, `*.pb.go`, `generated/`, `vendor/`) and files whose header says they are generated. Skipped files are listed in the summary."
+    },
+    {
+      "path": "reviews.files_per_round",
+      "type": "integer",
+      "default": "300",
+      "description": "Review at most this many files per round. Larger pull requests are reviewed in rounds: the next push, or the checkbox in the status comment, continues with the files not yet reviewed, and the pull request is not approved until every file has been reviewed. Counted after `ignored_paths` and `skip_generated`. 0 = review everything in one round."
+    },
+    {
+      "path": "reviews.ignored_paths",
+      "type": "string[]",
+      "default": "[\"**/vendor/**\",\"**/dist/**\",\"**/*.min.js\",\"**/*.min.css\",\"**/*.map\",\"**/__snapshots__/**\",\"**/*.lock\",\"**/package-lock.json\",\"**/pnpm-lock.yaml\",\"**/yarn.lock\",\"**/go.sum\",\"**/*.png\",\"**/*.jpg\",\"**/*.jpeg\",\"**/*.gif\",\"**/*.webp\",\"**/*.ico\",\"**/*.svg\",\"**/*.woff\",\"**/*.woff2\",\"**/*.ttf\",\"**/*.eot\",\"**/*.pdf\"]",
+      "description": "Globs excluded from review entirely. Setting this replaces the default list rather than adding to it."
+    },
+    {
+      "path": "instructions.paths",
+      "type": "object[]",
+      "default": "[]",
+      "description": "Extra review instructions scoped by path."
+    },
+    {
+      "path": "instructions.ast",
+      "type": "object[]",
+      "default": "[]",
+      "description": "Extra review instructions scoped by AST pattern."
+    },
+    {
+      "path": "tools.auto_detect",
+      "type": "boolean",
+      "default": "true",
+      "description": "Detect build, lint and test commands from the repository."
+    },
+    {
+      "path": "tools.commands",
+      "type": "object",
+      "description": "Explicit commands. They win over anything auto-detected."
+    },
+    {
+      "path": "tools.commands.setup",
+      "type": "string[]",
+      "default": "[]",
+      "description": "Commands that install dependencies before anything else runs."
+    },
+    {
+      "path": "tools.commands.build",
+      "type": "string[]",
+      "default": "[]",
+      "description": "Build commands."
+    },
+    {
+      "path": "tools.commands.lint",
+      "type": "string[]",
+      "default": "[]",
+      "description": "Lint commands."
+    },
+    {
+      "path": "tools.commands.test",
+      "type": "string[]",
+      "default": "[]",
+      "description": "Test commands."
+    },
+    {
+      "path": "tools.enabled",
+      "type": "string[]",
+      "default": "[]",
+      "description": "Analyzers to force on."
+    },
+    {
+      "path": "tools.disabled",
+      "type": "string[]",
+      "default": "[]",
+      "description": "Analyzers to force off."
+    },
+    {
+      "path": "sandbox.runner_policy",
+      "type": "saas-only | self-hosted-required | prefer-self-hosted",
+      "default": "prefer-self-hosted",
+      "description": "Where commands may run: hosted runners, your own runners, or your own when available."
+    },
+    {
+      "path": "sandbox.labels",
+      "type": "string[]",
+      "default": "[]",
+      "description": "Runner labels required to pick up this repository."
+    },
+    {
+      "path": "sandbox.network.mode",
+      "type": "none | package-registry-only | allowlist | full",
+      "description": "Network access for commands run against your code. Can only tighten what the platform allows (package registries); unset leaves it to the platform."
+    },
+    {
+      "path": "sandbox.network.ecosystems",
+      "type": "string[]",
+      "default": "[]",
+      "description": "Package ecosystems allowed to reach their registries when mode is `package-registry-only`."
+    },
+    {
+      "path": "sandbox.network.hosts",
+      "type": "string[]",
+      "default": "[]",
+      "description": "Hosts allowed when mode is `allowlist`."
+    },
+    {
+      "path": "sandbox.network.ports",
+      "type": "integer[]",
+      "default": "[]",
+      "description": "Ports allowed when mode is `allowlist`."
+    },
+    {
+      "path": "sandbox.resources",
+      "type": "object",
+      "description": "Caps on the isolated environment your commands run in; unset leaves each to the platform."
+    },
+    {
+      "path": "sandbox.resources.cpu",
+      "type": "integer",
+      "description": "CPU cores (at most)."
+    },
+    {
+      "path": "sandbox.resources.memory_mb",
+      "type": "integer",
+      "description": "Memory in MB (at most)."
+    },
+    {
+      "path": "sandbox.resources.disk_mb",
+      "type": "integer",
+      "description": "Disk in MB (at most)."
+    },
+    {
+      "path": "sandbox.resources.timeout_seconds",
+      "type": "integer",
+      "description": "Wall-clock limit for a single run (at most)."
+    },
+    {
+      "path": "sandbox.secrets",
+      "type": "string[]",
+      "default": "[]",
+      "description": "Names of stored secrets exposed to commands. Values live in the console, never in this file."
+    },
+    {
+      "path": "chat.enabled",
+      "type": "boolean",
+      "default": "true",
+      "description": "Respond to comments on pull requests and issues."
+    },
+    {
+      "path": "chat.require_mention",
+      "type": "boolean",
+      "default": "true",
+      "description": "Only respond when the comment mentions the bot."
+    },
+    {
+      "path": "chat.allow_run_command",
+      "type": "boolean",
+      "default": "true",
+      "description": "`run <command>` runs a shell command (build, lint, test, …) in a sandbox on the pull request head and posts the output. People with write access or above can use it; the command is reviewed before it runs."
+    },
+    {
+      "path": "actions.autofix.enabled",
+      "type": "boolean",
+      "default": "true",
+      "description": "Allow `@winnowl fix` to produce fixes."
+    },
+    {
+      "path": "actions.autofix.require_confirmation",
+      "type": "boolean",
+      "default": "true",
+      "description": "Require a human to confirm before a fix is executed. Setting false pre-authorizes the repository."
+    },
+    {
+      "path": "actions.autofix.delivery",
+      "type": "(artifact | stacked-change-request)[]",
+      "default": "[\"artifact\",\"stacked-change-request\"]",
+      "description": "How fixes may be delivered: as a downloadable patch, or as a separate pull request. Your branch is never written to either way."
+    },
+    {
+      "path": "actions.create_issue.enabled",
+      "type": "boolean",
+      "default": "true",
+      "description": "Allow the bot to open issues."
+    },
+    {
+      "path": "actions.create_issue.require_confirmation",
+      "type": "boolean",
+      "default": "true",
+      "description": "Require a human to confirm before an issue is opened."
+    },
+    {
+      "path": "actions.post_merge.enabled",
+      "type": "boolean",
+      "default": "false",
+      "description": "Run follow-up work after a pull request merges."
+    },
+    {
+      "path": "knowledge.repository_docs",
+      "type": "boolean",
+      "default": "true",
+      "description": "Use the repository’s AGENTS.md / CLAUDE.md (root, and those in directories the change touches) as background on its conventions. They are read from the target branch, so edits to them in a pull request take effect after it merges."
+    },
+    {
+      "path": "knowledge.historical_prs",
+      "type": "boolean",
+      "default": "true",
+      "description": "Use past pull requests as review context."
+    },
+    {
+      "path": "knowledge.learnings.enabled",
+      "type": "boolean",
+      "default": "true",
+      "description": "Carry decisions made in review into later reviews."
+    },
+    {
+      "path": "knowledge.learnings.require_repo_admin_approval",
+      "type": "boolean",
+      "default": "true",
+      "description": "Rules proposed in comments by people without admin or maintain access wait for approval. Off: every repository rule proposed in a comment applies at once — on a public repository anyone who can comment then shapes later reviews. Organization rules and rules drafted by the bot always need approval."
+    },
+    {
+      "path": "knowledge.learnings.auto_propose",
+      "type": "boolean",
+      "default": "true",
+      "description": "Draft rule proposals once the same feedback repeats. Proposals still need approval."
+    },
+    {
+      "path": "knowledge.learnings.auto_propose_threshold",
+      "type": "integer",
+      "default": "3",
+      "description": "How many times feedback must repeat before a rule is proposed."
+    },
+    {
+      "path": "knowledge.learnings.auto_propose_from_review",
+      "type": "boolean",
+      "default": "true",
+      "description": "Also draft rule proposals from review results. Uses quota."
+    },
+    {
+      "path": "knowledge.memory.enabled",
+      "type": "boolean",
+      "default": "true",
+      "description": "Keep working notes about this repository, drafted from reviews and from comments addressed to the bot. Notes are hints, not rules. Uses quota."
+    },
+    {
+      "path": "knowledge.memory.require_approval",
+      "type": "boolean",
+      "default": "true",
+      "description": "Notes drafted from comments by people without admin or maintain access wait for approval in the inbox. Off: they apply at once."
+    },
+    {
+      "path": "knowledge.related_repositories",
+      "type": "string[]",
+      "default": "[]",
+      "description": "Repositories whose contracts this one depends on."
+    },
+    {
+      "path": "plugins.exa.enabled",
+      "type": "boolean",
+      "default": "true",
+      "description": "Allow web search as review evidence."
+    },
+    {
+      "path": "plugins.context7.enabled",
+      "type": "boolean",
+      "default": "true",
+      "description": "Allow official library documentation lookup as review evidence."
+    },
+    {
+      "path": "plugins.registry.enabled",
+      "type": "boolean",
+      "default": "true",
+      "description": "Allow package registry lookups (versions, metadata) as review evidence."
+    },
+    {
+      "path": "merge_gate.enabled",
+      "type": "boolean",
+      "default": "false",
+      "description": "Also fail the review check run while a blocking finding stands, so branch protection can hold the merge. The review itself always requests changes for blocking findings, whether or not this is on."
+    },
+    {
+      "path": "merge_gate.block_on_severity",
+      "type": "(critical | high | medium | low | info)[]",
+      "default": "[\"critical\",\"high\"]",
+      "description": "Severities that must be fixed before merging (critical and high are shown as Critical and Major, medium as Minor). A confirmed finding at one of these severities, caused by this change, makes the review request changes. Medium findings are reported without blocking unless listed here; low (Trivial) findings are nitpicks and never block."
+    },
+    {
+      "path": "merge_gate.minimum_confirmation",
+      "type": "hypothesis | code-supported | independently-verified | tool-confirmed",
+      "default": "independently-verified",
+      "description": "Evidence level a finding must reach before it is allowed to block."
+    },
+    {
+      "path": "merge_gate.require_review_complete",
+      "type": "boolean",
+      "default": "false",
+      "description": "Block while a review is still running or ended incomplete."
+    },
+    {
+      "path": "privacy.artifact_retention_days",
+      "type": "integer",
+      "default": "30",
+      "description": "Days to keep produced artifacts (patches, logs). 0 = delete immediately."
+    },
+    {
+      "path": "privacy.transcript_retention_days",
+      "type": "integer",
+      "default": "30",
+      "description": "Days to keep review transcripts. 0 = delete immediately."
+    },
+    {
+      "path": "privacy.allow_external_model_provider",
+      "type": "boolean",
+      "default": "true",
+      "description": "Allow reviews to use an external model provider. Turn off to require a self-hosted one."
+    },
+    {
+      "path": "cross_repo.analyze.enabled",
+      "type": "boolean",
+      "default": "false",
+      "description": "When this repository’s contracts change, analyze the impact on dependent repositories and open issues there. Uses quota."
+    }
+  ]
+}

@@ -1,0 +1,22 @@
+[
+  {
+    "path": "assets/store_themes/serverbox.piggy.fsbt",
+    "line": 1,
+    "claim": "The bundled theme asset is committed as an unexpanded Git LFS pointer (*.fsbt is tracked by LFS), so the app bundles the pointer text instead of the theme package and seeding it fails."
+  },
+  {
+    "path": "lib/core/service/theme_package.dart",
+    "line": 474,
+    "claim": "seedBundled is called unawaited from main.dart, but seeded.fetch(), AssetManifest.loadFromAssetBundle and seeded.put run outside the per-asset try, so a failure escapes as an unhandled async error."
+  },
+  {
+    "path": "lib/core/service/theme_package.dart",
+    "line": 876,
+    "claim": "When an update replaces the currently selected installation, _replaceOlder calls select(next, ...), which rewrites themeMode from the package default and discards the user's chosen light/dark mode."
+  },
+  {
+    "path": "website/src/ThemesPage.svelte",
+    "line": 57,
+    "claim": "allTexts returns every value of a description table, including non-strings such as numbers; the search filter then calls toLowerCase on them and throws, breaking the store page."
+  }
+]

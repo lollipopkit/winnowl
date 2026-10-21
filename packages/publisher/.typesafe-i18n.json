@@ -1,0 +1,5 @@
+{
+  "baseLocale": "en",
+  "esmImports": true,
+  "outputPath": "./src/i18n"
+}

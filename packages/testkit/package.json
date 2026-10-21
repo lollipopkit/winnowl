@@ -1,0 +1,32 @@
+{
+  "name": "@reviewbot/testkit",
+  "license": "Apache-2.0",
+  "version": "0.0.0",
+  "private": true,
+  "type": "module",
+  "exports": {
+    ".": {
+      "types": "./dist/index.d.ts",
+      "import": "./dist/index.js"
+    }
+  },
+  "main": "./dist/index.js",
+  "types": "./dist/index.d.ts",
+  "files": ["dist"],
+  "scripts": {
+    "build": "tsc -b",
+    "clean": "tsc -b --clean"
+  },
+  "dependencies": {
+    "@reviewbot/db": "workspace:*",
+    "@reviewbot/domain": "workspace:*",
+    "@reviewbot/provider-contracts": "workspace:*",
+    "@testcontainers/postgresql": "^10.16.0",
+    "pg": "^8.13.1",
+    "testcontainers": "^10.16.0",
+    "vitest": "^3.0.5"
+  },
+  "devDependencies": {
+    "@types/pg": "^8.11.10"
+  }
+}

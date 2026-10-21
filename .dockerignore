@@ -1,0 +1,13 @@
+# 与 .gitignore 同源的坑:`**/coverage` 会匹配**任意层级**的同名目录,
+# 曾把 `apps/web-console/src/routes/coverage/`(覆盖率页面)挡在构建上下文之外 ——
+# 源码 rsync 到了 VM,却进不了镜像,线上那个导航项一路 404。产物路径必须写死。
+**/node_modules
+**/dist
+**/.tsbuildinfo
+**/*.tsbuildinfo
+.git
+deploy/.env
+deploy/.secrets
+/coverage
+/*/*/coverage
+**/.vitest

@@ -1,0 +1,29 @@
+name = "winnowl-status"
+main = "src/worker.ts"
+compatibility_date = "2026-07-01"
+workers_dev = true
+
+# 1 minute is the finest Cloudflare cron granularity.
+[triggers]
+crons = ["* * * * *"]
+
+[vars]
+SITE_NAME = "winnowl"
+# Public endpoints only, probing the path users take. `expect` is a substring the body must contain.
+# TOML literal string holding raw JSON: escape quotes as \" (\\" breaks JSON.parse silently -> no targets).
+TARGETS = '''[
+  { "id": "console", "name": "Console", "url": "https://winnowl.lollipopkit.com/", "expect": "<title>winnowl console</title>" },
+  { "id": "api", "name": "API", "url": "https://winnowl-api.lollipopkit.com/health", "expect": "\"status\":\"ok\"" },
+  { "id": "webhook", "name": "Webhook 入口", "url": "https://winnowl-api.lollipopkit.com/webhooks/health", "expect": "\"status\":\"ok\"" }
+]'''
+
+# New account: wrangler kv namespace create STATUS_KV. The namespace id is not a secret.
+[[kv_namespaces]]
+binding = "STATUS_KV"
+id = "4003781f033248a5b5e6630bd53a262d"
+
+# Optional custom domain (default *.workers.dev). Keep it off winnowl's own domain so a DNS/cert
+# outage does not take the status page down too.
+# [[routes]]
+# pattern = "status.example.com"
+# custom_domain = true

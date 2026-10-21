@@ -1,0 +1,9 @@
+#!/usr/bin/env bash
+# Clean build + unit tests of every commit being pushed (see scripts/check-clean.sh).
+# Skip once with `git push --no-verify`.
+set -euo pipefail
+zero=0000000000000000000000000000000000000000
+while read -r _local_ref local_sha _remote_ref _remote_sha; do
+  [[ "$local_sha" == "$zero" ]] && continue # branch deletion
+  bash scripts/check-clean.sh "$local_sha"
+done

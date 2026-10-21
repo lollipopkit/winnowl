@@ -1,0 +1,10 @@
+export { parseCommand } from './shell.js';
+export type { ParsedCommand, Segment } from './shell.js';
+export { classifyCommand, sendsData, MAX_COMMAND_CHARS } from './rules.js';
+export type { RuleDecision, RuleTier } from './rules.js';
+export { judgeCommand, judgeTask, JUDGE_SYSTEM_PROMPT } from './judge.js';
+export type { JudgeDeps, JudgeInput, JudgeVerdict } from './judge.js';
+export { reviewCommand } from './gate.js';
+export type { GateContext, GateDecision } from './gate.js';
+export { recordCommandDecision, recordCommandResult, previousCommands, purgeCommandAudit } from './audit.js';
+export type { CommandAuditScope } from './audit.js';

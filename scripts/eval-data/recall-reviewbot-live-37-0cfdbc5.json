@@ -1,0 +1,22 @@
+[
+  {
+    "path": "src/alpha.js",
+    "line": 2,
+    "claim": "When no element is positive (for example an empty array), filter(...)[0] is undefined and calling toFixed on it throws a TypeError."
+  },
+  {
+    "path": "src/beta.js",
+    "line": 2,
+    "claim": "When no element is positive (for example an empty array), filter(...)[0] is undefined and calling toFixed on it throws a TypeError."
+  },
+  {
+    "path": "src/gamma.js",
+    "line": 2,
+    "claim": "When no element is positive (for example an empty array), filter(...)[0] is undefined and calling toFixed on it throws a TypeError."
+  },
+  {
+    "path": "src/delta.js",
+    "line": 2,
+    "claim": "When no element is positive (for example an empty array), filter(...)[0] is undefined and calling toFixed on it throws a TypeError."
+  }
+]

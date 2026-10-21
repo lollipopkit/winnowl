@@ -1,0 +1,66 @@
+groups:
+  - name: winnowl-base
+    rules:
+      - alert: TargetDown
+        expr: up == 0
+        for: 5m
+        labels: { severity: critical }
+        annotations:
+          summary: '{{ $labels.job }} 实例不可达(>5m)'
+
+      - alert: SandboxScratchDiskLow
+        # The scratch image is sparse, so slot limits rely on host free space; below 10 GiB the agent stops granting disk.
+        expr: winnowl_agent_scratch_host_free_mb >= 0 and winnowl_agent_scratch_host_free_mb < 10240
+        for: 10m
+        labels: { severity: warning }
+        annotations:
+          summary: '{{ $labels.instance }} 上 scratch 镜像所在盘只剩 {{ $value }} MiB'
+
+      - alert: SandboxScratchQuotaDown
+        expr: winnowl_agent_scratch_free_mb == -1
+        for: 5m
+        labels: { severity: critical }
+        annotations:
+          summary: '{{ $labels.instance }} 的 scratch 配额服务不可达:带磁盘的沙盒建不出来'
+
+      - alert: JobFailureRateHigh
+        # The >= 3 floor avoids firing on a single failure at low traffic.
+        expr: |
+          sum(increase(winnowl_jobs_total{outcome="failed"}[15m])) >= 3
+          and
+          sum(increase(winnowl_jobs_total{outcome="failed"}[15m]))
+            / clamp_min(sum(increase(winnowl_jobs_total[15m])), 1) > 0.3
+        for: 10m
+        labels: { severity: warning }
+        annotations:
+          summary: 'Job 失败率 >30%(15m 窗口)——网关/Provider/代码回归排查'
+
+      - alert: QueueBacklog
+        expr: winnowl_queue_depth{status="queued"} > 10
+        for: 15m
+        labels: { severity: warning }
+        annotations:
+          summary: '队列积压 {{ $value }} 个 job(>15m)——容量不足或 worker 卡死'
+
+      - alert: WebhookInvalidSpike
+        expr: sum(increase(webhook_invalid_total[15m])) > 5
+        for: 5m
+        labels: { severity: warning }
+        annotations:
+          summary: 'webhook 验签失败激增(15m 内 >5)——secret 配置漂移或探测'
+
+      - alert: WebhookConfigDrift
+        # Set daily by webhook_config_check; a wrong hook URL produces no errors on our side.
+        expr: winnowl_webhook_config_drift > 0
+        for: 5m
+        labels: { severity: critical }
+        annotations:
+          summary: 'GitHub App webhook 配置漂移 —— webhook 可能正在静默全断,查 audit_events 的 webhook.config-drift'
+
+      - alert: NoWebhookEventsReceived
+        # Backstop if the drift check itself fails; 6h avoids firing on quiet nights/weekends.
+        expr: sum(increase(winnowl_webhook_events_total[6h])) == 0
+        for: 30m
+        labels: { severity: warning }
+        annotations:
+          summary: '6 小时零 webhook 入站事件 —— 投递可能已断(查 App hook config 与 deliveries)'

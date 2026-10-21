@@ -1,0 +1,93 @@
+# Sandbox host (deploy-live.sh role `sandbox`). Standalone: needs none of the API host's config or secrets.
+# Sandboxes sit on internal networks whose only way out is a squid allowlist:
+#   sandbox-egress    review / scanner sandboxes -> egress-proxy
+#   sandbox-registry  validation sandboxes -> registry-proxy (package registries only)
+#   docker compose -f docker-compose.sandbox-host.yml up -d
+name: winnowl
+
+services:
+  sandbox-agent:
+    build:
+      context: ..
+      dockerfile: deploy/Dockerfile
+      target: backend
+    # Also the sandbox image: the executor inside each sandbox is this same build.
+    image: winnowl:latest
+    command: ['node', 'apps/sandbox-agent/dist/index.mjs']
+    environment:
+      PORT: '8790'
+      # runner-supervisor only places sandboxes on agents of its own APP_VERSION.
+      APP_VERSION: ${APP_VERSION:?set by scripts/deploy-live.sh}
+      AGENT_TOKEN_SHA256: ${AGENT_TOKEN_SHA256:?set by scripts/deploy-live.sh}
+      AGENT_METRICS_TOKEN_SHA256: ${AGENT_METRICS_TOKEN_SHA256:-}
+      AGENT_ALLOWED_IMAGES: winnowl:latest,${VALIDATION_SANDBOX_IMAGE:-}
+      AGENT_EGRESS_NETWORK: winnowl_sandbox-egress
+      AGENT_REGISTRY_NETWORK: winnowl_sandbox-registry
+      AGENT_MAX_SANDBOXES: ${AGENT_SLOTS:?sandboxes this host runs at once}
+      # Sum of sandbox memory limits in MiB; empty = count cap only.
+      AGENT_MEMORY_MB: ${AGENT_MEMORY_MB:-}
+      # Disk-quota slots from deploy/scratch-slots.sh. Host paths: passed to docker, not mounted here.
+      AGENT_SCRATCH_ROOT: /srv/winnowl-scratch
+      AGENT_SCRATCH_SLOTS: ${AGENT_SCRATCH_SLOTS:-}
+      AGENT_SCRATCH_POOL_MB: ${AGENT_SCRATCH_POOL_MB:-}
+      AGENT_SCRATCH_MAX_SLOT_MB: ${AGENT_SCRATCH_MAX_SLOT_MB:-}
+      # Sandboxes mount workspaces read-only from this host path instead of copying.
+      AGENT_WORKSPACE_HOST_ROOT: /srv/winnowl-scratch/workspaces
+      AGENT_DRAIN_TIMEOUT_MS: '2400000'
+    volumes:
+      # Rootless docker: DOCKER_SOCK=/run/user/<uid>/docker.sock.
+      - ${DOCKER_SOCK:-/var/run/docker.sock}:/var/run/docker.sock
+      - /srv/winnowl-scratch/workspaces:/var/lib/winnowl/workspaces
+      # Quota service socket; a missing socket must fail the start, not become an empty directory.
+      - type: bind
+        source: /var/lib/winnowl-scratch-quota.sock
+        target: /run/winnowl-scratch-quota.sock
+        bind:
+          create_host_path: false
+    ports:
+      - '${PRIVATE_BIND:?private address of this host}:8790:8790'
+    # Above AGENT_DRAIN_TIMEOUT_MS.
+    stop_grace_period: 41m
+    depends_on:
+      egress-proxy:
+        condition: service_healthy
+      registry-proxy:
+        condition: service_healthy
+    restart: unless-stopped
+
+  egress-proxy:
+    image: ubuntu/squid:latest
+    volumes:
+      - ./squid.conf:/etc/squid/squid.conf:ro
+    healthcheck:
+      test: ['CMD-SHELL', 'squid -k check >/dev/null 2>&1']
+      interval: 5s
+      timeout: 3s
+      retries: 10
+    networks:
+      - default
+      - sandbox-egress
+    restart: unless-stopped
+
+  registry-proxy:
+    image: ubuntu/squid:latest
+    volumes:
+      - ./squid-registry.conf:/etc/squid/squid.conf:ro
+    healthcheck:
+      test: ['CMD-SHELL', 'squid -k check >/dev/null 2>&1']
+      interval: 5s
+      timeout: 3s
+      retries: 10
+    networks:
+      - default
+      - sandbox-registry
+    restart: unless-stopped
+
+networks:
+  default: {}
+  # Full name winnowl_sandbox-egress (AGENT_EGRESS_NETWORK).
+  sandbox-egress:
+    internal: true
+  # Full name winnowl_sandbox-registry (AGENT_REGISTRY_NETWORK).
+  sandbox-registry:
+    internal: true

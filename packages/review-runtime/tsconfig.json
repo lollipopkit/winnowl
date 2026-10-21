@@ -1,0 +1,27 @@
+{
+  "extends": "../../tsconfig.base.json",
+  "compilerOptions": { "rootDir": "src", "outDir": "dist", "tsBuildInfoFile": "dist/.tsbuildinfo" },
+  "include": ["src"],
+  "references": [
+    { "path": "../agent-pi" },
+    { "path": "../autofix" },
+    { "path": "../canonical-diff" },
+    { "path": "../code-intel" },
+    { "path": "../config" },
+    { "path": "../cost-budget" },
+    { "path": "../db" },
+    { "path": "../finding-lifecycle" },
+    { "path": "../git-repository" },
+    { "path": "../ids" },
+    { "path": "../kms" },
+    { "path": "../knowledge" },
+    { "path": "../multi-repo" },
+    { "path": "../plugins" },
+    { "path": "../prompts" },
+    { "path": "../provider-contracts" },
+    { "path": "../publisher" },
+    { "path": "../review-orchestrator" },
+    { "path": "../review-profile" },
+    { "path": "../telemetry" }
+  ]
+}

@@ -1,0 +1,8 @@
+packages:
+  - "packages/*"
+  - "apps/*"
+# Only these run install scripts. ssh2 / cpu-features (testcontainers, test-only) stay on their
+# pure-JS fallbacks: their native builds fail on node 26 and nothing in production loads them.
+onlyBuiltDependencies:
+  - esbuild
+  - protobufjs

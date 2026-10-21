@@ -1,0 +1,230 @@
+{
+  "uid": "winnowl-overview",
+  "title": "Winnowl — Overview",
+  "tags": ["winnowl"],
+  "timezone": "browser",
+  "schemaVersion": 39,
+  "version": 1,
+  "refresh": "30s",
+  "time": { "from": "now-6h", "to": "now" },
+  "templating": {
+    "list": [
+      {
+        "name": "datasource",
+        "label": "Data source",
+        "type": "datasource",
+        "query": "prometheus",
+        "current": {},
+        "hide": 0
+      }
+    ]
+  },
+  "panels": [
+    {
+      "id": 1,
+      "type": "row",
+      "title": "队列与 Job",
+      "gridPos": { "h": 1, "w": 24, "x": 0, "y": 0 }
+    },
+    {
+      "id": 2,
+      "type": "timeseries",
+      "title": "队列深度(winnowl_queue_depth)",
+      "description": "queued+leased+running 的 job 数;持续上升说明消费跟不上生产(见 QueueBacklog 告警)。",
+      "datasource": { "type": "prometheus", "uid": "${datasource}" },
+      "gridPos": { "h": 8, "w": 12, "x": 0, "y": 1 },
+      "fieldConfig": { "defaults": { "custom": { "fillOpacity": 10 } }, "overrides": [] },
+      "targets": [
+        {
+          "refId": "A",
+          "expr": "sum(winnowl_queue_depth) by (status)",
+          "legendFormat": "{{status}}"
+        }
+      ]
+    },
+    {
+      "id": 3,
+      "type": "timeseries",
+      "title": "Job 完成速率(按类型/结果)",
+      "datasource": { "type": "prometheus", "uid": "${datasource}" },
+      "gridPos": { "h": 8, "w": 12, "x": 12, "y": 1 },
+      "fieldConfig": { "defaults": { "unit": "reqps", "custom": { "fillOpacity": 10 } }, "overrides": [] },
+      "targets": [
+        {
+          "refId": "A",
+          "expr": "sum(rate(winnowl_jobs_total[5m])) by (type, outcome)",
+          "legendFormat": "{{type}} / {{outcome}}"
+        }
+      ]
+    },
+    {
+      "id": 4,
+      "type": "stat",
+      "title": "Job 失败率(5m)",
+      "description": "failed / 全部完成;JobFailureRateHigh 告警同源。",
+      "datasource": { "type": "prometheus", "uid": "${datasource}" },
+      "gridPos": { "h": 6, "w": 6, "x": 0, "y": 9 },
+      "fieldConfig": {
+        "defaults": {
+          "unit": "percentunit",
+          "thresholds": {
+            "mode": "absolute",
+            "steps": [
+              { "color": "green", "value": null },
+              { "color": "orange", "value": 0.1 },
+              { "color": "red", "value": 0.3 }
+            ]
+          }
+        },
+        "overrides": []
+      },
+      "targets": [
+        {
+          "refId": "A",
+          "expr": "sum(rate(winnowl_jobs_total{outcome=\"failed\"}[5m])) / clamp_min(sum(rate(winnowl_jobs_total[5m])), 1e-9)",
+          "legendFormat": "failure rate"
+        }
+      ]
+    },
+    {
+      "id": 5,
+      "type": "timeseries",
+      "title": "Job 时长 p50 / p95(按类型)",
+      "datasource": { "type": "prometheus", "uid": "${datasource}" },
+      "gridPos": { "h": 6, "w": 18, "x": 6, "y": 9 },
+      "fieldConfig": { "defaults": { "unit": "s" }, "overrides": [] },
+      "targets": [
+        {
+          "refId": "A",
+          "expr": "histogram_quantile(0.5, sum(rate(winnowl_job_duration_seconds_bucket[15m])) by (le, type))",
+          "legendFormat": "p50 {{type}}"
+        },
+        {
+          "refId": "B",
+          "expr": "histogram_quantile(0.95, sum(rate(winnowl_job_duration_seconds_bucket[15m])) by (le, type))",
+          "legendFormat": "p95 {{type}}"
+        }
+      ]
+    },
+    {
+      "id": 6,
+      "type": "row",
+      "title": "Review 产出与成本",
+      "gridPos": { "h": 1, "w": 24, "x": 0, "y": 15 }
+    },
+    {
+      "id": 7,
+      "type": "timeseries",
+      "title": "Review 发布事件(approve / comment / request-changes)",
+      "datasource": { "type": "prometheus", "uid": "${datasource}" },
+      "gridPos": { "h": 8, "w": 8, "x": 0, "y": 16 },
+      "targets": [
+        {
+          "refId": "A",
+          "expr": "sum(increase(winnowl_reviews_total[1h])) by (event)",
+          "legendFormat": "{{event}}"
+        }
+      ]
+    },
+    {
+      "id": 8,
+      "type": "timeseries",
+      "title": "Finding 产出(按严重度 / 是否阻断)",
+      "datasource": { "type": "prometheus", "uid": "${datasource}" },
+      "gridPos": { "h": 8, "w": 8, "x": 8, "y": 16 },
+      "targets": [
+        {
+          "refId": "A",
+          "expr": "sum(increase(winnowl_findings_total[1h])) by (severity, blocking)",
+          "legendFormat": "{{severity}} / blocking={{blocking}}"
+        }
+      ]
+    },
+    {
+      "id": 9,
+      "type": "timeseries",
+      "title": "LLM 成本(USD/h,platform vs byok)",
+      "description": "BYOK 由租户自付,与平台托管额度分列(0035 model_source)。",
+      "datasource": { "type": "prometheus", "uid": "${datasource}" },
+      "gridPos": { "h": 8, "w": 8, "x": 16, "y": 16 },
+      "fieldConfig": { "defaults": { "unit": "currencyUSD" }, "overrides": [] },
+      "targets": [
+        {
+          "refId": "A",
+          "expr": "sum(increase(winnowl_review_cost_usd_total[1h])) by (model_source)",
+          "legendFormat": "{{model_source}}"
+        }
+      ]
+    },
+    {
+      "id": 10,
+      "type": "row",
+      "title": "入站与外呼",
+      "gridPos": { "h": 1, "w": 24, "x": 0, "y": 24 }
+    },
+    {
+      "id": 11,
+      "type": "timeseries",
+      "title": "Webhook 投递(按 provider / 状态)",
+      "description": "invalid 突增通常是验签失败或伪造流量(WebhookInvalidSpike 告警同源)。",
+      "datasource": { "type": "prometheus", "uid": "${datasource}" },
+      "gridPos": { "h": 8, "w": 12, "x": 0, "y": 25 },
+      "targets": [
+        {
+          "refId": "A",
+          "expr": "sum(rate(winnowl_webhook_events_total[5m])) by (provider, status)",
+          "legendFormat": "{{provider}} / {{status}}"
+        }
+      ]
+    },
+    {
+      "id": 12,
+      "type": "timeseries",
+      "title": "插件外呼(按插件 / 工具 / key 来源)",
+      "datasource": { "type": "prometheus", "uid": "${datasource}" },
+      "gridPos": { "h": 8, "w": 12, "x": 12, "y": 25 },
+      "targets": [
+        {
+          "refId": "A",
+          "expr": "sum(rate(winnowl_plugin_calls_total[5m])) by (plugin, tool, key_source)",
+          "legendFormat": "{{plugin}}.{{tool}} ({{key_source}})"
+        }
+      ]
+    },
+    {
+      "id": 13,
+      "type": "timeseries",
+      "title": "依赖扫描:manifest 与漏洞计数",
+      "datasource": { "type": "prometheus", "uid": "${datasource}" },
+      "gridPos": { "h": 7, "w": 12, "x": 0, "y": 33 },
+      "targets": [
+        {
+          "refId": "A",
+          "expr": "sum(increase(winnowl_dependency_manifests_total[1h]))",
+          "legendFormat": "manifests"
+        },
+        {
+          "refId": "B",
+          "expr": "sum(increase(winnowl_dependency_vulnerabilities_total[1h]))",
+          "legendFormat": "vulnerabilities"
+        }
+      ]
+    },
+    {
+      "id": 14,
+      "type": "timeseries",
+      "title": "抓取目标存活(up)",
+      "description": "0 = 该应用的 /metrics 抓不到(TargetDown 告警同源)。",
+      "datasource": { "type": "prometheus", "uid": "${datasource}" },
+      "gridPos": { "h": 7, "w": 12, "x": 12, "y": 33 },
+      "fieldConfig": { "defaults": { "max": 1, "min": 0 }, "overrides": [] },
+      "targets": [
+        {
+          "refId": "A",
+          "expr": "up",
+          "legendFormat": "{{job}} {{instance}}"
+        }
+      ]
+    }
+  ]
+}

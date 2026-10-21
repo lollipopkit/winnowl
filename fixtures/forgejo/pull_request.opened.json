@@ -1,0 +1,20 @@
+{
+  "action": "opened",
+  "number": 7,
+  "pull_request": {
+    "id": 5001,
+    "number": 7,
+    "draft": false,
+    "merged": false,
+    "head": { "sha": "aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa", "ref": "feature/login" },
+    "base": { "sha": "bbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbb", "ref": "main" }
+  },
+  "repository": {
+    "id": 900,
+    "name": "app",
+    "owner": { "id": 1, "login": "acme", "username": "acme" },
+    "clone_url": "https://forgejo.example/acme/app.git",
+    "default_branch": "main"
+  },
+  "sender": { "id": 7, "login": "alice", "username": "alice" }
+}

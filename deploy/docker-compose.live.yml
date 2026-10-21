@@ -1,0 +1,162 @@
+# Live overlay: MinIO, OTel Collector + Tempo, Prometheus/Alertmanager/Grafana.
+# KMS uses a persistent local KEK (a dev Vault loses its transit key on restart).
+# Usage:
+#   single host: docker compose -f docker-compose.yml -f docker-compose.live.yml --profile edge up -d --build
+#   live split:  docker compose -f docker-compose.yml -f docker-compose.live.yml -f docker-compose.split-api.yml
+name: winnowl
+
+services:
+  postgres:
+    image: postgres:18-alpine
+    deploy:
+      resources:
+        limits:
+          memory: 1g
+
+  migrate:
+    command: ['node', 'packages/db/dist/migrate.mjs']
+
+  # Official minio images are no longer publicly distributed; Chainguard builds instead.
+  minio:
+    image: cgr.dev/chainguard/minio:latest
+    environment:
+      MINIO_ROOT_USER: ${MINIO_USER:-winnowl}
+      MINIO_ROOT_PASSWORD: ${MINIO_PASS:-winnowl-minio}
+    command: ['server', '/data', '--console-address', ':9001']
+    volumes: [minio-data:/data]
+    restart: unless-stopped
+    deploy:
+      resources:
+        limits:
+          memory: 512m
+
+  minio-init:
+    # The -dev variant has sh, needed by the init script.
+    image: cgr.dev/chainguard/minio-client:latest-dev
+    entrypoint: ['sh', '-c']
+    command:
+      - |
+        until mc alias set m http://minio:9000 "${MINIO_USER:-winnowl}" "${MINIO_PASS:-winnowl-minio}" >/dev/null 2>&1; do sleep 2; done
+        mc mb -p m/${ARTIFACT_BUCKET:-winnowl-artifacts} 2>/dev/null || true
+        echo "minio bucket ready"
+    depends_on: [minio]
+    restart: 'no'
+
+  # No published ports: traces are read in Grafana.
+  otel-collector:
+    image: otel/opentelemetry-collector:0.162.0
+    volumes:
+      - ./otel-collector.yaml:/etc/otelcol/config.yaml:ro
+    depends_on: [tempo]
+    restart: unless-stopped
+    deploy:
+      resources:
+        limits:
+          memory: 256m
+
+  tempo:
+    image: grafana/tempo:3.1.0
+    command: ['-target=all', '-config.file=/etc/tempo.yaml']
+    # The named volume inherits uid 10001 ownership from the image's /var/tempo.
+    volumes:
+      - ./tempo.yaml:/etc/tempo.yaml:ro
+      - tempo-data:/var/tempo
+    restart: unless-stopped
+    deploy:
+      resources:
+        limits:
+          memory: 1g
+
+  control-api:
+    command: ['node', 'apps/control-api/dist/index.mjs']
+    environment:
+      OTEL_EXPORTER_OTLP_ENDPOINT: http://otel-collector:4318
+    deploy:
+      resources:
+        limits:
+          memory: 512m
+
+  webhook-ingress:
+    command: ['node', 'apps/webhook-ingress/dist/index.mjs']
+    environment:
+      OTEL_EXPORTER_OTLP_ENDPOINT: http://otel-collector:4318
+    deploy:
+      resources:
+        limits:
+          memory: 256m
+
+  runner-supervisor:
+    command: ['node', 'apps/runner-supervisor/dist/index.mjs']
+    environment:
+      ARTIFACT_S3_ENDPOINT: http://minio:9000
+      ARTIFACT_S3_BUCKET: ${ARTIFACT_BUCKET:-winnowl-artifacts}
+      ARTIFACT_S3_ACCESS_KEY_ID: ${MINIO_USER:-winnowl}
+      ARTIFACT_S3_SECRET_ACCESS_KEY: ${MINIO_PASS:-winnowl-minio}
+      ARTIFACT_S3_REGION: us-east-1
+      OTEL_EXPORTER_OTLP_ENDPOINT: http://otel-collector:4318
+      # stop_grace_period must stay above this value.
+      RUNNER_DRAIN_TIMEOUT_MS: ${RUNNER_DRAIN_TIMEOUT_MS:-2400000}
+    stop_grace_period: ${RUNNER_STOP_GRACE_PERIOD:-41m}
+    depends_on:
+      minio-init:
+        condition: service_completed_successfully
+    deploy:
+      resources:
+        limits:
+          memory: 1g
+
+  prometheus:
+    image: prom/prometheus:latest
+    volumes:
+      - ./prometheus.yml:/etc/prometheus/prometheus.yml:ro
+      - ./alert-rules.yml:/etc/prometheus/alert-rules.yml:ro
+      - ./sandbox-agents.json:/etc/prometheus/sandbox-agents.json:ro
+      # Same value as METRICS_TOKEN in .env.
+      - ${SECRETS_DIR:-./.secrets}/metrics-token:/etc/prometheus/metrics-token:ro
+      - prometheus-data:/prometheus
+    ports:
+      - '${PROM_BIND:-127.0.0.1}:9090:9090'
+    restart: unless-stopped
+    deploy:
+      resources:
+        limits:
+          memory: 512m
+
+  # Config (with SMTP password) from scripts/gen-alertmanager-conf.sh. Use --force-recreate after
+  # changing it: a single-file bind mount keeps the old inode.
+  alertmanager:
+    image: prom/alertmanager:latest
+    volumes:
+      - ${SECRETS_DIR:-./.secrets}/alertmanager.yml:/etc/alertmanager/alertmanager.yml:ro
+    restart: unless-stopped
+    deploy:
+      resources:
+        limits:
+          memory: 128m
+
+  grafana:
+    image: grafana/grafana:latest
+    environment:
+      GF_SECURITY_ADMIN_USER: ${GRAFANA_USER:-admin}
+      GF_SECURITY_ADMIN_PASSWORD: ${GRAFANA_PASS:-winnowl-grafana}
+      GF_AUTH_ANONYMOUS_ENABLED: 'false'
+    volumes:
+      - ./grafana-datasource.yml:/etc/grafana/provisioning/datasources/winnowl.yml:ro
+      # Directory mount so dashboard edits reload within 30s.
+      - ./grafana-dashboards.yml:/etc/grafana/provisioning/dashboards/winnowl.yml:ro
+      - ./grafana/dashboards:/var/lib/grafana/dashboards:ro
+      - grafana-data:/var/lib/grafana
+    ports:
+      - '${GRAFANA_BIND:-127.0.0.1}:3000:3000'
+    depends_on: [prometheus, tempo]
+    restart: unless-stopped
+    deploy:
+      resources:
+        limits:
+          memory: 512m
+
+volumes:
+  minio-data:
+  prometheus-data:
+  grafana-data:
+  tempo-data:

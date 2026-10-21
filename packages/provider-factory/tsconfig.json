@@ -1,0 +1,16 @@
+{
+  "extends": "../../tsconfig.base.json",
+  "compilerOptions": { "rootDir": "src", "outDir": "dist", "tsBuildInfoFile": "dist/.tsbuildinfo" },
+  "include": ["src"],
+  "references": [
+    { "path": "../db" },
+    { "path": "../domain" },
+    { "path": "../ids" },
+    { "path": "../kms" },
+    { "path": "../provider-contracts" },
+    { "path": "../provider-forgejo" },
+    { "path": "../provider-github" },
+    { "path": "../provider-gitlab" },
+    { "path": "../provider-http" }
+  ]
+}

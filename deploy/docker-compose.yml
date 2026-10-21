@@ -1,0 +1,169 @@
+# Usage: see deploy/README.md. Secrets (app key/KEK) come from .env and mounts, never the image.
+name: winnowl
+
+services:
+  postgres:
+    image: postgres:16-alpine
+    environment:
+      POSTGRES_USER: winnowl
+      POSTGRES_PASSWORD: ${POSTGRES_PASSWORD:?set in .env}
+      POSTGRES_DB: winnowl
+    volumes:
+      # Parent dir works for both pg16 and pg18 (which changed the default PGDATA) without setting PGDATA.
+      - pgdata:/var/lib/postgresql
+    healthcheck:
+      test: ['CMD-SHELL', 'pg_isready -U winnowl -d winnowl']
+      interval: 5s
+      timeout: 3s
+      retries: 20
+    restart: unless-stopped
+
+  # Also builds winnowl:latest, which the other backend services reuse.
+  migrate:
+    build:
+      context: ..
+      dockerfile: deploy/Dockerfile
+      target: backend
+    image: winnowl:latest
+    command: ['node', 'packages/db/dist/migrate.mjs']
+    environment:
+      # Migrations run as the owner (DDL/policies); apps use the restricted role so RLS applies.
+      DATABASE_URL: postgres://winnowl:${POSTGRES_PASSWORD}@postgres:5432/winnowl
+    depends_on:
+      postgres:
+        condition: service_healthy
+    restart: 'no'
+
+  control-api:
+    image: winnowl:latest
+    command: ['node', 'apps/control-api/dist/index.mjs']
+    env_file:
+      - path: .env
+        required: false
+    environment:
+      DATABASE_URL: postgres://${DB_APP_USER:-winnowl}:${DB_APP_PASSWORD:-${POSTGRES_PASSWORD}}@postgres:5432/winnowl
+      PORT: '8080'
+      OTEL_SERVICE_NAME: winnowl-control-api
+    # Local only by default; nginx reaches it over the docker network.
+    ports:
+      - '${CONTROL_API_BIND:-127.0.0.1}:${CONTROL_API_PORT:-8080}:8080'
+    depends_on:
+      migrate:
+        condition: service_completed_successfully
+    restart: unless-stopped
+
+  webhook-ingress:
+    image: winnowl:latest
+    command: ['node', 'apps/webhook-ingress/dist/index.mjs']
+    env_file:
+      - path: .env
+        required: false
+    environment:
+      DATABASE_URL: postgres://${DB_APP_USER:-winnowl}:${DB_APP_PASSWORD:-${POSTGRES_PASSWORD}}@postgres:5432/winnowl
+      PORT: '8081'
+      OTEL_SERVICE_NAME: winnowl-webhook-ingress
+    # Local only by default; public deliveries arrive via nginx /webhooks.
+    ports:
+      - '${WEBHOOK_BIND:-127.0.0.1}:${WEBHOOK_PORT:-8081}:8081'
+    # `up --wait` on it (rolling recreate in scripts/deploy-live.sh) returns once this passes.
+    healthcheck:
+      test: ['CMD', 'node', '-e', "fetch('http://127.0.0.1:8081/health').then((r) => process.exit(r.ok ? 0 : 1), () => process.exit(1))"]
+      interval: 5s
+      timeout: 3s
+      retries: 3
+      start_period: 30s
+      start_interval: 1s
+    depends_on:
+      migrate:
+        condition: service_completed_successfully
+    restart: unless-stopped
+
+  runner-supervisor:
+    image: winnowl:latest
+    command: ['node', 'apps/runner-supervisor/dist/index.mjs']
+    env_file:
+      - path: .env
+        required: false
+    environment:
+      DATABASE_URL: postgres://${DB_APP_USER:-winnowl}:${DB_APP_PASSWORD:-${POSTGRES_PASSWORD}}@postgres:5432/winnowl
+      OTEL_SERVICE_NAME: winnowl-runner-supervisor
+      # Review sandboxes join this internal network and reach out only via squid; review fails closed if either is missing.
+      SANDBOX_EGRESS_NETWORK: winnowl_sandbox-egress
+      SANDBOX_EGRESS_PROXY: http://egress-proxy:3128
+      # Validation sandboxes: internal network whose only way out is registry-proxy (`--profile validation`).
+      SANDBOX_REGISTRY_NETWORK: winnowl_sandbox-registry
+      SANDBOX_REGISTRY_PROXY: http://registry-proxy:3128
+    volumes:
+      # Host Docker for sandboxes; rootless: DOCKER_SOCK=/run/user/<uid>/docker.sock.
+      - ${DOCKER_SOCK:-/var/run/docker.sock}:/var/run/docker.sock
+      # Production: an absolute path outside the deploy tree (rsync must not touch it). A missing
+      # source dir is silently mounted as an empty dir.
+      - ${SECRETS_DIR:-./.secrets}:/app/.secrets:ro
+    depends_on:
+      migrate:
+        condition: service_completed_successfully
+      egress-proxy:
+        condition: service_healthy
+    # Must exceed RUNNER_DRAIN_TIMEOUT_MS + ~10s abort/release (see .env.example); 10s = no drain.
+    stop_grace_period: ${RUNNER_STOP_GRACE_PERIOD:-10s}
+    restart: unless-stopped
+
+  # Review sandboxes' only way out. squid.conf (from gen-squid-conf) must exist before start, or the
+  # bind mount becomes a directory and squid fails.
+  egress-proxy:
+    image: ubuntu/squid:latest
+    volumes:
+      - ./squid.conf:/etc/squid/squid.conf:ro
+    healthcheck:
+      test: ['CMD-SHELL', 'squid -k check >/dev/null 2>&1']
+      interval: 5s
+      timeout: 3s
+      retries: 10
+    networks:
+      - default
+      - sandbox-egress
+    restart: unless-stopped
+
+  # Validation sandboxes' only way out (squid-registry.conf from `gen-squid-conf.mjs --registry`).
+  registry-proxy:
+    profiles: ['validation']
+    image: ubuntu/squid:latest
+    volumes:
+      - ./squid-registry.conf:/etc/squid/squid.conf:ro
+    healthcheck:
+      test: ['CMD-SHELL', 'squid -k check >/dev/null 2>&1']
+      interval: 5s
+      timeout: 3s
+      retries: 10
+    networks:
+      - default
+      - sandbox-registry
+    restart: unless-stopped
+
+  # SPA + same-origin proxy (/v1, /webhooks); the only public port.
+  web:
+    profiles: ['edge']
+    build:
+      context: ..
+      dockerfile: deploy/Dockerfile
+      target: web
+    image: winnowl-web:latest
+    ports:
+      - '${WEB_PORT:-8000}:8080'
+    depends_on:
+      - control-api
+      - webhook-ingress
+    restart: unless-stopped
+
+networks:
+  # Declared explicitly for Compose implementations that omit default when custom networks exist.
+  default: {}
+  # Review sandboxes only; the only reachable peer is egress-proxy. Full name winnowl_sandbox-egress.
+  sandbox-egress:
+    internal: true
+  # Validation sandboxes only; the only reachable peer is registry-proxy. Full name winnowl_sandbox-registry.
+  sandbox-registry:
+    internal: true
+
+volumes:
+  pgdata:

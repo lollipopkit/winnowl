@@ -1,0 +1,21 @@
+{
+  "action": "opened",
+  "number": 42,
+  "pull_request": {
+    "id": 5001,
+    "number": 42,
+    "draft": false,
+    "merged": false,
+    "state": "open",
+    "head": { "sha": "aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa", "ref": "feature/login" },
+    "base": { "sha": "bbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbb", "ref": "main" }
+  },
+  "repository": {
+    "id": 900,
+    "name": "app",
+    "default_branch": "main",
+    "clone_url": "https://github.com/acme/app.git",
+    "owner": { "login": "acme" }
+  },
+  "sender": { "id": 7, "login": "alice", "type": "User" }
+}

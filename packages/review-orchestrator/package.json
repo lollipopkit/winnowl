@@ -1,0 +1,39 @@
+{
+  "name": "@reviewbot/review-orchestrator",
+  "license": "Apache-2.0",
+  "version": "0.0.0",
+  "private": true,
+  "type": "module",
+  "exports": {
+    ".": {
+      "types": "./dist/index.d.ts",
+      "import": "./dist/index.js"
+    }
+  },
+  "main": "./dist/index.js",
+  "types": "./dist/index.d.ts",
+  "files": ["dist"],
+  "scripts": {
+    "build": "tsc -b",
+    "clean": "tsc -b --clean"
+  },
+  "dependencies": {
+    "@reviewbot/agent-pi": "workspace:*",
+    "@reviewbot/anchor-resolver": "workspace:*",
+    "@reviewbot/domain": "workspace:*",
+    "@reviewbot/findings": "workspace:*",
+    "@reviewbot/prompts": "workspace:*",
+    "@reviewbot/provider-contracts": "workspace:*",
+    "@reviewbot/publisher": "workspace:*",
+    "@reviewbot/review-engine": "workspace:*",
+    "@reviewbot/review-profile": "workspace:*",
+    "@reviewbot/telemetry": "workspace:*",
+    "@reviewbot/verification": "workspace:*"
+  },
+  "devDependencies": {
+    "@reviewbot/code-intel": "workspace:*",
+    "@reviewbot/db": "workspace:*",
+    "@reviewbot/ids": "workspace:*",
+    "@reviewbot/testkit": "workspace:*"
+  }
+}

@@ -1,0 +1,21 @@
+{
+  "name": "@reviewbot/sandbox-agent",
+  "license": "Apache-2.0",
+  "version": "0.0.0",
+  "private": true,
+  "type": "module",
+  "main": "./dist/index.js",
+  "scripts": {
+    "build": "tsc -b",
+    "clean": "tsc -b --clean",
+    "start": "node dist/index.js"
+  },
+  "dependencies": {
+    "@reviewbot/review-runtime": "workspace:*",
+    "@reviewbot/sandbox": "workspace:*",
+    "fastify": "^5.2.0"
+  },
+  "devDependencies": {
+    "typescript": "^5.9.0"
+  }
+}

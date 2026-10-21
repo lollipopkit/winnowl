@@ -1,0 +1,7 @@
+[
+  {
+    "path": "src/first-positive.js",
+    "line": 2,
+    "claim": "firstPositive([]) or an input with no positive values makes filter(...)[0] undefined, and calling toFixed on it throws a TypeError."
+  }
+]

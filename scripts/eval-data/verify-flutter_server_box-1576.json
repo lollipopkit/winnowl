@@ -1,0 +1,128 @@
+[
+  {
+    "commit": "2cbfd6102b43286d67c41d1140ae69986843818a",
+    "path": "lib/core/service/theme_package.dart",
+    "claim": "seedBundled is called unawaited from main.dart, but Stores.setting.bundledThemesSeeded.fetch(), AssetManifest.loadFromAssetBundle and seeded.put run outside the per-asset try, so a failure escapes as an unhandled asynchronous error and is reported as a crash.",
+    "anchor": "    final manifest = await AssetManifest.loadFromAssetBundle(assets);",
+    "category": "error-handling",
+    "severity": "medium",
+    "expected": "real"
+  },
+  {
+    "commit": "736bfd265139346df12480dcc224e41beb5d8809",
+    "path": "lib/core/service/theme_package.dart",
+    "claim": "seedBundled is called unawaited from main.dart, but Stores.setting.bundledThemesSeeded.fetch(), AssetManifest.loadFromAssetBundle and seeded.put run outside the per-asset try, so a failure escapes as an unhandled asynchronous error and is reported as a crash.",
+    "anchor": "    final manifest = await AssetManifest.loadFromAssetBundle(assets);",
+    "category": "error-handling",
+    "severity": "medium",
+    "expected": "false"
+  },
+  {
+    "commit": "2cbfd6102b43286d67c41d1140ae69986843818a",
+    "path": "lib/core/service/theme_package.dart",
+    "claim": "When an update replaces the currently selected installation, _replaceOlder calls select(next, preset: next.preset), and select rewrites themeMode from the package's default mode, so the light/dark mode the user chose is reset although the user did not choose a new theme.",
+    "anchor": "        select(next, preset: next.preset);",
+    "category": "correctness",
+    "severity": "medium",
+    "expected": "real"
+  },
+  {
+    "commit": "736bfd265139346df12480dcc224e41beb5d8809",
+    "path": "lib/core/service/theme_package.dart",
+    "claim": "When an update replaces the currently selected installation, _replaceOlder calls select(next, preset: next.preset), and select rewrites themeMode from the package's default mode, so the light/dark mode the user chose is reset although the user did not choose a new theme.",
+    "anchor": "        select(next, preset: next.preset);",
+    "category": "correctness",
+    "severity": "medium",
+    "expected": "false"
+  },
+  {
+    "commit": "2cbfd6102b43286d67c41d1140ae69986843818a",
+    "path": "website/src/ThemesPage.svelte",
+    "claim": "allTexts returns every value of a description table, including non-string values such as numbers from a listing TOML; the search filter then calls toLowerCase on each value and throws a TypeError, breaking the store page.",
+    "anchor": "  const allTexts = (value) => (typeof value === 'string' ? [value] : Object.values(value ?? {}))",
+    "category": "correctness",
+    "severity": "medium",
+    "expected": "real"
+  },
+  {
+    "commit": "736bfd265139346df12480dcc224e41beb5d8809",
+    "path": "website/src/ThemesPage.svelte",
+    "claim": "allTexts returns every value of a description table, including non-string values such as numbers from a listing TOML; the search filter then calls toLowerCase on each value and throws a TypeError, breaking the store page.",
+    "anchor": "  const allTexts = (value) => (typeof value === 'string' ? [value] : Object.values(value ?? {}))",
+    "category": "correctness",
+    "severity": "medium",
+    "expected": "false"
+  },
+  {
+    "commit": "2cbfd6102b43286d67c41d1140ae69986843818a",
+    "path": "assets/store_themes/serverbox.piggy.fsbt",
+    "claim": "The bundled theme asset is committed as a Git LFS pointer (.gitattributes routes *.fsbt through LFS) and the build checkouts do not fetch LFS objects, so the app bundles the pointer text instead of the theme package and seeding it fails.",
+    "anchor": "version https://git-lfs.github.com/spec/v1",
+    "category": "correctness",
+    "severity": "medium",
+    "expected": "real"
+  },
+  {
+    "commit": "736bfd265139346df12480dcc224e41beb5d8809",
+    "path": "assets/store_themes/serverbox.piggy.fsbt",
+    "claim": "The bundled theme asset is committed as a Git LFS pointer (.gitattributes routes *.fsbt through LFS) and the build checkouts do not fetch LFS objects, so the app bundles the pointer text instead of the theme package and seeding it fails.",
+    "anchor": "version https://git-lfs.github.com/spec/v1",
+    "category": "correctness",
+    "severity": "medium",
+    "expected": "false"
+  },
+  {
+    "commit": "0edb73a952b695acbd3aa655efaea125a1149d99",
+    "path": ".claude/skills/serverbox-theme/scripts/validate.py",
+    "claim": "If a manifest sets background to a non-table value such as \"image\", check_theme calls background.get(\"type\") before the check that reports background must be a table, so the validator crashes with AttributeError instead of reporting a validation error.",
+    "anchor": "    if background.get(\"type\") == \"image\":",
+    "category": "error-handling",
+    "severity": "medium",
+    "expected": "real"
+  },
+  {
+    "commit": "4b4cdae2435cdbeff781f9a8e74a1a1bb8c3b3d7",
+    "path": ".claude/skills/serverbox-theme/scripts/validate.py",
+    "claim": "If a manifest sets background to a non-table value such as \"image\", check_theme calls background.get(\"type\") before the check that reports background must be a table, so the validator crashes with AttributeError instead of reporting a validation error.",
+    "anchor": "    if background.get(\"type\") == \"image\":",
+    "category": "error-handling",
+    "severity": "medium",
+    "expected": "false"
+  },
+  {
+    "commit": "4b4cdae2435cdbeff781f9a8e74a1a1bb8c3b3d7",
+    "path": ".claude/skills/serverbox-theme/scripts/validate.py",
+    "claim": "table_of returns {} for a present icons.images or icons.colors value that is not a table (for example images = \"bad\") without recording an error, so the validator can print OK while the installer rejects the package.",
+    "anchor": "    images = table_of(icons.get(\"images\"))",
+    "category": "correctness",
+    "severity": "medium",
+    "expected": "real"
+  },
+  {
+    "commit": "f54d099fa5f75b218e7d27a78d99c3c7f6b47842",
+    "path": ".claude/skills/serverbox-theme/scripts/validate.py",
+    "claim": "table_of returns {} for a present icons.images or icons.colors value that is not a table (for example images = \"bad\") without recording an error, so the validator can print OK while the installer rejects the package.",
+    "anchor": "    images = table_of(icons.get(\"images\"))",
+    "category": "correctness",
+    "severity": "medium",
+    "expected": "false"
+  },
+  {
+    "commit": "f54d099fa5f75b218e7d27a78d99c3c7f6b47842",
+    "path": ".claude/skills/serverbox-theme/scripts/validate.py",
+    "claim": "When a manifest contains an empty [schema] table, sch is empty and the bounds check `if sch and ...` is skipped, so without check-jsonschema the validator reports OK although the installer rejects a package with no schema bounds.",
+    "anchor": "    if sch and (set(sch) != {\"min\", \"max\"} or not (schema_int(lo) and schema_int(hi))):",
+    "category": "correctness",
+    "severity": "medium",
+    "expected": "real"
+  },
+  {
+    "commit": "ead59edbe70e49cc5d4c98a902ca6a5df25ea1f3",
+    "path": ".claude/skills/serverbox-theme/scripts/validate.py",
+    "claim": "When a manifest contains an empty [schema] table, sch is empty and the bounds check `if sch and ...` is skipped, so without check-jsonschema the validator reports OK although the installer rejects a package with no schema bounds.",
+    "anchor": "    if sch and (set(sch) != {\"min\", \"max\"} or not (schema_int(lo) and schema_int(hi))):",
+    "category": "correctness",
+    "severity": "medium",
+    "expected": "false"
+  }
+]

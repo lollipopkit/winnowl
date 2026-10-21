@@ -1,0 +1,20 @@
+{
+  "object_kind": "merge_request",
+  "project": {
+    "id": 55,
+    "path_with_namespace": "acme/app",
+    "name": "app",
+    "git_http_url": "https://gitlab.com/acme/app.git",
+    "default_branch": "main"
+  },
+  "user": { "id": 7, "username": "alice", "name": "Alice" },
+  "object_attributes": {
+    "id": 5001,
+    "iid": 7,
+    "action": "open",
+    "source_branch": "feature/login",
+    "target_branch": "main",
+    "last_commit": { "id": "aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa" },
+    "work_in_progress": false
+  }
+}

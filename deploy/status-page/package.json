@@ -1,0 +1,18 @@
+{
+  "name": "winnowl-status-page",
+  "license": "Apache-2.0",
+  "private": true,
+  "version": "0.1.0",
+  "description": "winnowl 公共状态页(Cloudflare Worker;刻意与被监控的集群分开部署)",
+  "scripts": {
+    "dev": "wrangler dev",
+    "deploy": "wrangler deploy",
+    "typecheck": "tsc --noEmit",
+    "tail": "wrangler tail"
+  },
+  "devDependencies": {
+    "@cloudflare/workers-types": "^5.20260730.1",
+    "typescript": "^5.9.2",
+    "wrangler": "^4.0.0"
+  }
+}

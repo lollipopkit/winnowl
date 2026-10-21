@@ -1,0 +1,4 @@
+# SvelteKit 生成物(§40)。dist/ 已由根 .gitignore 覆盖。
+.svelte-kit/
+vite.config.ts.timestamp-*
+vite.config.js.timestamp-*

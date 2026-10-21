@@ -1,0 +1,53 @@
+# API host of the split live deployment (deploy-live.sh role `api`); sandboxes run on sandbox hosts.
+# Sandbox hosts never connect back, so postgres / MinIO / OTLP publish no port.
+#   docker compose -f docker-compose.yml -f docker-compose.live.yml -f docker-compose.split-api.yml
+services:
+  # Second instance so rolling recreates never answer deliveries with 502; the proxy retries on the
+  # other one, which is safe because ingestion dedupes on the delivery id.
+  # `extends` reads only one file, so docker-compose.live.yml overrides are repeated here.
+  webhook-ingress-b:
+    extends:
+      file: docker-compose.yml
+      service: webhook-ingress
+    environment:
+      OTEL_EXPORTER_OTLP_ENDPOINT: http://otel-collector:4318
+    ports: !override
+      - '${WEBHOOK_BIND:-127.0.0.1}:${WEBHOOK_B_PORT:-8082}:8081'
+    deploy:
+      resources:
+        limits:
+          memory: 256m
+
+  runner-supervisor:
+    environment:
+      SANDBOX_BACKEND: agents
+      # Sandboxed reviews call models through the relay, so no key leaves this host.
+      LLM_RELAY_ADMIN_URL: http://llm-relay:8794
+      LLM_RELAY_PUBLIC_URL: ${LLM_RELAY_PUBLIC_URL:?set by scripts/deploy-live.sh}
+    # No docker.sock: it must not hold root-equivalent access to the host that keeps the data.
+    volumes: !override
+      - ${SECRETS_DIR:-./.secrets}:/app/.secrets:ro
+    depends_on: !override
+      migrate:
+        condition: service_completed_successfully
+      minio-init:
+        condition: service_completed_successfully
+      llm-relay:
+        condition: service_started
+
+  # No env_file: keys arrive with each review's grant and stay in memory.
+  llm-relay:
+    image: winnowl:latest
+    command: ['node', 'apps/llm-relay/dist/index.mjs']
+    environment:
+      LLM_RELAY_ADMIN_SHA256: ${LLM_RELAY_ADMIN_SHA256:?set by scripts/deploy-live.sh}
+      RELAY_PORT: '8793'
+      RELAY_ADMIN_PORT: '8794'
+    # Admin port stays internal.
+    ports:
+      - '${PRIVATE_BIND:?private address of this host}:8793:8793'
+    restart: unless-stopped
+    deploy:
+      resources:
+        limits:
+          memory: 256m

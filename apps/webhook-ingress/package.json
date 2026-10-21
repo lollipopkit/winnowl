@@ -1,0 +1,35 @@
+{
+  "name": "@reviewbot/webhook-ingress",
+  "license": "Apache-2.0",
+  "version": "0.0.0",
+  "private": true,
+  "type": "module",
+  "main": "./dist/index.js",
+  "scripts": {
+    "build": "tsc -b",
+    "clean": "tsc -b --clean",
+    "dev": "tsx watch src/index.ts",
+    "start": "node dist/index.js"
+  },
+  "dependencies": {
+    "@reviewbot/db": "workspace:*",
+    "@reviewbot/domain": "workspace:*",
+    "@reviewbot/entitlement": "workspace:*",
+    "@reviewbot/ids": "workspace:*",
+    "@reviewbot/kms": "workspace:*",
+    "@reviewbot/provider-contracts": "workspace:*",
+    "@reviewbot/provider-factory": "workspace:*",
+    "@reviewbot/provider-forgejo": "workspace:*",
+    "@reviewbot/provider-github": "workspace:*",
+    "@reviewbot/provider-gitlab": "workspace:*",
+    "@reviewbot/provider-sync": "workspace:*",
+    "@reviewbot/queue": "workspace:*",
+    "@reviewbot/telemetry": "workspace:*",
+    "fastify": "^5.2.0",
+    "prom-client": "^15.1.3"
+  },
+  "devDependencies": {
+    "@reviewbot/testkit": "workspace:*",
+    "yaml": "^2.6.1"
+  }
+}

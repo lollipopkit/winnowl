@@ -1,0 +1,98 @@
+# Full single-host stack: Vault (Transit KMS), MinIO, Jaeger on top of the base compose.
+# Usage: docker compose -f docker-compose.yml -f docker-compose.full.yml --profile edge up -d --build
+# Auxiliary services are dev/single-instance, for feature verification only.
+name: winnowl
+
+services:
+  vault:
+    image: hashicorp/vault:1.18
+    cap_add: [IPC_LOCK]
+    environment:
+      VAULT_DEV_ROOT_TOKEN_ID: ${VAULT_TOKEN:-winnowl-root}
+      VAULT_DEV_LISTEN_ADDRESS: 0.0.0.0:8200
+    command: ['server', '-dev']
+    restart: unless-stopped
+
+  vault-init:
+    image: hashicorp/vault:1.18
+    environment:
+      VAULT_ADDR: http://vault:8200
+      VAULT_TOKEN: ${VAULT_TOKEN:-winnowl-root}
+    entrypoint: ['sh', '-c']
+    command:
+      - |
+        until vault status >/dev/null 2>&1; do sleep 2; done
+        vault secrets enable transit 2>/dev/null || true
+        vault write -f transit/keys/winnowl >/dev/null && echo "vault transit key ready"
+    depends_on: [vault]
+    restart: 'no'
+
+  minio:
+    # Official minio images are no longer publicly distributed; Chainguard builds instead.
+    image: cgr.dev/chainguard/minio:latest
+    environment:
+      MINIO_ROOT_USER: ${MINIO_USER:-winnowl}
+      MINIO_ROOT_PASSWORD: ${MINIO_PASS:-winnowl-minio}
+    command: ['server', '/data', '--console-address', ':9001']
+    volumes: [minio-data:/data]
+    restart: unless-stopped
+
+  minio-init:
+    # The -dev variant has sh, needed by the init script.
+    image: cgr.dev/chainguard/minio-client:latest-dev
+    entrypoint: ['sh', '-c']
+    command:
+      - |
+        until mc alias set m http://minio:9000 "${MINIO_USER:-winnowl}" "${MINIO_PASS:-winnowl-minio}" >/dev/null 2>&1; do sleep 2; done
+        mc mb -p m/${ARTIFACT_BUCKET:-winnowl-artifacts} 2>/dev/null || true
+        echo "minio bucket ready"
+    depends_on: [minio]
+    restart: 'no'
+
+  jaeger:
+    image: jaegertracing/all-in-one:1.60
+    environment:
+      COLLECTOR_OTLP_ENABLED: 'true'
+    ports:
+      - '${JAEGER_UI_BIND:-127.0.0.1}:16686:16686'
+    restart: unless-stopped
+
+  control-api:
+    environment:
+      KMS_VAULT_ADDR: http://vault:8200
+      KMS_VAULT_TOKEN: ${VAULT_TOKEN:-winnowl-root}
+      KMS_VAULT_TRANSIT_KEY: winnowl
+      OTEL_EXPORTER_OTLP_ENDPOINT: http://jaeger:4318
+    depends_on:
+      vault-init:
+        condition: service_completed_successfully
+
+  webhook-ingress:
+    environment:
+      KMS_VAULT_ADDR: http://vault:8200
+      KMS_VAULT_TOKEN: ${VAULT_TOKEN:-winnowl-root}
+      KMS_VAULT_TRANSIT_KEY: winnowl
+      OTEL_EXPORTER_OTLP_ENDPOINT: http://jaeger:4318
+    depends_on:
+      vault-init:
+        condition: service_completed_successfully
+
+  runner-supervisor:
+    environment:
+      KMS_VAULT_ADDR: http://vault:8200
+      KMS_VAULT_TOKEN: ${VAULT_TOKEN:-winnowl-root}
+      KMS_VAULT_TRANSIT_KEY: winnowl
+      ARTIFACT_S3_ENDPOINT: http://minio:9000
+      ARTIFACT_S3_BUCKET: ${ARTIFACT_BUCKET:-winnowl-artifacts}
+      ARTIFACT_S3_ACCESS_KEY_ID: ${MINIO_USER:-winnowl}
+      ARTIFACT_S3_SECRET_ACCESS_KEY: ${MINIO_PASS:-winnowl-minio}
+      ARTIFACT_S3_REGION: us-east-1
+      OTEL_EXPORTER_OTLP_ENDPOINT: http://jaeger:4318
+    depends_on:
+      vault-init:
+        condition: service_completed_successfully
+      minio-init:
+        condition: service_completed_successfully
+
+volumes:
+  minio-data:

@@ -1,0 +1,22 @@
+{
+  "extends": "../../tsconfig.base.json",
+  "compilerOptions": {
+    "rootDir": "src",
+    "outDir": "dist",
+    "tsBuildInfoFile": "dist/.tsbuildinfo"
+  },
+  "include": ["src"],
+  "references": [
+    { "path": "../agent-pi" },
+    { "path": "../anchor-resolver" },
+    { "path": "../domain" },
+    { "path": "../findings" },
+    { "path": "../prompts" },
+    { "path": "../provider-contracts" },
+    { "path": "../publisher" },
+    { "path": "../review-engine" },
+    { "path": "../review-profile" },
+    { "path": "../telemetry" },
+    { "path": "../verification" }
+  ]
+}

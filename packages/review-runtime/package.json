@@ -1,0 +1,49 @@
+{
+  "name": "@reviewbot/review-runtime",
+  "license": "Apache-2.0",
+  "version": "0.0.0",
+  "private": true,
+  "type": "module",
+  "exports": {
+    ".": {
+      "types": "./dist/index.d.ts",
+      "import": "./dist/index.js"
+    }
+  },
+  "main": "./dist/index.js",
+  "types": "./dist/index.d.ts",
+  "files": [
+    "dist"
+  ],
+  "scripts": {
+    "build": "tsc -b",
+    "clean": "tsc -b --clean"
+  },
+  "dependencies": {
+    "@reviewbot/agent-pi": "workspace:*",
+    "@reviewbot/autofix": "workspace:*",
+    "@reviewbot/canonical-diff": "workspace:*",
+    "@reviewbot/code-intel": "workspace:*",
+    "@reviewbot/config": "workspace:*",
+    "@reviewbot/cost-budget": "workspace:*",
+    "@reviewbot/db": "workspace:*",
+    "@reviewbot/finding-lifecycle": "workspace:*",
+    "@reviewbot/git-repository": "workspace:*",
+    "@reviewbot/ids": "workspace:*",
+    "@reviewbot/kms": "workspace:*",
+    "@reviewbot/knowledge": "workspace:*",
+    "@reviewbot/multi-repo": "workspace:*",
+    "@reviewbot/plugins": "workspace:*",
+    "@reviewbot/prompts": "workspace:*",
+    "@reviewbot/provider-contracts": "workspace:*",
+    "@reviewbot/publisher": "workspace:*",
+    "@reviewbot/review-orchestrator": "workspace:*",
+    "@reviewbot/review-profile": "workspace:*",
+    "@reviewbot/telemetry": "workspace:*"
+  },
+  "devDependencies": {
+    "@reviewbot/domain": "workspace:*",
+    "@reviewbot/provider-contracts": "workspace:*",
+    "@reviewbot/testkit": "workspace:*"
+  }
+}

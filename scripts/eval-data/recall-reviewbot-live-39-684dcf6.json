@@ -1,0 +1,7 @@
+[
+  {
+    "path": "src/average.js",
+    "line": 2,
+    "claim": "average([]) calls reduce on an empty array without an initial value, which throws a TypeError (and a zero length would otherwise divide by zero)."
+  }
+]

@@ -1,0 +1,16 @@
+{
+  "extends": "../../tsconfig.base.json",
+  "compilerOptions": {
+    "rootDir": "src",
+    "outDir": "dist",
+    "tsBuildInfoFile": "dist/.tsbuildinfo"
+  },
+  "include": ["src"],
+  "references": [
+    { "path": "../i18n" },
+    { "path": "../db" },
+    { "path": "../domain" },
+    { "path": "../ids" },
+    { "path": "../provider-contracts" }
+  ]
+}

@@ -1,0 +1,50 @@
+{
+  "name": "@reviewbot/control-api",
+  "license": "Apache-2.0",
+  "version": "0.0.0",
+  "private": true,
+  "type": "module",
+  "main": "./dist/index.js",
+  "scripts": {
+    "build": "tsc -b",
+    "i18n": "typesafe-i18n --no-watch",
+    "clean": "tsc -b --clean",
+    "dev": "tsx watch src/index.ts",
+    "start": "node dist/index.js"
+  },
+  "dependencies": {
+    "@fastify/swagger": "^9.4.0",
+    "@fastify/swagger-ui": "^5.2.0",
+    "@opentelemetry/api": "^1.9.0",
+    "@reviewbot/actions": "workspace:*",
+    "@reviewbot/config": "workspace:*",
+    "@reviewbot/conversation": "workspace:*",
+    "@reviewbot/db": "workspace:*",
+    "@reviewbot/domain": "workspace:*",
+    "@reviewbot/entitlement": "workspace:*",
+    "@reviewbot/finding-lifecycle": "workspace:*",
+    "@reviewbot/findings": "workspace:*",
+    "@reviewbot/i18n": "workspace:*",
+    "@reviewbot/kms": "workspace:*",
+    "@reviewbot/knowledge": "workspace:*",
+    "@reviewbot/multi-repo": "workspace:*",
+    "@reviewbot/notifications": "workspace:*",
+    "@reviewbot/plugins": "workspace:*",
+    "@reviewbot/provider-factory": "workspace:*",
+    "@reviewbot/queue": "workspace:*",
+    "@reviewbot/rbac": "workspace:*",
+    "@reviewbot/review-profile": "workspace:*",
+    "@reviewbot/telemetry": "workspace:*",
+    "fastify": "^5.2.0",
+    "fastify-type-provider-zod": "^4.0.2",
+    "jose": "^5.9.0",
+    "pino": "^9.6.0",
+    "prom-client": "^15.1.3",
+    "zod": "^3.24.1"
+  },
+  "devDependencies": {
+    "@reviewbot/ids": "workspace:*",
+    "@reviewbot/testkit": "workspace:*",
+    "typesafe-i18n": "^5.26.2"
+  }
+}

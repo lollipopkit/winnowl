@@ -1,0 +1,20 @@
+<!doctype html>
+<html lang="en">
+  <head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1" />
+    <meta name="color-scheme" content="light dark" />
+    <link rel="icon" href="%sveltekit.assets%/favicon.svg" />
+    <!-- iOS home screen needs an opaque PNG, not SVG -->
+    <link rel="apple-touch-icon" href="%sveltekit.assets%/apple-touch-icon.png" />
+    <!--
+      No title here: pages set it via svelte:head, and a second title tag would win in search results.
+      Comments in this file are also templated, so never write placeholder names with percent signs.
+    -->
+    %sveltekit.head%
+    <script src="%sveltekit.assets%/boot.js"></script>
+  </head>
+  <body data-sveltekit-preload-data="hover">
+    <div style="display: contents">%sveltekit.body%</div>
+  </body>
+</html>

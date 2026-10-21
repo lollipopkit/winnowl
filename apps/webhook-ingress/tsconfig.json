@@ -1,0 +1,24 @@
+{
+  "extends": "../../tsconfig.base.json",
+  "compilerOptions": {
+    "rootDir": "src",
+    "outDir": "dist",
+    "tsBuildInfoFile": "dist/.tsbuildinfo"
+  },
+  "include": ["src"],
+  "references": [
+    { "path": "../../packages/db" },
+    { "path": "../../packages/domain" },
+    { "path": "../../packages/entitlement" },
+    { "path": "../../packages/ids" },
+    { "path": "../../packages/kms" },
+    { "path": "../../packages/provider-contracts" },
+    { "path": "../../packages/provider-factory" },
+    { "path": "../../packages/provider-github" },
+    { "path": "../../packages/provider-gitlab" },
+    { "path": "../../packages/provider-sync" },
+    { "path": "../../packages/provider-forgejo" },
+    { "path": "../../packages/queue" },
+    { "path": "../../packages/telemetry" }
+  ]
+}

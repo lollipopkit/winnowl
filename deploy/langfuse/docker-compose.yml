@@ -1,0 +1,147 @@
+# Self-hosted Langfuse v4 on its own host (it does not fit next to winnowl's sandboxes in memory).
+# Usage:
+#   scp -r deploy/langfuse <host>:~/langfuse && ssh <host>
+#   cd ~/langfuse && LANGFUSE_ADMIN_EMAIL=you@example.com bash gen-secrets.sh
+#   docker compose up -d
+# winnowl reaches it over public HTTPS + Basic auth at `https://<host>.exe.xyz/api/public/otel`.
+# Only langfuse-web is published.
+name: langfuse
+
+x-langfuse-env: &langfuse-env
+  DATABASE_URL: postgresql://postgres:${LANGFUSE_PG_PASSWORD:?required}@postgres:5432/postgres
+  SALT: ${LANGFUSE_SALT:?required}
+  ENCRYPTION_KEY: ${LANGFUSE_ENCRYPTION_KEY:?required}
+  # Do not send usage metadata to Langfuse.
+  TELEMETRY_ENABLED: 'false'
+  CLICKHOUSE_MIGRATION_URL: clickhouse://clickhouse:9000
+  CLICKHOUSE_URL: http://clickhouse:8123
+  CLICKHOUSE_USER: clickhouse
+  CLICKHOUSE_PASSWORD: ${LANGFUSE_CLICKHOUSE_PASSWORD:?required}
+  CLICKHOUSE_CLUSTER_ENABLED: 'false'
+  REDIS_HOST: redis
+  REDIS_PORT: '6379'
+  REDIS_AUTH: ${LANGFUSE_REDIS_PASSWORD:?required}
+  LANGFUSE_S3_EVENT_UPLOAD_BUCKET: langfuse
+  LANGFUSE_S3_EVENT_UPLOAD_REGION: us-east-1
+  LANGFUSE_S3_EVENT_UPLOAD_ENDPOINT: http://minio:9000
+  LANGFUSE_S3_EVENT_UPLOAD_ACCESS_KEY_ID: langfuse
+  LANGFUSE_S3_EVENT_UPLOAD_SECRET_ACCESS_KEY: ${LANGFUSE_MINIO_PASSWORD:?required}
+  LANGFUSE_S3_EVENT_UPLOAD_FORCE_PATH_STYLE: 'true'
+  LANGFUSE_S3_EVENT_UPLOAD_PREFIX: events/
+  LANGFUSE_S3_MEDIA_UPLOAD_BUCKET: langfuse
+  LANGFUSE_S3_MEDIA_UPLOAD_REGION: us-east-1
+  LANGFUSE_S3_MEDIA_UPLOAD_ENDPOINT: http://minio:9000
+  LANGFUSE_S3_MEDIA_UPLOAD_ACCESS_KEY_ID: langfuse
+  LANGFUSE_S3_MEDIA_UPLOAD_SECRET_ACCESS_KEY: ${LANGFUSE_MINIO_PASSWORD:?required}
+  LANGFUSE_S3_MEDIA_UPLOAD_FORCE_PATH_STYLE: 'true'
+  LANGFUSE_S3_MEDIA_UPLOAD_PREFIX: media/
+
+services:
+  postgres:
+    image: postgres:17-alpine
+    environment:
+      POSTGRES_USER: postgres
+      POSTGRES_PASSWORD: ${LANGFUSE_PG_PASSWORD:?required}
+      POSTGRES_DB: postgres
+      TZ: UTC
+      PGTZ: UTC
+    volumes: [pg-data:/var/lib/postgresql/data]
+    healthcheck:
+      test: ['CMD-SHELL', 'pg_isready -U postgres']
+      interval: 3s
+      timeout: 3s
+      retries: 20
+    restart: unless-stopped
+
+  clickhouse:
+    image: clickhouse/clickhouse-server:25.12
+    user: '101:101'
+    environment:
+      CLICKHOUSE_DB: default
+      CLICKHOUSE_USER: clickhouse
+      CLICKHOUSE_PASSWORD: ${LANGFUSE_CLICKHOUSE_PASSWORD:?required}
+    volumes:
+      - ch-data:/var/lib/clickhouse
+      - ch-logs:/var/log/clickhouse-server
+    # ClickHouse sizes itself to host memory; cap it so web/worker fit.
+    deploy:
+      resources:
+        limits:
+          memory: 3g
+    healthcheck:
+      test: wget --no-verbose --tries=1 --spider http://localhost:8123/ping || exit 1
+      interval: 5s
+      timeout: 5s
+      retries: 20
+      start_period: 10s
+    restart: unless-stopped
+
+  redis:
+    image: redis:7-alpine
+    command: ['redis-server', '--requirepass', '${LANGFUSE_REDIS_PASSWORD:?required}', '--maxmemory-policy', 'noeviction']
+    volumes: [redis-data:/data]
+    healthcheck:
+      test: ['CMD', 'redis-cli', 'ping']
+      interval: 3s
+      timeout: 10s
+      retries: 10
+    restart: unless-stopped
+
+  minio:
+    # Official minio images are no longer public; the -dev variant has sh for the entrypoint.
+    image: cgr.dev/chainguard/minio:latest-dev
+    environment:
+      MINIO_ROOT_USER: langfuse
+      MINIO_ROOT_PASSWORD: ${LANGFUSE_MINIO_PASSWORD:?required}
+    entrypoint: ['sh', '-c']
+    # Create the bucket before start instead of an init container.
+    command: ['mkdir -p /data/langfuse && minio server --address ":9000" --console-address ":9001" /data']
+    volumes: [minio-data:/data]
+    healthcheck:
+      test: ['CMD', 'mc', 'ready', 'local']
+      interval: 3s
+      timeout: 5s
+      retries: 20
+      start_period: 5s
+    restart: unless-stopped
+
+  langfuse-worker:
+    image: langfuse/langfuse-worker:4
+    environment:
+      <<: *langfuse-env
+    depends_on: &backing
+      postgres: {condition: service_healthy}
+      clickhouse: {condition: service_healthy}
+      redis: {condition: service_healthy}
+      minio: {condition: service_healthy}
+    restart: unless-stopped
+
+  langfuse-web:
+    image: langfuse/langfuse:4
+    environment:
+      <<: *langfuse-env
+      NEXTAUTH_URL: ${LANGFUSE_BASE_URL:?required}
+      NEXTAUTH_SECRET: ${LANGFUSE_NEXTAUTH_SECRET:?required}
+      AUTH_DISABLE_SIGNUP: 'true'
+      # Bootstraps org/project/admin/API keys on first start; no-op if they exist.
+      LANGFUSE_INIT_ORG_ID: winnowl
+      LANGFUSE_INIT_ORG_NAME: winnowl
+      LANGFUSE_INIT_PROJECT_ID: winnowl
+      LANGFUSE_INIT_PROJECT_NAME: winnowl
+      LANGFUSE_INIT_PROJECT_PUBLIC_KEY: ${LANGFUSE_PUBLIC_KEY:?required}
+      LANGFUSE_INIT_PROJECT_SECRET_KEY: ${LANGFUSE_SECRET_KEY:?required}
+      LANGFUSE_INIT_USER_EMAIL: ${LANGFUSE_ADMIN_EMAIL:?required}
+      LANGFUSE_INIT_USER_NAME: winnowl admin
+      LANGFUSE_INIT_USER_PASSWORD: ${LANGFUSE_ADMIN_PASSWORD:?required}
+    # The only public port (exe.dev proxy_port 8000).
+    ports:
+      - '${LANGFUSE_WEB_BIND:-0.0.0.0}:8000:3000'
+    depends_on: *backing
+    restart: unless-stopped
+
+volumes:
+  pg-data:
+  ch-data:
+  ch-logs:
+  redis-data:
+  minio-data:
