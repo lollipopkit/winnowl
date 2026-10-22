@@ -197,6 +197,7 @@ const fr = {
     partial: 'Cette passe a examiné {reviewed} fichier(s) ; il en reste {remaining}. Le prochain push continue, ou cochez la case ci-dessous.',
     unfinishedTitle: 'Review inachevé',
     unfinished: 'Cette exécution a examiné {reviewed} fichier(s) ; {remaining} n\'ont pas été terminés. Le prochain push continue, ou cochez la case ci-dessous.',
+    continuing: 'Cette passe a examiné {reviewed} fichier(s) ; il en reste {remaining}. La passe suivante a démarré automatiquement.',
     continueTrigger: 'Continuer avec les fichiers restants',
     mergeRisk: 'Risque de merge',
     suggestedReviewers: 'Relecteurs suggérés',

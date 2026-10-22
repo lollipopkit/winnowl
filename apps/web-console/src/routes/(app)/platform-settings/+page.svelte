@@ -76,6 +76,7 @@
     'agent.sandbox': 'agentSandbox',
     'review.verify_votes': 'verifyVotes',
     'review.dig_concurrency': 'digConcurrency',
+    'review.auto_continue_rounds': 'autoContinueRounds',
     'review.verify_concurrency': 'verifyConcurrency',
     'review.fast_map': 'fastMap',
     'review.max_tool_calls': 'maxToolCalls',

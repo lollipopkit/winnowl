@@ -16,6 +16,7 @@ import {
   stackRootBranchOf,
 } from '@reviewbot/review-runtime';
 import { createReviewRevisionHandler } from '../review-revision.js';
+import { continueReview } from '../review-continue.js';
 import { enqueueKnowledgeJobs } from '../knowledge-jobs.js';
 import { createAutoIssueProposer } from '../auto-issue.js';
 import { createReviewChecksSubmitter } from '../review-checks.js';
@@ -469,6 +470,11 @@ export async function reviewHandlers(rt: RunnerRuntime): Promise<Record<string, 
           const deferredFiles = outcome.deferredPaths?.length ?? 0;
           const unfinishedFiles = (outcome.unreachedPaths?.length ?? 0) + (outcome.unplannedPaths?.length ?? 0);
           const remainingFiles = deferredFiles + unfinishedFiles;
+          // After the coverage write above: the next round starts from the ledger this one left.
+          const continuing = await continueReview(db, ctx.payload, outcome).catch((err) => {
+            logger.warn({ changeRequestId: ctx.payload.changeRequestId, err: (err as Error)?.message }, 'review auto-continue failed');
+            return false;
+          });
           await statusComment
             .reviewed(statusTarget, {
               headSha: ctx.payload.headSha,
@@ -480,6 +486,7 @@ export async function reviewHandlers(rt: RunnerRuntime): Promise<Record<string, 
               incomplete: remainingFiles > 0,
               resultsPosted: outcome.resultsPosted === true,
               files: { reviewed: outcome.coveredPaths?.length ?? 0, deferred: deferredFiles, unfinished: unfinishedFiles },
+              ...(continuing ? { continuing } : {}),
               walkthrough: outcome.walkthrough ?? [],
               ...(reviewers ? { reviewers } : {}),
             })

@@ -196,6 +196,7 @@ const ja = {
     partial: 'このラウンドでは {reviewed} 件のファイルを review しました。残り {remaining} 件です。次の push で続きを行うか、下のチェックボックスを選択してください。',
     unfinishedTitle: 'Review 未完了',
     unfinished: '今回の実行では {reviewed} 件のファイルを review し、{remaining} 件は終わりませんでした。次の push で続きを行うか、下のチェックボックスを選択してください。',
+    continuing: 'このラウンドでは {reviewed} 件のファイルをレビューしました。残り {remaining} 件です。次のラウンドを自動で開始しました。',
     continueTrigger: '残りのファイルを review する',
     mergeRisk: 'マージリスク',
     suggestedReviewers: '推奨レビュアー',

@@ -47,6 +47,8 @@ export interface ReviewRevisionPayload {
   forceFullReview?: boolean;
   /** Platform user id of the initiator, for user-level plugin BYOK. */
   initiatedByUserId?: string;
+  /** Set on rounds started by the previous round of the same head (review-continue.ts). */
+  continueRound?: number;
 }
 
 export type { ReviewEnv };
@@ -202,6 +204,8 @@ export function createReviewRevisionHandler(deps: ReviewRevisionDeps): JobHandle
       }
     }
     const isManual = payload.trigger === 'manual';
+    // A continuation round was admitted with the round it continues: only the state gates apply again.
+    const isContinuation = payload.continueRound !== undefined;
     const crLabels: string[] = Array.isArray(cr.labels) ? cr.labels : [];
     // A stacked PR is gated on the stack root's target branch, otherwise `base_branches` would block
     // the whole stack. The provider's native stack base wins; else walk the inferred parent chain.
@@ -231,7 +235,7 @@ export function createReviewRevisionHandler(deps: ReviewRevisionDeps): JobHandle
     }
     // pause_after_reviewed_commits counts non-cancelled review_costs since the last manual trigger,
     // so gate-skips and superseded runs do not count.
-    if (!isManual && auto.pause_after_reviewed_commits > 0) {
+    if (!isManual && !isContinuation && auto.pause_after_reviewed_commits > 0) {
       const reviewJobs = await db
         .selectFrom('jobs')
         .select(['status', 'payload', 'created_at'])
@@ -269,12 +273,14 @@ export function createReviewRevisionHandler(deps: ReviewRevisionDeps): JobHandle
     // and dedupe only covers in-flight jobs, so this would otherwise loop. Cancelled runs are
     // billed into review_costs too but do not count as a review.
     if (!isManual) {
-      const reviewed = await db
-        .selectFrom('review_costs')
-        .select('id')
-        .where('revision_id', '=', payload.revisionId)
-        .where('cancelled', '=', false)
-        .executeTakeFirst();
+      const reviewed = isContinuation
+        ? undefined
+        : await db
+            .selectFrom('review_costs')
+            .select('id')
+            .where('revision_id', '=', payload.revisionId)
+            .where('cancelled', '=', false)
+            .executeTakeFirst();
       if (reviewed) {
         log('review skipped: revision already reviewed', {
           changeRequestId: payload.changeRequestId,
@@ -305,7 +311,7 @@ export function createReviewRevisionHandler(deps: ReviewRevisionDeps): JobHandle
       }
     }
 
-    if (!isManual && auto.max_changed_files > 0 && deps.listChangedPaths) {
+    if (!isManual && !isContinuation && auto.max_changed_files > 0 && deps.listChangedPaths) {
       const paths = await deps.listChangedPaths(ctx).catch(() => null);
       const n = paths === null ? null : countReviewablePaths(paths, effective.reviews);
       if (n !== null && n > auto.max_changed_files) {

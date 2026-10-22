@@ -117,6 +117,18 @@ describe('status comment', () => {
     expect(body).toContain('Continue with the remaining files');
   });
 
+  it('next round started on its own: says so and offers no checkbox', async () => {
+    await status().reviewed(
+      target,
+      summary({ files: { reviewed: 40, deferred: 0, unfinished: 51 }, continuing: true, incomplete: true, blocking: { count: 0, severe: false } }),
+    );
+    const body = [...comments.values()][0]!;
+    expect(body).toContain('Reviewed in rounds');
+    expect(body).toContain('40 file(s); 51 remain. The next round has started on its own.');
+    expect(body).not.toContain('Continue with the remaining files');
+    expect(body).not.toContain('- [ ]');
+  });
+
   it('lists suggested reviewers without mentioning them', async () => {
     await status().reviewed(target, summary({ reviewers: { logins: ['alice', 'bob'], requested: false } }));
     const suggested = [...comments.values()][0]!;

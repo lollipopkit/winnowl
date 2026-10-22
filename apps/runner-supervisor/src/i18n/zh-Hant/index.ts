@@ -193,6 +193,7 @@ const zhHant = {
     partial: '這一輪評審了 {reviewed} 個檔案,還有 {remaining} 個待評審。下一次 push 會接著評,也可以勾選下面的核取方塊。',
     unfinishedTitle: '評審未完成',
     unfinished: '本次評審了 {reviewed} 個檔案,{remaining} 個沒有評完。下一次 push 會接著評,也可以勾選下面的核取方塊。',
+    continuing: '這一輪審查了 {reviewed} 個檔案,還剩 {remaining} 個。下一輪已自動開始。',
     continueTrigger: '接著評審剩下的檔案',
     mergeRisk: '合併風險',
     suggestedReviewers: '建議的 reviewer',

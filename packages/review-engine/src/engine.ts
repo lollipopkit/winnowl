@@ -20,7 +20,8 @@ import {
   type StreamFn,
 } from '@reviewbot/agent-pi';
 import type { PromptBundle } from '@reviewbot/prompts';
-import { focusSuffix, prefetchFocus, removalPartSuffix, splitByFocus } from './focus.js';
+import { filePartSuffix, focusSuffix, prefetchFocus, splitByFocus } from './focus.js';
+import { PREFETCH_MAX_FILE_CHARS, PREFETCH_MAX_TOTAL_CHARS, patchPreview } from './patch-parts.js';
 import { remainderScopes, unassignedFiles } from './remainder.js';
 import { getTracer, withSpan } from '@reviewbot/telemetry';
 
@@ -663,9 +664,6 @@ function toReviewScope(
 }
 
 const PREFETCH_MAX_FILE_LINES = 400;
-const PREFETCH_MAX_TOTAL_CHARS = 24_000;
-/** Per-file share of the prefetch, so one large diff does not crowd out the rest of the scope. */
-const PREFETCH_MAX_FILE_CHARS = 8_000;
 
 /**
  * Prefetch the scope's changes into the dig prompt to save tool turns: each file's diff, or its head
@@ -689,9 +687,9 @@ async function prefetchScopeFiles(
     }
     const patch = patches?.[normalisePath(path)];
     if (patch !== undefined) {
-      const body = patch.slice(0, remaining);
+      const { body, truncated } = patchPreview(patch, remaining);
       total += body.length;
-      const note = body.length < patch.length ? ' (truncated — use read_diff for the rest)' : '';
+      const note = truncated ? ' (truncated — use read_diff for the rest)' : '';
       blocks.push(`// ${path} — diff${note}\n${body}`);
       continue;
     }
@@ -825,7 +823,7 @@ export async function runDig(
   const selection = modelFor(deps, 'dig', scopeIndex);
   const result = await runAgentInvocation({
     systemPrompt: digSystem,
-    task: `${bundle.task}\n\nScope: ${scope.title}\n${scope.changeSummary}\nObligations:\n${obligations}${focusSuffix(scope.focus)}${removalPartSuffix(scope)}${prefetched}${previousRoundSuffix(scope.files, deps.fileContext)}${lfsPointerSuffix(deps.lfsPointerPaths)}${submoduleSuffix(deps.submoduleBumps)}${walkthroughRequestSuffix(scope)}${explorationSuffix(deps.exploration)}${priorReviewedSuffix(deps.priorReviewedPaths, deps.fileContext)}${subagentSuffix(deps.subagents !== undefined, deps.subagents?.maxTasks ?? 0)}${retrySuffix(retryFiles)}`,
+    task: `${bundle.task}\n\nScope: ${scope.title}\n${scope.changeSummary}\nObligations:\n${obligations}${focusSuffix(scope.focus)}${filePartSuffix(scope)}${prefetched}${previousRoundSuffix(scope.files, deps.fileContext)}${lfsPointerSuffix(deps.lfsPointerPaths)}${submoduleSuffix(deps.submoduleBumps)}${walkthroughRequestSuffix(scope)}${explorationSuffix(deps.exploration)}${priorReviewedSuffix(deps.priorReviewedPaths, deps.fileContext)}${subagentSuffix(deps.subagents !== undefined, deps.subagents?.maxTasks ?? 0)}${retrySuffix(retryFiles)}`,
     ...selection,
     streamFn: selection.streamFn ?? deps.streamFn,
     ...(seedMessages && seedMessages.length > 0 ? { seedMessages } : {}),
@@ -1027,7 +1025,12 @@ export async function runReviewPipeline(deps: ReviewEngineDeps): Promise<ReviewL
   // Reorder in code, not via the prompt: declaration order decides which scopes run before the deadline.
   map.scopes = await splitByFocus(
     prioritiseScopes(restrictScopesToDelta(map.scopes, deps.priorReviewedPaths), deps.priorityPaths),
-    deps,
+    {
+      source: deps.source,
+      newId: deps.newId,
+      ...(deps.isChangedLine ? { isChangedLine: deps.isChangedLine } : {}),
+      ...(deps.filePatches ? { patches: deps.filePatches } : {}),
+    },
   );
   report(deps, { stage: 'dig', done: 0, total: map.scopes.length });
   const candidates: Candidate[] = [];

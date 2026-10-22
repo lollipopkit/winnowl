@@ -50,7 +50,7 @@ export interface PreparedWorkspace {
 
 /** Caps on the change's own patches shipped to dig; past them dig reads the head file instead. */
 export const PATCH_MAX_CHARS_PER_FILE = 60_000;
-export const PATCH_MAX_TOTAL_CHARS = 3_000_000;
+export const PATCH_MAX_TOTAL_CHARS = 16_000_000;
 
 /**
  * Patches of `paths`, each truncated at `maxCharsPerFile`; a patch that would pass `maxTotalChars`

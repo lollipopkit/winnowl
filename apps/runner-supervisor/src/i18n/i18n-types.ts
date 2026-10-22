@@ -867,6 +867,12 @@ type RootTranslation = {
 		 */
 		unfinished: RequiredParams<'remaining' | 'reviewed'>
 		/**
+		 * T​h​i​s​ ​r​o​u​n​d​ ​r​e​v​i​e​w​e​d​ ​{​r​e​v​i​e​w​e​d​}​ ​f​i​l​e​(​s​)​;​ ​{​r​e​m​a​i​n​i​n​g​}​ ​r​e​m​a​i​n​.​ ​T​h​e​ ​n​e​x​t​ ​r​o​u​n​d​ ​h​a​s​ ​s​t​a​r​t​e​d​ ​o​n​ ​i​t​s​ ​o​w​n​.
+		 * @param {number} remaining
+		 * @param {number} reviewed
+		 */
+		continuing: RequiredParams<'remaining' | 'reviewed'>
+		/**
 		 * C​o​n​t​i​n​u​e​ ​w​i​t​h​ ​t​h​e​ ​r​e​m​a​i​n​i​n​g​ ​f​i​l​e​s
 		 */
 		continueTrigger: string
@@ -1766,6 +1772,10 @@ export type TranslationFunctions = {
 		 * This run reviewed {reviewed} file(s); {remaining} were not finished in this run. The next push continues with them, or tick the box below.
 		 */
 		unfinished: (arg: { remaining: number, reviewed: number }) => LocalizedString
+		/**
+		 * This round reviewed {reviewed} file(s); {remaining} remain. The next round has started on its own.
+		 */
+		continuing: (arg: { remaining: number, reviewed: number }) => LocalizedString
 		/**
 		 * Continue with the remaining files
 		 */

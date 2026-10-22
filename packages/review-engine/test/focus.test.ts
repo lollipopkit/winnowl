@@ -1,6 +1,7 @@
 import { describe, expect, it } from 'vitest';
 import type { SourceProvider } from '@reviewbot/agent-pi';
-import { FOCUS_MAX_LINES, changedRanges, focusSuffix, packFocus, prefetchFocus, removalPartSuffix, splitByFocus } from '../src/focus.js';
+import { FOCUS_MAX_LINES, changedRanges, focusSuffix, packFocus, prefetchFocus, filePartSuffix, splitByFocus } from '../src/focus.js';
+import { patchPreview } from '../src/patch-parts.js';
 import type { ReviewScope } from '../src/types.js';
 
 const lines = (n: number) => Array.from({ length: n }, (_, i) => `line ${i + 1}`).join('\n');
@@ -73,9 +74,28 @@ describe('splitByFocus', () => {
     ]);
     expect(out[2]!.files).toEqual(['gone.ts']);
     expect(out[2]!.focus).toBeUndefined();
-    expect(removalPartSuffix(out[2]!)).toContain('- gone.ts');
-    expect(removalPartSuffix(out[0]!)).toBe('');
-    expect(removalPartSuffix(withDeleted)).toBe('');
+    expect(filePartSuffix(out[2]!)).toContain('- gone.ts');
+    expect(filePartSuffix(out[0]!)).toBe('');
+    expect(filePartSuffix(withDeleted)).toBe('');
+  });
+
+  it('splits a section with few changed lines when its diffs do not fit one prefetch', async () => {
+    const files = Array.from({ length: 12 }, (_, i) => `f${i}.ts`);
+    const patches = Object.fromEntries(files.map((f) => [f, `--- a/${f}\n+++ b/${f}\n${'+x\n'.repeat(2000)}`]));
+    const wide = { ...scope, files };
+    const out = await splitByFocus([wide], { source: source({}), isChangedLine: () => false, patches, newId });
+    expect(out.length).toBeGreaterThan(1);
+    expect(out.flatMap((s) => s.files)).toEqual(files);
+    expect(out.every((s) => s.focus === undefined && s.part?.total === out.length)).toBe(true);
+    expect(filePartSuffix(out[1]!)).toContain(`- ${out[1]!.files![0]}`);
+  });
+
+  it('previews a deleted file instead of shipping all of it', () => {
+    const deleted = `--- a/gone.ts\n+++ /dev/null\n@@ -1,100 +0,0 @@\n${Array.from({ length: 100 }, (_, i) => `-l${i}`).join('\n')}`;
+    const preview = patchPreview(deleted, 8_000);
+    expect(preview.truncated).toBe(true);
+    expect(preview.body.split('\n')).toHaveLength(40);
+    expect(patchPreview('--- a/x\n+++ b/x\n+y', 8_000)).toEqual({ body: '--- a/x\n+++ b/x\n+y', truncated: false });
   });
 
   it('leaves small scopes, scopes without files, and runs without diff info alone', async () => {

@@ -205,6 +205,7 @@ const ko = {
     partial: '이번 라운드에서 파일 {reviewed}개를 review했고 {remaining}개가 남았습니다. 다음 push에서 이어서 하거나 아래 체크박스를 선택하세요.',
     unfinishedTitle: 'Review 미완료',
     unfinished: '이번 실행에서 파일 {reviewed}개를 review했고 {remaining}개는 끝내지 못했습니다. 다음 push에서 이어서 하거나 아래 체크박스를 선택하세요.',
+    continuing: '이번 라운드에서 파일 {reviewed}개를 리뷰했습니다. {remaining}개가 남았습니다. 다음 라운드가 자동으로 시작되었습니다.',
     continueTrigger: '남은 파일 계속 review',
     mergeRisk: '병합 위험',
     suggestedReviewers: '추천 리뷰어',

@@ -196,6 +196,7 @@ const es = {
     partial: 'Esta ronda revisó {reviewed} archivo(s); quedan {remaining}. El próximo push continúa, o marca la casilla de abajo.',
     unfinishedTitle: 'Review sin terminar',
     unfinished: 'Esta ejecución revisó {reviewed} archivo(s); {remaining} no se terminaron. El próximo push continúa, o marca la casilla de abajo.',
+    continuing: 'Esta ronda revisó {reviewed} archivo(s); quedan {remaining}. La siguiente ronda se ha iniciado automáticamente.',
     continueTrigger: 'Continuar con los archivos restantes',
     mergeRisk: 'Riesgo de merge',
     suggestedReviewers: 'Revisores sugeridos',

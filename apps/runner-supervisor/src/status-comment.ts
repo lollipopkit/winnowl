@@ -37,6 +37,8 @@ export interface ReviewedSummary {
    * They are worded differently so `unfinished` does not suggest a nonexistent limit. Remaining → "continue" checkbox.
    */
   files: { reviewed: number; deferred: number; unfinished: number };
+  /** The next round for this head was started automatically (review-continue.ts); no checkbox then. */
+  continuing?: boolean;
   walkthrough: { title: string; summary: string }[];
   /** Suggested reviewers (`requested` = requested on the PR this round); see review-reviewers.ts. */
   reviewers?: { logins: string[]; requested: boolean };
@@ -152,11 +154,12 @@ export function createStatusComment(deps: StatusCommentDeps): {
         ];
         const remaining = s.files.deferred + s.files.unfinished;
         const partial = remaining > 0;
-        const unfinished = s.files.unfinished > 0;
+        // Once the next round runs on its own, the unfinished files are simply the next round's.
+        const unfinished = s.files.unfinished > 0 && s.continuing !== true;
         const head = alert(!partial ? m.doneTitle() : unfinished ? m.unfinishedTitle() : m.partialTitle(), [
           !partial
             ? (s.resultsPosted ? m.done : m.doneQuiet)({ sha: s.headSha.slice(0, 7) })
-            : (unfinished ? m.unfinished : m.partial)({ reviewed: s.files.reviewed, remaining }),
+            : (s.continuing ? m.continuing : unfinished ? m.unfinished : m.partial)({ reviewed: s.files.reviewed, remaining }),
           '',
           `**${m.mergeRisk()}:** ${risk} · ${reasons.join(' · ')}`,
           // Backticks: a bare `@login` notifies them, turning a suggestion into a request.
@@ -182,6 +185,7 @@ export function createStatusComment(deps: StatusCommentDeps): {
                 '</details>',
               ].join('\n')
             : '';
+        if (partial && s.continuing) return `${head}${walk}`;
         return withTrigger(m, `${head}${walk}`, partial ? m.continueTrigger() : m.reviewAgain());
       }),
     /** Terminal failure: don't leave "reviewing" hanging; includes a retry checkbox. */

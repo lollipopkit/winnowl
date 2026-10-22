@@ -204,6 +204,7 @@ const en = {
     partial: 'This round reviewed {reviewed:number} file(s); {remaining:number} are still to be reviewed. The next push continues with them, or tick the box below.',
     unfinishedTitle: 'Review not finished',
     unfinished: 'This run reviewed {reviewed:number} file(s); {remaining:number} were not finished in this run. The next push continues with them, or tick the box below.',
+    continuing: 'This round reviewed {reviewed:number} file(s); {remaining:number} remain. The next round has started on its own.',
     continueTrigger: 'Continue with the remaining files',
     mergeRisk: 'Merge risk',
     suggestedReviewers: 'Suggested reviewers',

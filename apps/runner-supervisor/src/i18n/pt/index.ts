@@ -196,6 +196,7 @@ const pt = {
     partial: 'Esta rodada revisou {reviewed} arquivo(s); faltam {remaining}. O próximo push continua, ou marque a caixa abaixo.',
     unfinishedTitle: 'Review não concluído',
     unfinished: 'Esta execução revisou {reviewed} arquivo(s); {remaining} não foram concluídos. O próximo push continua, ou marque a caixa abaixo.',
+    continuing: 'Esta rodada revisou {reviewed} arquivo(s); restam {remaining}. A próxima rodada foi iniciada automaticamente.',
     continueTrigger: 'Continuar com os arquivos restantes',
     mergeRisk: 'Risco de merge',
     suggestedReviewers: 'Revisores sugeridos',

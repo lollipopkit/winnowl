@@ -208,6 +208,7 @@ const de = {
 		partial: 'Diese Runde hat {reviewed} Datei(en) geprüft; {remaining} stehen noch aus. Der nächste Push setzt fort, oder das Kästchen unten anhaken.',
 		unfinishedTitle: 'Review nicht abgeschlossen',
 		unfinished: 'Dieser Lauf hat {reviewed} Datei(en) geprüft; {remaining} wurden nicht fertig. Der nächste Push setzt fort, oder das Kästchen unten anhaken.',
+		continuing: 'In dieser Runde wurden {reviewed} Datei(en) geprüft; {remaining} stehen noch aus. Die nächste Runde wurde automatisch gestartet.',
 		continueTrigger: 'Mit den verbleibenden Dateien fortfahren',
 		mergeRisk: 'Merge-Risiko',
 		suggestedReviewers: 'Vorgeschlagene Reviewer',

@@ -1833,6 +1833,16 @@ type RootTranslation = {
 			 */
 			desc: string
 		}
+		autoContinueRounds: {
+			/**
+			 * A​u​t​o​m​a​t​i​c​ ​c​o​n​t​i​n​u​a​t​i​o​n​ ​r​o​u​n​d​s
+			 */
+			name: string
+			/**
+			 * H​o​w​ ​m​a​n​y​ ​f​u​r​t​h​e​r​ ​r​o​u​n​d​s​ ​a​ ​r​e​v​i​e​w​ ​s​t​a​r​t​s​ ​o​n​ ​i​t​s​ ​o​w​n​ ​w​h​i​l​e​ ​f​i​l​e​s​ ​o​f​ ​t​h​e​ ​s​a​m​e​ ​c​o​m​m​i​t​ ​a​r​e​ ​s​t​i​l​l​ ​u​n​r​e​v​i​e​w​e​d​ ​(​t​h​e​ ​f​i​l​e​s​-​p​e​r​-​r​o​u​n​d​ ​l​i​m​i​t​,​ ​o​r​ ​a​ ​s​t​a​g​e​ ​d​e​a​d​l​i​n​e​ ​o​r​ ​c​o​s​t​ ​c​a​p​ ​c​u​t​ ​t​h​e​ ​r​o​u​n​d​ ​s​h​o​r​t​)​.​ ​E​a​c​h​ ​r​o​u​n​d​ ​m​u​s​t​ ​r​e​v​i​e​w​ ​a​t​ ​l​e​a​s​t​ ​o​n​e​ ​n​e​w​ ​f​i​l​e​ ​o​r​ ​t​h​e​ ​c​h​a​i​n​ ​s​t​o​p​s​,​ ​s​o​ ​a​ ​s​e​c​t​i​o​n​ ​t​h​a​t​ ​c​a​n​n​o​t​ ​b​e​ ​f​i​n​i​s​h​e​d​ ​d​o​e​s​ ​n​o​t​ ​l​o​o​p​.​ ​E​a​c​h​ ​r​o​u​n​d​ ​g​o​e​s​ ​t​h​r​o​u​g​h​ ​t​h​e​ ​u​s​u​a​l​ ​q​u​o​t​a​ ​c​h​e​c​k​s​.​ ​0​ ​=​ ​o​n​l​y​ ​a​ ​p​u​s​h​ ​o​r​ ​t​h​e​ ​s​t​a​t​u​s​-​c​o​m​m​e​n​t​ ​c​h​e​c​k​b​o​x​ ​c​o​n​t​i​n​u​e​s​.
+			 */
+			desc: string
+		}
 		verifyConcurrency: {
 			/**
 			 * C​a​n​d​i​d​a​t​e​s​ ​v​e​r​i​f​i​e​d​ ​a​t​ ​o​n​c​e
@@ -5403,6 +5413,16 @@ export type TranslationFunctions = {
 			name: () => LocalizedString
 			/**
 			 * How many areas of one pull request are reviewed at the same time. Parallel model calls multiply: runner concurrency × this × parallel questions per area. Reviewing more areas at once only finishes sooner if the gateway serves more parallel requests without slowing each one; all areas share the dig stage deadline either way.
+			 */
+			desc: () => LocalizedString
+		}
+		autoContinueRounds: {
+			/**
+			 * Automatic continuation rounds
+			 */
+			name: () => LocalizedString
+			/**
+			 * How many further rounds a review starts on its own while files of the same commit are still unreviewed (the files-per-round limit, or a stage deadline or cost cap cut the round short). Each round must review at least one new file or the chain stops, so a section that cannot be finished does not loop. Each round goes through the usual quota checks. 0 = only a push or the status-comment checkbox continues.
 			 */
 			desc: () => LocalizedString
 		}

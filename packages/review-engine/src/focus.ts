@@ -1,4 +1,5 @@
 import type { SourceProvider } from '@reviewbot/agent-pi';
+import { packByPatch } from './patch-parts.js';
 import type { ReviewScope, ScopeFocus } from './types.js';
 
 /**
@@ -53,13 +54,22 @@ export function packFocus(ranges: readonly Range[], max = FOCUS_MAX_LINES): Scop
   return parts;
 }
 
-/** No split without `isChangedLine` or when a scope lists no `files`. */
+/**
+ * Splits by changed head-side lines (`isChangedLine`) and by diff volume (`patches`): a section with few
+ * changed lines still splits when its diffs do not fit one prefetch, e.g. many small call-site edits or
+ * deletions. No split without either, or when a scope lists no `files`.
+ */
 export async function splitByFocus(
   scopes: readonly ReviewScope[],
-  deps: { source: SourceProvider; isChangedLine?: (path: string, line: number) => boolean; newId: () => string },
+  deps: {
+    source: SourceProvider;
+    isChangedLine?: (path: string, line: number) => boolean;
+    patches?: Readonly<Record<string, string>>;
+    newId: () => string;
+  },
 ): Promise<ReviewScope[]> {
-  const isChangedLine = deps.isChangedLine;
-  if (!isChangedLine) return [...scopes];
+  const { isChangedLine, patches = {} } = deps;
+  if (!isChangedLine && !deps.patches) return [...scopes];
   const lineCounts = new Map<string, number>();
   const lineCount = async (path: string): Promise<number> => {
     if (!lineCounts.has(path)) lineCounts.set(path, (await deps.source.readFile(path))?.split('\n').length ?? 0);
@@ -74,20 +84,23 @@ export async function splitByFocus(
     const ranges: Range[] = [];
     const rangeless: string[] = [];
     for (const path of scope.files) {
-      const r = changedRanges(path, await lineCount(path), isChangedLine);
+      const r = isChangedLine ? changedRanges(path, await lineCount(path), isChangedLine) : [];
       if (r.length === 0) rangeless.push(path);
       ranges.push(...r);
     }
     const focusParts = packFocus(ranges);
-    if (focusParts.length <= 1) {
+    // Files with no head-side changed lines (deletions, removal-only edits) would belong to no focus part.
+    const parts: { files: string[]; focus?: ScopeFocus[] }[] =
+      focusParts.length > 1
+        ? [
+            ...focusParts.map((focus) => ({ files: [...new Set(focus.map((f) => f.path))], focus })),
+            ...packByPatch(rangeless, patches).map((files) => ({ files })),
+          ]
+        : packByPatch(scope.files, patches).map((files) => ({ files }));
+    if (parts.length <= 1) {
       out.push(scope);
       continue;
     }
-    // Files with no head-side changed lines (deletions, removal-only edits) would belong to no part.
-    const parts: { files: string[]; focus?: ScopeFocus[] }[] = [
-      ...focusParts.map((focus) => ({ files: [...new Set(focus.map((f) => f.path))], focus })),
-      ...(rangeless.length > 0 ? [{ files: rangeless }] : []),
-    ];
     parts.forEach(({ files, focus }, i) => {
       out.push({
         ...scope,
@@ -108,10 +121,10 @@ export function focusSuffix(focus: readonly ScopeFocus[] | undefined): string {
   return `\n\nThis section is split into parts; this part is responsible for these changed lines:\n${lines}\nGo through every one of these lines. Read beyond them whenever you need context, but check each of these lines against the obligations before you complete the section; other parts cover the rest of the change.`;
 }
 
-/** The part of a split section that holds the files whose change only removes lines (no focus ranges). */
-export function removalPartSuffix(scope: Pick<ReviewScope, 'part' | 'focus' | 'files'>): string {
+/** A part of a split section that is responsible for whole files (split by diff volume, not by lines). */
+export function filePartSuffix(scope: Pick<ReviewScope, 'part' | 'focus' | 'files'>): string {
   if (!scope.part || (scope.focus && scope.focus.length > 0) || !scope.files?.length) return '';
-  return `\n\nThis section is split into parts; this part is responsible for these files, whose change only removes code (deleted files or removal-only edits):\n${scope.files.map((f) => `- ${f}`).join('\n')}\nRead each removal with read_diff and check that nothing left in the repository still depends on what was removed; other parts cover the rest of the change.`;
+  return `\n\nThis section is split into parts; this part is responsible for the changes to these files:\n${scope.files.map((f) => `- ${f}`).join('\n')}\nCheck each of these changes against the obligations before you complete the section; other parts cover the rest of the change.`;
 }
 
 /** Context lines around each focus range in the prefetch. */

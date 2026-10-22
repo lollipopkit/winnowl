@@ -193,6 +193,7 @@ const zh = {
     partial: '这一轮评审了 {reviewed} 个文件,还有 {remaining} 个待评审。下一次 push 会接着评,也可以勾选下面的复选框。',
     unfinishedTitle: '评审未完成',
     unfinished: '本次评审了 {reviewed} 个文件,{remaining} 个没有评完。下一次 push 会接着评,也可以勾选下面的复选框。',
+    continuing: '这一轮评审了 {reviewed} 个文件,还剩 {remaining} 个。下一轮已自动开始。',
     continueTrigger: '接着评审剩下的文件',
     mergeRisk: '合并风险',
     suggestedReviewers: '建议的 reviewer',

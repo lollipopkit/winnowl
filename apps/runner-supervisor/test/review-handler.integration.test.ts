@@ -1484,6 +1484,25 @@ describe('review_revision handler 端到端', () => {
     expect(buildEnvCalled).toBe(1);
     await db.updateTable('jobs').set({ status: 'failed' }).where('id', '=', manualId).execute();
 
+    // 3. An automatic continuation round of the same head is not "already reviewed": it covers the rest.
+    const { jobId: continueId } = await enqueueJob(db, {
+      tenantId: TENANT,
+      type: 'review_revision',
+      payload: {
+        tenantId: TENANT,
+        repositoryId: REPO,
+        changeRequestId: CR3,
+        revisionId: REV3,
+        headSha: 'head-44',
+        configDigest: '',
+        continueRound: 1,
+      },
+      dedupeKey: 'review-rereview-continue',
+    });
+    expect(await supervisor.runOnce()).toBe(true);
+    expect(buildEnvCalled).toBe(2);
+    await db.updateTable('jobs').set({ status: 'failed' }).where('id', '=', continueId).execute();
+
     // A cancelled run's cost row does not count as reviewed, or one cancellation would block auto review of the revision forever.
     await db
       .updateTable('review_costs')
@@ -1504,7 +1523,7 @@ describe('review_revision handler 端到端', () => {
       dedupeKey: 'review-rereview-after-cancel',
     });
     expect(await supervisor.runOnce()).toBe(true);
-    expect(buildEnvCalled).toBe(2); // reaches buildEnv; not treated as reviewed
+    expect(buildEnvCalled).toBe(3); // reaches buildEnv; not treated as reviewed
     await db
       .updateTable('jobs')
       .set({ status: 'failed' })

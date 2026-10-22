@@ -120,6 +120,13 @@ export const PLATFORM_SETTINGS = [
       "Whether the fix agent works inside a sandbox with the repository's toolchains: it edits the code there and may run commands (install, build, test) to check its change; every command is reviewed outside the sandbox first and recorded. The finished change is validated in the same sandbox, so the separate fix validation is not used. Needs a validation image (VALIDATION_SANDBOX_IMAGE). Applies from the next fix.",
   },
   {
+    key: 'review.auto_continue_rounds',
+    env: 'REVIEW_AUTO_CONTINUE_ROUNDS',
+    values: ['20', '0', '5', '50'],
+    description:
+      'How many further rounds a review starts on its own when files of the same head are still unreviewed (the files-per-round limit, or a stage wall clock / cost cap cut the round short). Each round must cover at least one new file, or the chain stops, so a section the model cannot finish does not loop. Every round goes through the usual quota checks. 0 = only a push or the status-comment checkbox continues.',
+  },
+  {
     key: 'review.verify_votes',
     env: 'LLM_VERIFY_VOTES',
     values: ['1', '3', '5'],
