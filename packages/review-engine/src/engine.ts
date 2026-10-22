@@ -1,4 +1,5 @@
 import {
+  buildDiffTool,
   buildSkillTool,
   buildSourceTools,
   buildSubagentTool,
@@ -19,7 +20,7 @@ import {
   type StreamFn,
 } from '@reviewbot/agent-pi';
 import type { PromptBundle } from '@reviewbot/prompts';
-import { focusSuffix, prefetchFocus, splitByFocus } from './focus.js';
+import { focusSuffix, prefetchFocus, removalPartSuffix, splitByFocus } from './focus.js';
 import { remainderScopes, unassignedFiles } from './remainder.js';
 import { getTracer, withSpan } from '@reviewbot/telemetry';
 
@@ -114,6 +115,8 @@ export interface ReviewEngineDeps {
   /** When set, skip the LLM map and dig these directly. */
   plannedScopes?: readonly PlannedScope[];
   fileContext?: readonly FileContext[];
+  /** The change's patch per changed path (merge base..head); dig prefetches it and reads it via `read_diff`. */
+  filePatches?: Readonly<Record<string, string>>;
   /** Checklists (built-in + base branch), loaded on demand by dig via `load_skill`. */
   skills?: readonly SkillEntry[];
   /** Progress reporting; best effort, errors are swallowed so they cannot fail the run. */
@@ -604,6 +607,7 @@ export async function runMap(
     streamFn: selection.streamFn ?? deps.streamFn,
     readTools: [
       ...buildSourceTools(deps.source),
+      ...(deps.filePatches ? buildDiffTool(deps.filePatches) : []),
       ...(deps.memoryTools ?? []),
       ...(deps.knowledgeTools ?? []),
       ...(deps.pluginTools ?? []),
@@ -660,37 +664,57 @@ function toReviewScope(
 
 const PREFETCH_MAX_FILE_LINES = 400;
 const PREFETCH_MAX_TOTAL_CHARS = 24_000;
+/** Per-file share of the prefetch, so one large diff does not crowd out the rest of the scope. */
+const PREFETCH_MAX_FILE_CHARS = 8_000;
 
-/** Prefetch scope files into the dig prompt to save read_source turns; bounded per file and in total. */
+/**
+ * Prefetch the scope's changes into the dig prompt to save tool turns: each file's diff, or its head
+ * contents when no diff is available. Bounded per file and in total; files left out are named, so the
+ * model knows they are still to be read.
+ */
 async function prefetchScopeFiles(
   source: SourceProvider,
   files: string[] | undefined,
+  patches: Readonly<Record<string, string>> | undefined,
 ): Promise<string> {
   if (!files || files.length === 0) return '';
   const blocks: string[] = [];
+  const omitted: string[] = [];
   let total = 0;
   for (const path of files) {
-    if (total >= PREFETCH_MAX_TOTAL_CHARS) {
-      blocks.push(`(further files omitted to bound size; use read_source/read_range)`);
-      break;
+    const remaining = Math.min(PREFETCH_MAX_TOTAL_CHARS - total, PREFETCH_MAX_FILE_CHARS);
+    if (remaining <= 0) {
+      omitted.push(path);
+      continue;
+    }
+    const patch = patches?.[normalisePath(path)];
+    if (patch !== undefined) {
+      const body = patch.slice(0, remaining);
+      total += body.length;
+      const note = body.length < patch.length ? ' (truncated — use read_diff for the rest)' : '';
+      blocks.push(`// ${path} — diff${note}\n${body}`);
+      continue;
     }
     const content = await source.readFile(path);
-    if (content === null) continue;
+    if (content === null) {
+      omitted.push(path);
+      continue;
+    }
     const lines = content.split('\n');
     const lineTrunc = lines.length > PREFETCH_MAX_FILE_LINES;
     let body = lineTrunc ? lines.slice(0, PREFETCH_MAX_FILE_LINES).join('\n') : content;
-    let charTrunc = false;
-    const remaining = PREFETCH_MAX_TOTAL_CHARS - total;
-    if (body.length > remaining) {
-      body = body.slice(0, remaining);
-      charTrunc = true;
-    }
+    const charTrunc = body.length > remaining;
+    if (charTrunc) body = body.slice(0, remaining);
     total += body.length;
     const note = lineTrunc || charTrunc ? ' (truncated — use read_range for the rest)' : '';
-    blocks.push(`// ${path}${note}\n${body}`);
+    blocks.push(`// ${path} — head contents${note}\n${body}`);
   }
-  if (blocks.length === 0) return '';
-  return `\n\nContents of this scope's changed files (provided so you need not re-read them; use read_range/search_code only for additional context):\n\n${blocks.join('\n\n')}`;
+  const rest =
+    omitted.length > 0
+      ? `\n\nNot shown above, still part of this section (read each with read_diff${patches ? '' : ' or read_source'}):\n${omitted.map((p) => `- ${p}`).join('\n')}`
+      : '';
+  if (blocks.length === 0) return rest;
+  return `\n\nThis section's changes (unified diffs from the merge base to the head; a file without a diff is shown as its head contents). Use read_source/read_range/search_code for surrounding code:\n\n${blocks.join('\n\n')}${rest}`;
 }
 
 /** Dig stage: reviews one scope. Non-empty `seedMessages` continues from an earlier transcript. */
@@ -731,8 +755,8 @@ export async function runDig(
   };
   const prefetched = scope.focus
     ? await prefetchFocus(source, scope.focus, PREFETCH_MAX_TOTAL_CHARS)
-    : await prefetchScopeFiles(source, scope.files);
-  const sourceTools = buildSourceTools(source);
+    : await prefetchScopeFiles(source, scope.files, deps.filePatches);
+  const sourceTools = [...buildSourceTools(source), ...(deps.filePatches ? buildDiffTool(deps.filePatches) : [])];
   /*
    * Skill index goes into the dig system prompt, bodies load via load_skill. Dig only: the index and the tool
    * must come together. Subagents share this system prompt, so they get load_skill too.
@@ -801,7 +825,7 @@ export async function runDig(
   const selection = modelFor(deps, 'dig', scopeIndex);
   const result = await runAgentInvocation({
     systemPrompt: digSystem,
-    task: `${bundle.task}\n\nScope: ${scope.title}\n${scope.changeSummary}\nObligations:\n${obligations}${focusSuffix(scope.focus)}${prefetched}${previousRoundSuffix(scope.files, deps.fileContext)}${lfsPointerSuffix(deps.lfsPointerPaths)}${submoduleSuffix(deps.submoduleBumps)}${walkthroughRequestSuffix(scope)}${explorationSuffix(deps.exploration)}${priorReviewedSuffix(deps.priorReviewedPaths, deps.fileContext)}${subagentSuffix(deps.subagents !== undefined, deps.subagents?.maxTasks ?? 0)}${retrySuffix(retryFiles)}`,
+    task: `${bundle.task}\n\nScope: ${scope.title}\n${scope.changeSummary}\nObligations:\n${obligations}${focusSuffix(scope.focus)}${removalPartSuffix(scope)}${prefetched}${previousRoundSuffix(scope.files, deps.fileContext)}${lfsPointerSuffix(deps.lfsPointerPaths)}${submoduleSuffix(deps.submoduleBumps)}${walkthroughRequestSuffix(scope)}${explorationSuffix(deps.exploration)}${priorReviewedSuffix(deps.priorReviewedPaths, deps.fileContext)}${subagentSuffix(deps.subagents !== undefined, deps.subagents?.maxTasks ?? 0)}${retrySuffix(retryFiles)}`,
     ...selection,
     streamFn: selection.streamFn ?? deps.streamFn,
     ...(seedMessages && seedMessages.length > 0 ? { seedMessages } : {}),
@@ -894,7 +918,7 @@ export async function runDig(
       : result.status === 'error'
         ? { incompleteReason: `error: ${result.failureKind ?? 'unknown'} (${(result.errorMessage ?? '').slice(0, 160)})` }
         : status !== 'complete'
-          ? { incompleteReason: `reported ${fin?.status ?? 'nothing'}` }
+          ? { incompleteReason: `reported ${fin?.status ?? 'nothing'}${fin?.reason?.trim() ? `: ${fin.reason.trim().slice(0, 400)}` : ''}` }
           : {}),
     ...(result.status === 'error' && result.failureKind ? { failureKind: result.failureKind } : {}),
   };
@@ -927,7 +951,11 @@ export async function runSynthesis(
     task: `${bundle.task}\n\nScope outcomes:\n${ledger}`,
     ...selection,
     streamFn: selection.streamFn ?? deps.streamFn,
-    readTools: [...buildSourceTools(deps.source), ...(deps.pluginTools ?? [])],
+    readTools: [
+      ...buildSourceTools(deps.source),
+      ...(deps.filePatches ? buildDiffTool(deps.filePatches) : []),
+      ...(deps.pluginTools ?? []),
+    ],
     collectors: [
       {
         name: 'submit_finding',

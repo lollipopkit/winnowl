@@ -1,4 +1,4 @@
-export { prepareWorkspace, cloneRepository, authedCloneUrl } from './workspace.js';
+export { prepareWorkspace, cloneRepository, authedCloneUrl, collectPatches } from './workspace.js';
 export type { PrepareWorkspaceInput, PreparedWorkspace } from './workspace.js';
 export { buildReviewContractDigest, buildReviewFileStates } from './file-state.js';
 export type { ReviewFileState } from './file-state.js';

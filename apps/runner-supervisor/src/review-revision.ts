@@ -507,6 +507,7 @@ export function createReviewRevisionHandler(deps: ReviewRevisionDeps): JobHandle
         ...(outcome.unplannedPaths?.length
           ? { unplannedPaths: outcome.unplannedPaths.length }
           : {}),
+        ...(outcome.incompleteScopes ? { incompleteScopes: outcome.incompleteScopes } : {}),
         ...(outcome.suggestions ? { suggestions: outcome.suggestions } : {}),
         ...(outcome.externalFactsSubmitted
           ? { externalFacts: { submitted: outcome.externalFactsSubmitted, kept: outcome.externalFacts?.length ?? 0 } }

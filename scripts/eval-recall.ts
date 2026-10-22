@@ -26,6 +26,7 @@ import {
   applyPathFilter,
   classifyNonReviewable,
   cloneRepository,
+  collectPatches,
   plannedScopeFor,
   prepareWorkspace,
 } from '@reviewbot/review-runtime';
@@ -136,6 +137,7 @@ async function main(): Promise<void> {
           newId: () => uuidv7(),
           isChangedLine: filtered.wsView.isChangedLine,
           readHeadLines: ws.readHeadLines,
+          filePatches: collectPatches(ws.readPatch, filtered.changedFiles.map((f) => f.path)),
           skills,
           noiseBudget: { maxInlineComments: 8, maxInlinePerFile: 3, maxInlineNits: 3 },
           publishContext: {} as ReviewOrchestratorDeps['publishContext'],

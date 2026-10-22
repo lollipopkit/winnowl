@@ -286,6 +286,7 @@ export interface ReviewOrchestratorDeps {
   /** Code-derived review plan for small changes; skips the LLM map. */
   plannedScopes?: readonly PlannedScope[];
   fileContext?: readonly FileContext[];
+  filePatches?: Readonly<Record<string, string>>;
   skills?: readonly SkillEntry[];
   /** Opaque current states used to persist only files from completed scopes. */
   reviewFileStates?: readonly { path: string; materialDigest: string }[];
@@ -575,7 +576,7 @@ export interface ReviewOutcome {
   /**
    * Cross-round coverage ledger:
    * - `coveredPaths`: files covered by scopes completed this round (written to `pr_coverage`).
-   * - `unreachedPaths`: planned but never explored (cut by deadline/cost); blocks approve and the gate.
+   * - `unreachedPaths`: planned but never explored (cut by deadline/cost, or the scope reported itself not complete); blocks approve and the gate.
    * - `unplannedPaths`: claimed by no scope yet; also blocks approve.
    * Absent means unknown (no ledger, or map gave no `files`), which differs from an empty array.
    */
@@ -585,6 +586,8 @@ export interface ReviewOutcome {
   unreachedPaths?: string[];
   unplannedPaths?: string[];
   deferredPaths?: string[];
+  /** Scopes that did not complete, with why (`not run` = cut before starting); for diagnosis only. */
+  incompleteScopes?: { title: string; status: string; reason?: string }[];
   walkthrough?: { title: string; summary: string }[];
   reviewEvent?: 'comment' | 'approve' | 'request-changes';
   /** Blocking items on the gate (this round + unfixed prior). */
@@ -969,6 +972,7 @@ export async function produceReview(deps: ReviewOrchestratorDeps): Promise<Produ
     ...(deps.uncoveredPaths !== undefined ? { priorityPaths: deps.uncoveredPaths } : {}),
     ...(deps.plannedScopes !== undefined ? { plannedScopes: deps.plannedScopes } : {}),
     ...(deps.fileContext !== undefined ? { fileContext: deps.fileContext } : {}),
+    ...(deps.filePatches !== undefined ? { filePatches: deps.filePatches } : {}),
     ...(deps.skills !== undefined ? { skills: deps.skills } : {}),
     ...(deps.priorReviewedPaths !== undefined
       ? { priorReviewedPaths: deps.priorReviewedPaths }
@@ -1728,6 +1732,12 @@ async function publishProduced(
     : undefined;
   const deferred = new Set((deps.deferredPaths ?? []).map(normaliseReviewPath));
   const unreachedPaths = remaining?.filter((p) => plannedPaths.includes(p));
+  const outcomeByScope = new Map(ledger.scopeOutcomes.map((o) => [o.scopeId, o]));
+  const incompleteScopes = ledger.scopes.flatMap((scope) => {
+    const o = outcomeByScope.get(scope.id);
+    if (o?.status === 'complete') return [];
+    return [{ title: scope.title, status: o?.status ?? 'not run', ...(o?.incompleteReason ? { reason: o.incompleteReason } : {}) }];
+  });
   const deferredPaths = remaining?.filter((p) => !plannedPaths.includes(p) && deferred.has(p));
   const unplannedPaths = remaining?.filter((p) => !plannedPaths.includes(p) && !deferred.has(p));
   const coverageShort =
@@ -2000,6 +2010,7 @@ async function publishProduced(
     ...(unreachedPaths !== undefined ? { unreachedPaths } : {}),
     ...(unplannedPaths !== undefined ? { unplannedPaths } : {}),
     ...(deferredPaths !== undefined && deferredPaths.length > 0 ? { deferredPaths } : {}),
+    ...(incompleteScopes.length > 0 ? { incompleteScopes } : {}),
     walkthrough: walkthroughOf(ledger),
     reviewEvent: event,
     blockingCount,

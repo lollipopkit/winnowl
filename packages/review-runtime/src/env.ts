@@ -90,6 +90,7 @@ import {
 } from './config.js';
 import { CodePlaneReader, type CodePlane } from './code-plane.js';
 import { applyPathFilter, submoduleBumpsOf } from './path-filter.js';
+import { PATCH_MAX_CHARS_PER_FILE, PATCH_MAX_TOTAL_CHARS } from './workspace.js';
 import { stackRootBranchOf } from './trusted-base.js';
 import { hasReviewableContent, pickReviewRound } from './review-round.js';
 import { loadRepositoryGuidance, renderRepositoryGuidance } from './repo-guidance.js';
@@ -1158,6 +1159,11 @@ export function createReviewBuildEnv(
           ...(roundDiff ? { roundDiff } : {}),
         });
     }
+    const filePatches = await plane.client.readPatches(
+      roundChangedFiles.map((f) => f.path),
+      PATCH_MAX_CHARS_PER_FILE,
+      PATCH_MAX_TOTAL_CHARS,
+    );
     // Small changes skip the LLM map; `review.fast_map` = 0 disables this.
     const deltaChangedLineCount = roundChangedFiles.reduce((n, f) => n + (info.headChangedLines[f.path]?.length ?? 0), 0);
     const plannedScopes =
@@ -1301,6 +1307,7 @@ export function createReviewBuildEnv(
             ...(priorReviewedPaths.length > 0 ? { priorReviewedPaths } : {}),
             ...(plannedScopes ? { plannedScopes } : {}),
             ...(fileContext.length > 0 ? { fileContext } : {}),
+            filePatches,
             ...(skills.length > 0 ? { skills } : {}),
             reviewFileStates: filteredFileStates.map(({ path, materialDigest }) => ({
               path,
@@ -1408,6 +1415,7 @@ export function createReviewBuildEnv(
       ...(priorReviewedPaths.length > 0 ? { priorReviewedPaths } : {}),
       ...(plannedScopes ? { plannedScopes } : {}),
       ...(fileContext.length > 0 ? { fileContext } : {}),
+      filePatches,
       ...(skills.length > 0 ? { skills } : {}),
       reviewFileStates: filteredFileStates.map(({ path, materialDigest }) => ({
         path,

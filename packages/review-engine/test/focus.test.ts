@@ -1,6 +1,6 @@
 import { describe, expect, it } from 'vitest';
 import type { SourceProvider } from '@reviewbot/agent-pi';
-import { FOCUS_MAX_LINES, changedRanges, focusSuffix, packFocus, prefetchFocus, splitByFocus } from '../src/focus.js';
+import { FOCUS_MAX_LINES, changedRanges, focusSuffix, packFocus, prefetchFocus, removalPartSuffix, splitByFocus } from '../src/focus.js';
 import type { ReviewScope } from '../src/types.js';
 
 const lines = (n: number) => Array.from({ length: n }, (_, i) => `line ${i + 1}`).join('\n');
@@ -56,6 +56,26 @@ describe('splitByFocus', () => {
       { path: 'small.ts', startLine: 1, endLine: 20 },
     ]);
     expect(out[1]!.files).toEqual(['big.ts', 'small.ts']);
+  });
+
+  it('gives files without head-side changes (deletions) a part of their own instead of dropping them', async () => {
+    const withDeleted = { ...scope, files: ['big.ts', 'gone.ts', 'small.ts'] };
+    const src = source({ 'big.ts': lines(FOCUS_MAX_LINES + 100), 'small.ts': lines(20) });
+    const out = await splitByFocus([withDeleted], {
+      source: src,
+      isChangedLine: (path) => path !== 'gone.ts',
+      newId,
+    });
+    expect(out.map((s) => s.part)).toEqual([
+      { index: 1, total: 3, sectionId: 's1' },
+      { index: 2, total: 3, sectionId: 's1' },
+      { index: 3, total: 3, sectionId: 's1' },
+    ]);
+    expect(out[2]!.files).toEqual(['gone.ts']);
+    expect(out[2]!.focus).toBeUndefined();
+    expect(removalPartSuffix(out[2]!)).toContain('- gone.ts');
+    expect(removalPartSuffix(out[0]!)).toBe('');
+    expect(removalPartSuffix(withDeleted)).toBe('');
   });
 
   it('leaves small scopes, scopes without files, and runs without diff info alone', async () => {

@@ -2,6 +2,7 @@ import { rm } from 'node:fs/promises';
 import {
   changedLinesByPath,
   isChangedLine as isChangedLineIn,
+  renderFilePatch,
   type ChangedLines,
 } from '@reviewbot/canonical-diff';
 import {
@@ -43,6 +44,38 @@ export interface PreparedWorkspace {
   headSha: string;
   /** Serializable form of `isChangedLine` for the code-plane RPC. */
   headChangedLines: Record<string, number[]>;
+  /** Unified patch of a changed file (keyed like `changedFiles`); null for an unchanged path. */
+  readPatch: (path: string) => string | null;
+}
+
+/** Caps on the change's own patches shipped to dig; past them dig reads the head file instead. */
+export const PATCH_MAX_CHARS_PER_FILE = 60_000;
+export const PATCH_MAX_TOTAL_CHARS = 3_000_000;
+
+/**
+ * Patches of `paths`, each truncated at `maxCharsPerFile`; a patch that would pass `maxTotalChars`
+ * is left out while smaller later ones still fit.
+ */
+export function collectPatches(
+  readPatch: (path: string) => string | null,
+  paths: readonly string[],
+  maxCharsPerFile = PATCH_MAX_CHARS_PER_FILE,
+  maxTotalChars = PATCH_MAX_TOTAL_CHARS,
+): Record<string, string> {
+  const out: Record<string, string> = {};
+  let total = 0;
+  for (const path of paths) {
+    const patch = readPatch(path);
+    if (patch === null) continue;
+    const text =
+      patch.length > maxCharsPerFile
+        ? `${patch.slice(0, maxCharsPerFile)}\n… (patch truncated; read the file for the rest)`
+        : patch;
+    if (total + text.length > maxTotalChars) continue;
+    total += text.length;
+    out[path] = text;
+  }
+  return out;
 }
 
 async function buildPreparedWorkspace(
@@ -63,6 +96,8 @@ async function buildPreparedWorkspace(
   const changedFiles = changedFilesFromDiff(diff);
   const changedLines: Map<string, ChangedLines> = changedLinesByPath(diff);
   const source = new WorkspaceSourceProvider(input.headWorktreeDir, changedFiles);
+  // Keyed like changedFilesFromDiff, so `readPatch` takes the paths agents see.
+  const diffByPath = new Map(diff.files.map((f) => [f.newPath ?? f.oldPath ?? '', f] as const));
   const headChangedLines: Record<string, number[]> = {};
   for (const [path, entry] of changedLines) headChangedLines[path] = [...entry.added];
   const trustedSha = await resolveTrustedSha(input.gitDir, {
@@ -85,6 +120,10 @@ async function buildPreparedWorkspace(
     baseSha: input.baseSha,
     headSha: input.headSha,
     headChangedLines,
+    readPatch: (path) => {
+      const file = diffByPath.get(path);
+      return file ? renderFilePatch(file) : null;
+    },
   };
 }
 

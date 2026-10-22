@@ -39,6 +39,7 @@ export type CodePlaneRequest =
   | { op: 'searchSymbol'; symbol: string }
   | { op: 'changedFilesBetween'; sinceSha: string }
   | { op: 'diffSince'; sinceSha: string; paths: string[]; maxChars: number }
+  | { op: 'readPatches'; paths: string[]; maxCharsPerFile: number; maxTotalChars: number }
   | { op: 'findFiles'; names: string[]; maxDepth: number; max: number }
   | { op: 'applyPatch'; patch: string };
 
@@ -54,6 +55,11 @@ export interface CodePlaneClient {
   changedFilesBetween(sinceSha: string): Promise<string[] | null>;
   /** `git diff -U3 sinceSha..head` per path, truncated at `maxChars`; paths without changes omitted. */
   diffSince(sinceSha: string, paths: string[], maxChars: number): Promise<Record<string, string>>;
+  /**
+   * The change's own patch (merge base..head) per changed path, each truncated at `maxCharsPerFile`;
+   * paths past `maxTotalChars` and paths without a patch (tree workspace, unchanged) are omitted.
+   */
+  readPatches(paths: string[], maxCharsPerFile: number, maxTotalChars: number): Promise<Record<string, string>>;
   /** Head-tree files with these exact names, breadth first (`maxDepth` 0 = root only); skips dependency and VCS dirs. */
   findFiles(names: string[], maxDepth: number, max: number): Promise<string[]>;
   /** Applies a patch to the head worktree in place (later reads see it) and returns the file changes for an API commit. */
@@ -69,6 +75,10 @@ export function codePlaneClient(dispatch: (req: CodePlaneRequest) => Promise<unk
     changedFilesBetween: async (sinceSha) => (await dispatch({ op: 'changedFilesBetween', sinceSha })) as string[] | null,
     diffSince: async (sinceSha, paths, maxChars) =>
       paths.length === 0 ? {} : ((await dispatch({ op: 'diffSince', sinceSha, paths, maxChars })) as Record<string, string>),
+    readPatches: async (paths, maxCharsPerFile, maxTotalChars) =>
+      paths.length === 0
+        ? {}
+        : ((await dispatch({ op: 'readPatches', paths, maxCharsPerFile, maxTotalChars })) as Record<string, string>),
     findFiles: async (names, maxDepth, max) => (await dispatch({ op: 'findFiles', names, maxDepth, max })) as string[],
     applyPatch: async (patch) => (await dispatch({ op: 'applyPatch', patch })) as CommitFileChange[],
   };

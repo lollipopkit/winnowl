@@ -16,7 +16,7 @@ import { lockfileEcosystem, manifestEcosystem } from '@reviewbot/knowledge';
 import { codePlaneClient, type CodePlane, type CodePlaneRequest, type WorkspaceInfo } from './code-plane.js';
 import { classifyNonReviewable } from './generated-files.js';
 import { loadRepositorySkills } from './skills.js';
-import { cloneRepository, cloneUrlWithoutCredentials, prepareWorkspace } from './workspace.js';
+import { cloneRepository, cloneUrlWithoutCredentials, collectPatches, prepareWorkspace } from './workspace.js';
 
 /**
  * One isolated workspace per job; nothing is shared between workspaces and nothing from the
@@ -72,6 +72,7 @@ export async function openLocalWorkspace(req: WorkspaceRequest, root: string): P
     let info: Omit<WorkspaceInfo, 'nonReviewable' | 'skills' | 'manifestPaths'>;
     let source: WorkspaceSourceProvider;
     let readTrusted: (path: string) => Promise<string | null>;
+    let readPatch: (path: string) => string | null = () => null;
     if (req.baseSha) {
       await ensureCommit(gitDir, req.baseSha, req);
       const ws = await prepareWorkspace({
@@ -83,6 +84,7 @@ export async function openLocalWorkspace(req: WorkspaceRequest, root: string): P
       });
       source = ws.source;
       readTrusted = ws.readTrustedFile;
+      readPatch = ws.readPatch;
       info = {
         changedFiles: ws.changedFiles,
         fileStates: ws.fileStates,
@@ -135,7 +137,7 @@ export async function openLocalWorkspace(req: WorkspaceRequest, root: string): P
       gitDir,
       headDir,
       dispose,
-      handle: (r) => handleOp(r, { gitDir, headDir, headSha, source, readTrusted }),
+      handle: (r) => handleOp(r, { gitDir, headDir, headSha, source, readTrusted, readPatch }),
     };
   } catch (error) {
     await dispose();
@@ -165,6 +167,7 @@ async function handleOp(
     headSha: string;
     source: WorkspaceSourceProvider;
     readTrusted: (path: string) => Promise<string | null>;
+    readPatch: (path: string) => string | null;
   },
 ): Promise<unknown> {
   switch (req.op) {
@@ -199,6 +202,8 @@ async function handleOp(
       }
       return out;
     }
+    case 'readPatches':
+      return collectPatches(ws.readPatch, req.paths, req.maxCharsPerFile, req.maxTotalChars);
     case 'findFiles': {
       const names = new Set(req.names);
       const out: string[] = [];

@@ -19,7 +19,7 @@ export type { ResolvedModelSource, ModelSourceConfig, ModelMetadata, ModelTier, 
 export { MAX_OUTPUT_TOKENS_PER_REQUEST } from './model-source.js';
 export { withModelFailover, resetModelCooldowns } from './model-failover.js';
 
-export { buildSourceTools, buildMemoryTools, buildKnowledgeTools, isDefinitionLine, toolTextResult, finalizationTool, collectorTool, SOURCE_TOOL_NAMES, MEMORY_TOOL_NAMES, MEMORY_RECALL_MAX, KNOWLEDGE_TOOL_NAMES, KNOWLEDGE_READ_MAX } from './tools.js';
+export { buildSourceTools, buildMemoryTools, buildKnowledgeTools, buildDiffTool, isDefinitionLine, toolTextResult, finalizationTool, collectorTool, SOURCE_TOOL_NAMES, MEMORY_TOOL_NAMES, MEMORY_RECALL_MAX, KNOWLEDGE_TOOL_NAMES, KNOWLEDGE_READ_MAX } from './tools.js';
 export type { FinalizationSpec, CollectorSpec, MemoryToolEntry, KnowledgeToolEntry } from './tools.js';
 
 export { sumUsage } from './types.js';

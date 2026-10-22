@@ -30,7 +30,7 @@ import { uuidv7 } from '@reviewbot/ids';
 import { loadPromptBundles, type PromptBundle } from '@reviewbot/prompts';
 import { ReviewIncompleteError, coerceCategory, produceReview, type ReviewOrchestratorDeps } from '@reviewbot/review-orchestrator';
 import { resolveProfile } from '@reviewbot/review-profile';
-import { cloneRepository, prepareWorkspace } from '@reviewbot/review-runtime';
+import { cloneRepository, collectPatches, prepareWorkspace } from '@reviewbot/review-runtime';
 import { loadEnv } from './load-env.js';
 
 loadEnv();
@@ -129,6 +129,7 @@ async function main(): Promise<void> {
           newId: () => uuidv7(),
           isChangedLine: ws.isChangedLine,
           readHeadLines: ws.readHeadLines,
+          filePatches: collectPatches(ws.readPatch, ws.changedFiles.map((f) => f.path)),
           // Publish-only fields; produceReview never touches them.
           noiseBudget: { maxInlineComments: Number.MAX_SAFE_INTEGER, maxInlinePerFile: Number.MAX_SAFE_INTEGER, maxInlineNits: Number.MAX_SAFE_INTEGER },
           publishContext: {} as ReviewOrchestratorDeps['publishContext'],

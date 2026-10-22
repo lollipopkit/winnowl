@@ -72,20 +72,30 @@ export async function splitByFocus(
       continue;
     }
     const ranges: Range[] = [];
-    for (const path of scope.files) ranges.push(...changedRanges(path, await lineCount(path), isChangedLine));
-    const parts = packFocus(ranges);
-    if (parts.length <= 1) {
+    const rangeless: string[] = [];
+    for (const path of scope.files) {
+      const r = changedRanges(path, await lineCount(path), isChangedLine);
+      if (r.length === 0) rangeless.push(path);
+      ranges.push(...r);
+    }
+    const focusParts = packFocus(ranges);
+    if (focusParts.length <= 1) {
       out.push(scope);
       continue;
     }
-    parts.forEach((focus, i) => {
+    // Files with no head-side changed lines (deletions, removal-only edits) would belong to no part.
+    const parts: { files: string[]; focus?: ScopeFocus[] }[] = [
+      ...focusParts.map((focus) => ({ files: [...new Set(focus.map((f) => f.path))], focus })),
+      ...(rangeless.length > 0 ? [{ files: rangeless }] : []),
+    ];
+    parts.forEach(({ files, focus }, i) => {
       out.push({
         ...scope,
         id: i === 0 ? scope.id : deps.newId(),
         part: { index: i + 1, total: parts.length, sectionId: scope.id },
         obligations: scope.obligations.map((o) => (i === 0 ? o : { ...o, id: deps.newId() })),
-        files: [...new Set(focus.map((f) => f.path))],
-        focus,
+        files,
+        ...(focus ? { focus } : {}),
       });
     });
   }
@@ -96,6 +106,12 @@ export function focusSuffix(focus: readonly ScopeFocus[] | undefined): string {
   if (!focus || focus.length === 0) return '';
   const lines = focus.map((f) => `- ${f.path} lines ${f.startLine}-${f.endLine}`).join('\n');
   return `\n\nThis section is split into parts; this part is responsible for these changed lines:\n${lines}\nGo through every one of these lines. Read beyond them whenever you need context, but check each of these lines against the obligations before you complete the section; other parts cover the rest of the change.`;
+}
+
+/** The part of a split section that holds the files whose change only removes lines (no focus ranges). */
+export function removalPartSuffix(scope: Pick<ReviewScope, 'part' | 'focus' | 'files'>): string {
+  if (!scope.part || (scope.focus && scope.focus.length > 0) || !scope.files?.length) return '';
+  return `\n\nThis section is split into parts; this part is responsible for these files, whose change only removes code (deleted files or removal-only edits):\n${scope.files.map((f) => `- ${f}`).join('\n')}\nRead each removal with read_diff and check that nothing left in the repository still depends on what was removed; other parts cover the rest of the change.`;
 }
 
 /** Context lines around each focus range in the prefetch. */

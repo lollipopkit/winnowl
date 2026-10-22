@@ -253,6 +253,37 @@ export function buildKnowledgeTools(entries: readonly KnowledgeToolEntry[], opts
 
 export const KNOWLEDGE_TOOL_NAMES: readonly string[] = ['knowledge_read'];
 
+/** Patch lines per `read_diff` call. */
+const DIFF_PAGE_LINES = 400;
+
+/**
+ * Pages through the change's own patch of a changed file (prefetched: the sandbox has only the head
+ * tree, so this is the one way to see removed lines and deleted files).
+ */
+export function buildDiffTool(patches: Readonly<Record<string, string>>): AgentTool[] {
+  const readDiff: AgentTool = {
+    name: 'read_diff',
+    description: `Read what this change did to a changed file, as a unified diff (lines starting with - were removed, + were added). The only way to see removed code and deleted files. Returns up to ${DIFF_PAGE_LINES} lines; pass startLine to continue.`,
+    label: 'Read diff',
+    parameters: Type.Object({
+      path: Type.String({ description: 'A changed file, as listed by list_changed_files.' }),
+      startLine: Type.Optional(Type.Integer({ minimum: 1, description: 'First line of the diff to return (1-based).' })),
+    }),
+    execute: async (_id, params) => {
+      const { path, startLine = 1 } = params as { path: string; startLine?: number };
+      const patch = patches[path.replace(/\\/g, '/').replace(/^\.\//, '')];
+      if (patch === undefined)
+        return textResult(`no diff for ${path}: not a changed file, or its diff was too large to provide; read the file with read_source`, { found: false });
+      const lines = patch.split('\n');
+      const from = Math.min(startLine, lines.length);
+      const to = Math.min(lines.length, from + DIFF_PAGE_LINES - 1);
+      const more = to < lines.length ? `\n(lines ${from}-${to} of ${lines.length}; call read_diff with startLine=${to + 1} for more)` : '';
+      return textResult(lines.slice(from - 1, to).join('\n') + more, { found: true, from, to, total: lines.length });
+    },
+  };
+  return [readDiff];
+}
+
 export interface CollectorSpec<T extends TSchema> {
   name: string;
   description: string;

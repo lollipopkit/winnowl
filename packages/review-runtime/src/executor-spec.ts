@@ -89,6 +89,7 @@ export interface ReviewExecutorSpec {
   /** Plan for small changes; the sandbox then skips the LLM map. */
   plannedScopes?: ReviewOrchestratorDeps['plannedScopes'];
   fileContext?: ReviewOrchestratorDeps['fileContext'];
+  filePatches?: ReviewOrchestratorDeps['filePatches'];
   /** Loaded by the control plane; the sandbox reads no skill files. */
   skills?: ReviewOrchestratorDeps['skills'];
   reviewFileStates?: { path: string; materialDigest: string }[];
@@ -295,6 +296,7 @@ export function buildProduceDeps(input: {
       : {}),
     ...(spec.plannedScopes !== undefined ? { plannedScopes: spec.plannedScopes } : {}),
     ...(spec.fileContext !== undefined ? { fileContext: spec.fileContext } : {}),
+    ...(spec.filePatches !== undefined ? { filePatches: spec.filePatches } : {}),
     ...(spec.skills !== undefined ? { skills: spec.skills } : {}),
     ...(spec.reviewFileStates !== undefined ? { reviewFileStates: spec.reviewFileStates } : {}),
     ...(spec.reviewContractDigest !== undefined

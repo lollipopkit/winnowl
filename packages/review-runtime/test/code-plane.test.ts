@@ -99,6 +99,13 @@ describe('code plane: workspace executor + control-side reader', () => {
       expect(Object.keys(diffs).sort()).toEqual(['app.py', 'pubspec.yaml']);
       expect(diffs['app.py']).toContain('+    return a - b');
       expect((await client.diffSince(base, ['app.py'], 20))['app.py']).toContain('(truncated');
+      const patches = await client.readPatches(['app.py', 'pubspec.yaml', 'untouched.txt'], 4000, 100_000);
+      expect(patches['app.py']).toBe('--- a/app.py\n+++ b/app.py\n@@ -1,2 +1,2 @@\n def add(a, b):\n-    return a + b\n+    return a - b');
+      expect(patches['pubspec.yaml']).toContain('+++ b/pubspec.yaml');
+      expect(Object.keys(patches).sort()).toEqual(['app.py', 'pubspec.yaml']);
+      expect((await client.readPatches(['app.py'], 20, 100_000))['app.py']).toContain('(patch truncated');
+      // Past the total cap a large patch is left out while smaller ones still fit.
+      expect(Object.keys(await client.readPatches(['app.py', 'pubspec.yaml'], 4000, 80))).toEqual(['pubspec.yaml']);
     } finally {
       await ws.dispose();
     }

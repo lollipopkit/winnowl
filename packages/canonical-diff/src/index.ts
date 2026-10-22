@@ -11,6 +11,8 @@ export type {
 export { parseUnifiedDiff, unquotePath } from './parser.js';
 export type { ParseOptions } from './parser.js';
 
+export { renderFilePatch } from './render.js';
+
 export { changedLinesByPath, isChangedLine } from './changed-lines.js';
 export type { ChangedLines } from './changed-lines.js';
 

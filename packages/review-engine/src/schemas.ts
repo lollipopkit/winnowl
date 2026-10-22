@@ -83,12 +83,20 @@ export const RECORD_EXTERNAL_FACT_SCHEMA = Type.Object({
 });
 
 export const COMPLETE_SCOPE_SCHEMA = Type.Object({
-  status: Type.Union([
-    Type.Literal('complete'),
-    Type.Literal('incomplete'),
-    Type.Literal('blocked'),
-    Type.Literal('failed'),
-  ]),
+  status: Type.Union(
+    [Type.Literal('complete'), Type.Literal('incomplete'), Type.Literal('blocked'), Type.Literal('failed')],
+    {
+      description:
+        'complete: you checked every changed file of this section against the obligations (finding nothing is still complete). incomplete: you could not get to some of them. blocked: something outside your control stopped you (a file you need cannot be read). failed: none of the above.',
+    },
+  ),
+  // Recorded as the scope's incomplete reason; without it a non-complete scope cannot be diagnosed.
+  reason: Type.Optional(
+    Type.String({
+      maxLength: 400,
+      description: 'Required unless status is complete: which files or obligations you did not check, and why.',
+    }),
+  ),
   // Narrows coverage accounting (coveredPathsOf); the description is the only format constraint on the model.
   exploredEntities: Type.Array(Type.String(), {
     description:
