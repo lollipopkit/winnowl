@@ -16,7 +16,7 @@ const font = resolve(repo, 'node_modules/@fontsource-variable/figtree/files/figt
 const CHROME = process.env.CHROME_BIN ?? '/Applications/Google Chrome.app/Contents/MacOS/Google Chrome';
 
 // Keep in sync with src/lib/seo.ts and the landing page h1.
-const HEADLINE = 'Finds deep bugs fast';
+const HEADLINE = 'Finds subtle bugs before they ship';
 const SUBLINE = 'AI code review for GitHub, GitLab and Forgejo';
 const DROPPED = ['Possible nil dereference in cache warmup', 'Unused parameter in adaptor factory', 'Prefer early return here'];
 const KEPT = 'New dependency carries a known advisory with no patched release';
