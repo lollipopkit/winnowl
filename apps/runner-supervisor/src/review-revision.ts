@@ -97,9 +97,9 @@ export interface ReviewRevisionDeps {
   resolveRunner?: (ctx: ReviewRevisionContext) => Promise<'platform' | 'actions' | undefined>;
   /**
    * For a manual review in GitHub Actions: re-runs the workflow run that last claimed this head, since no
-   * event starts one. Throws RunnerSetupError('actions-no-rerun') when that cannot be done.
+   * event starts one; `wait` while that run is still going. Throws RunnerSetupError('actions-no-rerun').
    */
-  rerunActionsWorkflow?: (ctx: ReviewRevisionContext) => Promise<void>;
+  rerunActionsWorkflow?: (ctx: ReviewRevisionContext) => Promise<'started' | 'wait'>;
   /** Decided before clone/model spend; block=true skips the review. Degrade is handled by buildEnv. */
   quotaGate?: (
     ctx: ReviewRevisionContext,
@@ -474,7 +474,6 @@ export function createReviewRevisionHandler(deps: ReviewRevisionDeps): JobHandle
           if (!env.executorSpec) throw new Error('the GitHub Actions runner needs a configured model (no executor spec)');
           // The user's own key pays for these calls.
           ctx.modelSourceKind = 'byok';
-          if (needsWorkflowRerun(payload)) await deps.rerunActionsWorkflow?.(ctx);
           const { produced, pluginCalls } = await runReviewInActions(env.executorSpec, {
             db: ctx.db,
             tenantId: payload.tenantId,
@@ -487,6 +486,9 @@ export function createReviewRevisionHandler(deps: ReviewRevisionDeps): JobHandle
             onProgress: progress.report,
             isCancelled,
             signal,
+            ...(needsWorkflowRerun(payload) && deps.rerunActionsWorkflow
+              ? { requestRun: () => deps.rerunActionsWorkflow!(ctx) }
+              : {}),
           });
           for (const call of pluginCalls) await env.onPluginCall?.(call);
           outcome = await publishReview(produced, orchestratorDeps);

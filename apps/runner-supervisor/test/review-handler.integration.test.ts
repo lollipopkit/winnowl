@@ -1948,7 +1948,7 @@ describe('review_revision handler 端到端', () => {
     expect(envRunners).toEqual(['actions']);
   });
 
-  it('a manual review in GitHub Actions re-runs the workflow before waiting for it', async () => {
+  it('a manual review in GitHub Actions re-runs the workflow while it waits for it', async () => {
     const reruns: string[] = [];
     const handler = createReviewRevisionHandler({
       newId: () => uuidv7(),
@@ -1956,7 +1956,12 @@ describe('review_revision handler 端到端', () => {
         reruns.push(ctx.payload.revisionId);
         throw new RunnerSetupError('actions-no-rerun', 'permission');
       },
-      buildEnv: async () => ({ runner: 'actions', executorSpec: {}, disposeWorkspace: async () => undefined }) as never,
+      buildEnv: async () =>
+        ({
+          runner: 'actions',
+          executorSpec: { model: { provider: 'openai', modelId: 'gpt-6-luna' }, budget: { maxTurns: 1, maxToolCalls: 1 }, promptDigests: [] },
+          disposeWorkspace: async () => undefined,
+        }) as never,
     });
     const supervisor = new Supervisor({ db, sandbox: noopSandbox, workerId, handlers: { review_revision: handler } });
     await enqueueJob(db, {

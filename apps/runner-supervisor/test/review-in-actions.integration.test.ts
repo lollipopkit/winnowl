@@ -93,6 +93,32 @@ describe('runReviewInActions: park, wait for the action, return or explain', () 
     expect(row).toEqual({ status: 'closed', spec: null, output: null });
   });
 
+  it('a review no event starts a run for waits for the last run to finish, then re-runs it once', async () => {
+    const job = uuidv7();
+    const answers: ('wait' | 'started')[] = ['wait', 'wait', 'started'];
+    let asked = 0;
+    // Every poll is a minute later, so the 20 s spacing never holds a request back.
+    let t = 0;
+    const action = (async () => {
+      while (asked < 3) await new Promise((r) => setTimeout(r, 10));
+      // A few more polls: nothing more is requested once the run started.
+      await new Promise((r) => setTimeout(r, 100));
+      await asAction(job, async (id) => {
+        await db.updateTable('actions_runs').set({ status: 'completed', output: { produced: { staged: [] }, pluginCalls: [] } }).where('id', '=', id).execute();
+      });
+    })();
+    await runReviewInActions(
+      spec(),
+      deps(job, {
+        now: () => (t += 60_000),
+        claimTimeoutMs: Number.MAX_SAFE_INTEGER,
+        requestRun: async () => answers[asked++]!,
+      }),
+    );
+    await action;
+    expect(asked).toBe(3);
+  });
+
   it('nobody claims it in time: a final, explained failure', async () => {
     const err = await runReviewInActions(spec(), deps(uuidv7(), { claimTimeoutMs: 100 })).catch((e: unknown) => e);
     expect(err).toBeInstanceOf(RunnerSetupError);

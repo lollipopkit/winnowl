@@ -98,3 +98,28 @@ describe('GitHub changes.create', () => {
     expect(server.requests[0]!.url).toContain('head=acme%3Awinnowl%2F42%2Fact');
   });
 });
+
+describe('GitHub pipelines.rerun', () => {
+  const posts = (s: FakeProviderServer) => s.requests.filter((r) => r.method === 'POST').map((r) => r.url);
+
+  it('a finished run is re-run whole, whatever its conclusion', async () => {
+    let server!: FakeProviderServer;
+    const provider = await makeProvider((s) => {
+      server = s;
+      s.on('GET', '/repos/acme/app/actions/runs/9', { status: 200, body: { status: 'completed', conclusion: 'failure' } });
+      s.on('POST', '/repos/acme/app/actions/runs/9/rerun', { status: 201, body: {} });
+    });
+    expect(await provider.pipelines.rerun!({ nativeId: '9', repositoryId: REPO_ID })).toBe('started');
+    expect(posts(server)).toEqual(['/repos/acme/app/actions/runs/9/rerun']);
+  });
+
+  it('a run still going is left alone', async () => {
+    let server!: FakeProviderServer;
+    const provider = await makeProvider((s) => {
+      server = s;
+      s.on('GET', '/repos/acme/app/actions/runs/9', { status: 200, body: { status: 'in_progress', conclusion: null } });
+    });
+    expect(await provider.pipelines.rerun!({ nativeId: '9', repositoryId: REPO_ID })).toBe('running');
+    expect(posts(server)).toEqual([]);
+  });
+});

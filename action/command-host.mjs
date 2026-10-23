@@ -13,6 +13,8 @@ if (!socket || !workdir || !user) {
 }
 
 const HEAD_BYTES = 32 * 1024;
+// Above the executor's own cap; also keeps the backstop timer within setTimeout's range.
+const MAX_TIMEOUT_SEC = 3600;
 const TAIL_BYTES = 96 * 1024;
 
 /** Keeps the first and last bytes of a stream. */
@@ -93,8 +95,8 @@ const server = createServer((req, res) => {
       res.writeHead(400).end('invalid json');
       return;
     }
-    if (typeof body.command !== 'string' || !Number.isInteger(body.timeoutSec) || body.timeoutSec < 1) {
-      res.writeHead(400).end('command and timeoutSec are required');
+    if (typeof body.command !== 'string' || !Number.isInteger(body.timeoutSec) || body.timeoutSec < 1 || body.timeoutSec > MAX_TIMEOUT_SEC) {
+      res.writeHead(400).end(`command and timeoutSec (1-${MAX_TIMEOUT_SEC}) are required`);
       return;
     }
     // The executor runs one command at a time; a second one would share the work tree.

@@ -435,7 +435,8 @@ export async function reviewHandlers(rt: RunnerRuntime): Promise<Record<string, 
         const provider = await buildProviderForRepository(ctx.payload.repositoryId);
         if (!provider.pipelines.rerun) throw new RunnerSetupError('actions-no-rerun', 'no-run');
         try {
-          await provider.pipelines.rerun({ nativeId: last.github_run_id, repositoryId: ctx.payload.repositoryId });
+          const r = await provider.pipelines.rerun({ nativeId: last.github_run_id, repositoryId: ctx.payload.repositoryId });
+          return r === 'started' ? 'started' : 'wait';
         } catch (err) {
           if (err instanceof ProviderError && err.status === 403) throw new RunnerSetupError('actions-no-rerun', 'permission');
           throw err;
