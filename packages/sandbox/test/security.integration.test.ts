@@ -130,8 +130,16 @@ describe('Sandbox 安全套件', () => {
     // ~150 MB held in a shell variable for a few seconds (sampled every 2 s): beyond 96 MiB.
     const hog = ['sh', '-c', 'x=$(head -c 150000000 /dev/zero | tr "\\0" a); sleep 3; echo ${#x}'];
     const killed = await exec(hog, 30_000, 1000, h);
-    expect(killed.exitCode).not.toBe(0);
-    expect(killed.oomKilled).toBe(true);
+    // What the runner saw, for a host where the kill is not reported as OOM.
+    const seen = JSON.stringify({
+      exitCode: killed.exitCode,
+      timedOut: killed.timedOut,
+      durationMs: killed.durationMs,
+      stderr: killed.stderr.slice(-500),
+      usage: await backend.usage(h),
+    });
+    expect(killed.exitCode, seen).not.toBe(0);
+    expect(killed.oomKilled, seen).toBe(true);
     expect(killed.timedOut).toBe(false);
 
     const grown = await backend.resize(h, { memoryMb: 512, swapMb: 128, cpus: 2 });

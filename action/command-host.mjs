@@ -4,6 +4,7 @@
 // environment in <workdir>; whatever they leave running is killed afterwards.
 import { spawn, spawnSync } from 'node:child_process';
 import { createServer } from 'node:http';
+import { StringDecoder } from 'node:string_decoder';
 import { commandEnv } from './command-env.mjs';
 
 const [socket, workdir, user] = process.argv.slice(2);
@@ -16,6 +17,18 @@ const HEAD_BYTES = 32 * 1024;
 // Above the executor's own cap; also keeps the backstop timer within setTimeout's range.
 const MAX_TIMEOUT_SEC = 3600;
 const TAIL_BYTES = 96 * 1024;
+// A command is a few KB; the executor caps it at 8000 characters.
+const MAX_BODY_BYTES = 64 * 1024;
+
+/** The bytes as text, dropping a UTF-8 sequence cut at either end rather than decoding it to U+FFFD. */
+function decodeCut(bytes, cutStart, cutEnd) {
+  let start = 0;
+  // Continuation bytes (10xxxxxx) at the front belong to a character that started before the cut.
+  if (cutStart) while (start < bytes.length && start < 3 && (bytes[start] & 0xc0) === 0x80) start += 1;
+  const decoder = new StringDecoder('utf8');
+  const text = decoder.write(bytes.subarray(start));
+  return cutEnd ? text : text + decoder.end();
+}
 
 /** Keeps the first and last bytes of a stream. */
 function capture() {
@@ -40,8 +53,8 @@ function capture() {
       }
     },
     text() {
-      const t = Buffer.concat(tail).toString('utf8');
-      return head.toString('utf8') + (dropped > 0 ? `\n…[${dropped} bytes omitted]…\n` : '') + t;
+      if (dropped === 0) return Buffer.concat([head, ...tail]).toString('utf8');
+      return `${decodeCut(head, false, true)}\n…[${dropped} bytes omitted]…\n${decodeCut(Buffer.concat(tail), true, false)}`;
     },
   };
 }
@@ -49,7 +62,7 @@ function capture() {
 const killLeftovers = () => spawnSync('sudo', ['-n', 'pkill', '-KILL', '-u', user], { stdio: 'ignore' });
 
 function runOne(command, timeoutSec) {
-  return new Promise((resolve) => {
+  return new Promise((resolve, reject) => {
     const started = Date.now();
     const env = Object.entries(commandEnv(process.env, user)).map(([k, v]) => `${k}=${v}`);
     const child = spawn(
@@ -57,6 +70,14 @@ function runOne(command, timeoutSec) {
       ['-n', '-u', user, '--', '/usr/bin/env', '-i', ...env, 'timeout', '--kill-after=10', String(timeoutSec), 'bash', '-c', command],
       { cwd: workdir, stdio: ['ignore', 'pipe', 'pipe'] },
     );
+    // A spawn that fails at runtime emits 'error' (and maybe 'close'); settle once.
+    let settled = false;
+    child.on('error', (e) => {
+      if (settled) return;
+      settled = true;
+      clearTimeout(guard);
+      reject(e);
+    });
     const out = capture();
     const err = capture();
     child.stdout.on('data', (c) => out.push(c));
@@ -64,6 +85,8 @@ function runOne(command, timeoutSec) {
     // Backstop for a command that ignores timeout's signals.
     const guard = setTimeout(() => killLeftovers(), (timeoutSec + 30) * 1000);
     child.on('close', (code) => {
+      if (settled) return;
+      settled = true;
       clearTimeout(guard);
       killLeftovers();
       const durationMs = Date.now() - started;
@@ -86,8 +109,18 @@ const server = createServer((req, res) => {
     return;
   }
   const chunks = [];
-  req.on('data', (c) => chunks.push(c));
+  let size = 0;
+  req.on('data', (c) => {
+    size += c.length;
+    if (size > MAX_BODY_BYTES) {
+      res.writeHead(413).end('request too large');
+      req.destroy();
+      return;
+    }
+    chunks.push(c);
+  });
   req.on('end', async () => {
+    if (size > MAX_BODY_BYTES) return;
     let body;
     try {
       body = JSON.parse(Buffer.concat(chunks).toString('utf8'));
@@ -95,7 +128,15 @@ const server = createServer((req, res) => {
       res.writeHead(400).end('invalid json');
       return;
     }
-    if (typeof body.command !== 'string' || !Number.isInteger(body.timeoutSec) || body.timeoutSec < 1 || body.timeoutSec > MAX_TIMEOUT_SEC) {
+    if (
+      !body ||
+      typeof body !== 'object' ||
+      typeof body.command !== 'string' ||
+      body.command.includes('\0') ||
+      !Number.isInteger(body.timeoutSec) ||
+      body.timeoutSec < 1 ||
+      body.timeoutSec > MAX_TIMEOUT_SEC
+    ) {
       res.writeHead(400).end(`command and timeoutSec (1-${MAX_TIMEOUT_SEC}) are required`);
       return;
     }
@@ -108,6 +149,9 @@ const server = createServer((req, res) => {
     try {
       const result = await runOne(body.command, body.timeoutSec);
       res.writeHead(200, { 'content-type': 'application/json' }).end(JSON.stringify(result));
+    } catch (e) {
+      // spawn throws synchronously on bad arguments and emits 'error' when it cannot start the program.
+      res.writeHead(500).end(`could not run the command: ${e instanceof Error ? e.message : String(e)}`);
     } finally {
       busy = false;
     }
