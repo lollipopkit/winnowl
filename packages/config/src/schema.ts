@@ -323,11 +323,11 @@ const sandboxNetwork = z
 
 const sandbox = z
   .object({
-    runner_policy: z
-      .enum(['saas-only', 'self-hosted-required', 'prefer-self-hosted'])
-      .default('prefer-self-hosted')
+    runner: z
+      .enum(['platform', 'actions'])
+      .default('platform')
       .describe(
-        'Where commands may run: hosted runners, your own runners, or your own when available.',
+        'Where reviews run: on the platform, or in this repository\'s GitHub Actions (needs the winnowl workflow; never falls back to the platform).',
       ),
     labels: z
       .array(z.string())

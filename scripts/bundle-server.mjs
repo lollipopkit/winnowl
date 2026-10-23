@@ -14,6 +14,7 @@ const targets = [
   { in: 'apps/webhook-ingress/dist/index.js', out: 'dist-bundle/apps/webhook-ingress/dist/index.mjs' },
   { in: 'apps/runner-supervisor/dist/index.js', out: 'dist-bundle/apps/runner-supervisor/dist/index.mjs' },
   { in: 'apps/review-executor/dist/index.js', out: 'dist-bundle/apps/review-executor/dist/index.mjs' },
+  { in: 'apps/review-executor/dist/actions.js', out: 'dist-bundle/apps/review-executor/dist/actions.mjs' },
   { in: 'apps/sandbox-agent/dist/index.js', out: 'dist-bundle/apps/sandbox-agent/dist/index.mjs' },
   { in: 'apps/llm-relay/dist/index.js', out: 'dist-bundle/apps/llm-relay/dist/index.mjs' },
   { in: 'scripts/gen-squid-conf.ts', out: 'dist-bundle/scripts/gen-squid-conf.mjs' },

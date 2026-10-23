@@ -224,6 +224,16 @@ const en = {
     deniedTitle: 'Review not started',
     denied: '@{login:string} needs write access to this repository to request a review.',
   },
+  // Why a review could not run where the repository asked (sandbox.runner); shown on the check run and status comment.
+  runnerSetup: {
+    actionsFork: 'This repository runs reviews in GitHub Actions, and GitHub gives pull requests from forks no OIDC token, so the review cannot run there. Set `sandbox.runner: platform` in `.winnowl.yaml` to review fork pull requests.',
+    actionsNotClaimed: 'No GitHub Actions job picked up the review within {minutes:number} minutes. Check that the winnowl workflow is in `.github/workflows/`, that Actions is enabled for this repository, and that the job is not stuck in the queue, then re-run the workflow.',
+    actionsStalled: 'The GitHub Actions job stopped reporting progress. Re-run the workflow to review again.',
+    actionsTimedOut: 'The GitHub Actions job ran past the review\'s time limit. Re-run the workflow to try again.',
+    actionsNoKey: 'The GitHub Actions job has no model key. Add a repository secret (for example `WINNOWL_LLM_API_KEY`), pass it to the action as `llm-api-key`, then re-run the workflow.',
+    actionsVersionMismatch: 'The executor in GitHub Actions does not match the winnowl server version. Use the action from the winnowl docs without pinning an old image, then re-run the workflow.',
+    actionsFailed: 'The review failed in GitHub Actions: {detail:string}. Re-run the workflow to try again.',
+  },
   checks: {
     quotaExhausted: 'Quota exhausted — review skipped',
     quotaExhaustedSummary: 'The review quota for this billing period is exhausted, so winnowl skipped this review. Merging is not blocked. Upgrade the plan or wait for the next period, then push a commit or use the review command to retrigger.',

@@ -216,6 +216,16 @@ const pt = {
     deniedTitle: 'Review não iniciada',
     denied: '@{login} precisa de acesso de escrita a este repositório para solicitar uma review.',
   },
+  // Why a review could not run where the repository asked (sandbox.runner); shown on the check run and status comment.
+  runnerSetup: {
+    actionsFork: 'Este repositório roda as revisões no GitHub Actions, e o GitHub não dá token OIDC a pull requests de forks, então a revisão não pode rodar lá. Defina `sandbox.runner: platform` no `.winnowl.yaml` para revisar pull requests de forks.',
+    actionsNotClaimed: 'Nenhum job do GitHub Actions pegou a revisão em {minutes} minutos. Confira se o workflow do winnowl está em `.github/workflows/`, se o Actions está ativado neste repositório e se o job não está preso na fila; depois execute o workflow de novo.',
+    actionsStalled: 'O job do GitHub Actions parou de informar o progresso. Execute o workflow de novo para revisar outra vez.',
+    actionsTimedOut: 'O job do GitHub Actions passou do limite de tempo da revisão. Execute o workflow de novo para tentar outra vez.',
+    actionsNoKey: 'O job do GitHub Actions não tem chave de modelo. Adicione um secret do repositório (por exemplo `WINNOWL_LLM_API_KEY`), passe-o para a action como `llm-api-key` e execute o workflow de novo.',
+    actionsVersionMismatch: 'O executor no GitHub Actions não corresponde à versão do servidor do winnowl. Use a action como indicado na documentação do winnowl, sem fixar uma imagem antiga, e execute o workflow de novo.',
+    actionsFailed: 'A revisão falhou no GitHub Actions: {detail}. Execute o workflow de novo para tentar outra vez.',
+  },
   checks: {
     quotaExhausted: 'Cota esgotada — review pulada',
     quotaExhaustedSummary: 'A cota de review deste período de cobrança se esgotou, então o winnowl pulou esta review. O merge não é bloqueado. Faça upgrade do plano ou aguarde o próximo período, depois envie um commit ou use o comando de review para disparar de novo.',

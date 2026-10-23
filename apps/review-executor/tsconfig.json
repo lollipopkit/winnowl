@@ -11,6 +11,7 @@
     { "path": "../../packages/prompts" },
     { "path": "../../packages/review-orchestrator" },
     { "path": "../../packages/review-runtime" },
+    { "path": "../../packages/runner-protocol" },
     { "path": "../../packages/telemetry" }
   ]
 }

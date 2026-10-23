@@ -349,11 +349,14 @@ export async function reviewHandlers(rt: RunnerRuntime): Promise<Record<string, 
       onTerminalFailure: async (ctx, error) => {
         await reviewAck.onTerminalFailure(ctx, error);
         await statusComment
-          .failed({
-            tenantId: ctx.payload.tenantId,
-            repositoryId: ctx.payload.repositoryId,
-            changeRequestId: ctx.payload.changeRequestId,
-          })
+          .failed(
+            {
+              tenantId: ctx.payload.tenantId,
+              repositoryId: ctx.payload.repositoryId,
+              changeRequestId: ctx.payload.changeRequestId,
+            },
+            error,
+          )
           .catch((err) =>
             logger.warn({ changeRequestId: ctx.payload.changeRequestId, err: (err as Error)?.message }, 'status comment failed'),
           );

@@ -1,9 +1,15 @@
-import type { StreamFailureKind } from '@reviewbot/agent-pi';
 import { relayOtlpFile } from '@reviewbot/telemetry';
 import { SANDBOX_PRIORITY, type SandboxBackend, type SandboxHandle, type SandboxResources, type NetworkPolicy } from '@reviewbot/sandbox';
 import { ReviewIncompleteError } from '@reviewbot/review-orchestrator';
+import { errorFromExecutorReport } from './executor-error.js';
 import { canReceiveWorkspace, readOnlyTree, workspaceMount, workspacePlacement } from './code-plane.js';
-import { relayExecutorSpec, type CodePlane, type ReviewExecutorOutput, type ReviewExecutorSpec } from '@reviewbot/review-runtime';
+import {
+  relayExecutorSpec,
+  type CodePlane,
+  type ExecutorErrorReport,
+  type ReviewExecutorOutput,
+  type ReviewExecutorSpec,
+} from '@reviewbot/review-runtime';
 import type { LlmRelayClient, RelayGrant } from './llm-relay.js';
 
 /**
@@ -238,21 +244,7 @@ export async function runReviewInSandbox(
         ...(parsed?.failureKind ? { failureKind: parsed.failureKind } : {}),
         ...(parsed?.failureDetail ? { failureDetail: parsed.failureDetail } : {}),
       });
-      // Rebuild the error with its failureKind so classifyJobError picks the right backoff.
-      if (parsed?.name === 'ReviewIncompleteError') {
-        throw new ReviewIncompleteError(
-          parsed.error ?? 'review exploration incomplete (sandbox)',
-          {
-            ...(parsed.failureKind ? { failureKind: parsed.failureKind as StreamFailureKind } : {}),
-            ...(parsed.failureDetail ? { failureDetail: parsed.failureDetail } : {}),
-            // Without it the control plane retries a wall-clock cut that will just be cut again.
-            ...(parsed.deadlineCut === true ? { deadlineCut: true } : {}),
-          },
-        );
-      }
-      throw new Error(
-        `review-executor 失败(exit=${r.exitCode}): ${parsed?.error ?? r.stderr.slice(-500)}`,
-      );
+      throw errorFromExecutorReport(parsed, `exit=${r.exitCode}: ${r.stderr.slice(-500)}`);
     }
     const out = await deps.sandbox.getArtifact(handle, OUTPUT);
     return JSON.parse(out.content) as ReviewExecutorOutput;
@@ -288,21 +280,11 @@ export async function runReviewInSandbox(
 }
 
 /** Last stderr line written by review-executor on failure (apps/review-executor/src/index.ts). */
-interface ExecutorErrorLine {
-  error?: string;
-  name?: string;
-  failureKind?: string;
-  failureDetail?: string;
-  deadlineCut?: boolean;
-}
-
-function parseExecutorError(
-  stderr: string,
-): ExecutorErrorLine | null {
+function parseExecutorError(stderr: string): ExecutorErrorReport | null {
   const line = stderr.trim().split('\n').pop();
   if (!line) return null;
   try {
-    return JSON.parse(line) as ExecutorErrorLine;
+    return JSON.parse(line) as ExecutorErrorReport;
   } catch {
     return null;
   }

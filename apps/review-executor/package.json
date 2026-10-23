@@ -15,6 +15,7 @@
     "@reviewbot/prompts": "workspace:*",
     "@reviewbot/review-orchestrator": "workspace:*",
     "@reviewbot/review-runtime": "workspace:*",
+    "@reviewbot/runner-protocol": "workspace:*",
     "@reviewbot/telemetry": "workspace:*",
     "undici": "^7.28.0"
   },

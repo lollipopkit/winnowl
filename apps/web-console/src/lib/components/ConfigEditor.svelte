@@ -7,6 +7,8 @@
   import { LL, locale } from '$lib/i18n/i18n-svelte';
   import ErrorText from '$lib/components/ErrorText.svelte';
   import SelectField from '$lib/components/SelectField.svelte';
+  import CodeText from '$lib/components/CodeText.svelte';
+  import { ACTIONS_WORKFLOW, ACTIONS_WORKFLOW_PATH } from '$lib/actions-workflow';
   import { Button } from '$lib/components/ui/button/index.js';
   import { Switch } from '$lib/components/ui/switch/index.js';
   import { Slider } from '$lib/components/ui/slider/index.js';
@@ -196,6 +198,19 @@
         <SelectField class="w-40" options={languages.map((l) => ({ value: l, label: languageName(l) }))} value={str('language', 'en')} disabled={readOnly} onchange={(v) => set('language', v)} />
       {/snippet}
       {@render row($LL.config.language(), null, languageControl)}
+      {#snippet runnerControl()}
+        {@render segmented('sandbox.runner', str('sandbox.runner', 'platform'), [
+          { value: 'platform', label: $LL.config.runnerPlatform() },
+          { value: 'actions', label: $LL.config.runnerActions() },
+        ])}
+      {/snippet}
+      {@render row($LL.config.runner(), $LL.config.runnerHint(), runnerControl)}
+      {#if str('sandbox.runner', 'platform') === 'actions'}
+        <div class="setting-note">
+          <p><CodeText text={$LL.config.runnerActionsSetup({ path: ACTIONS_WORKFLOW_PATH })} /></p>
+          <pre><code>{ACTIONS_WORKFLOW}</code></pre>
+        </div>
+      {/if}
     </section>
 
     <section class="settings-group">

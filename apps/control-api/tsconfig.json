@@ -11,6 +11,7 @@
     { "path": "../../packages/config" },
     { "path": "../../packages/conversation" },
     { "path": "../../packages/db" },
+    { "path": "../../packages/runner-protocol" },
     { "path": "../../packages/domain" },
     { "path": "../../packages/entitlement" },
     { "path": "../../packages/finding-lifecycle" },

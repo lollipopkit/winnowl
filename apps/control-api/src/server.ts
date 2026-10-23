@@ -21,6 +21,7 @@ import { registerPlatformSettingsRoutes } from './routes/platform-settings.js';
 import { registerAccountRoutes } from './routes/account.js';
 import { registerDataRoutes } from './routes/data.js';
 import { registerActionRoutes } from './routes/actions.js';
+import { registerActionsRunnerRoutes, type ActionsRunnerOptions } from './routes/actions-runner.js';
 import { registerInboxRoutes } from './routes/inbox.js';
 import { registerFindingActionRoutes } from './routes/finding-actions.js';
 import { registerLearningRoutes } from './routes/learnings.js';
@@ -54,6 +55,8 @@ export interface BuildServerOptions {
   consoleBaseUrl?: string;
   /** Absent = `/v1/auth/*` is not registered and requests are anonymous viewers (dev). Also used for account linking. */
   oauthProviders?: Map<string, OAuthProvider>;
+  /** GitHub Actions runner endpoints; the issuer is overridable for tests. */
+  actionsRunner?: ActionsRunnerOptions;
 }
 
 export async function buildServer(options: BuildServerOptions = {}): Promise<FastifyInstance> {
@@ -95,6 +98,7 @@ export async function buildServer(options: BuildServerOptions = {}): Promise<Fas
   if (options.db) {
     registerDataRoutes(app, options.db);
     registerActionRoutes(app, options.db);
+    registerActionsRunnerRoutes(app, options.db, options.actionsRunner ?? {});
     registerInboxRoutes(app, options.db);
     registerFindingActionRoutes(app, options.db);
     registerLearningRoutes(app, options.db);

@@ -216,6 +216,16 @@ const ru = {
     deniedTitle: 'Review не запущен',
     denied: 'Чтобы запросить review, @{login} нужен доступ на запись к этому репозиторию.',
   },
+  // Why a review could not run where the repository asked (sandbox.runner); shown on the check run and status comment.
+  runnerSetup: {
+    actionsFork: 'Ревью этого репозитория выполняются в GitHub Actions, а GitHub не выдаёт OIDC-токен pull request из форков, поэтому ревью там запустить нельзя. Чтобы проверять pull request из форков, задайте `sandbox.runner: platform` в `.winnowl.yaml`.',
+    actionsNotClaimed: 'За {minutes} мин. ни одна задача GitHub Actions не взяла ревью. Проверьте, что workflow winnowl лежит в `.github/workflows/`, Actions включены для репозитория и задача не застряла в очереди, затем перезапустите workflow.',
+    actionsStalled: 'Задача GitHub Actions перестала сообщать о ходе работы. Перезапустите workflow, чтобы провести ревью заново.',
+    actionsTimedOut: 'Задача GitHub Actions превысила лимит времени ревью. Перезапустите workflow, чтобы попробовать снова.',
+    actionsNoKey: 'У задачи GitHub Actions нет ключа модели. Добавьте secret репозитория (например, `WINNOWL_LLM_API_KEY`), передайте его action как `llm-api-key` и перезапустите workflow.',
+    actionsVersionMismatch: 'Executor в GitHub Actions не совпадает с версией сервера winnowl. Используйте action, как описано в документации winnowl, не закрепляя старый образ, и перезапустите workflow.',
+    actionsFailed: 'Ревью в GitHub Actions завершилось ошибкой: {detail}. Перезапустите workflow, чтобы попробовать снова.',
+  },
   checks: {
     quotaExhausted: 'Квота review исчерпана — review пропущен',
     quotaExhaustedSummary: 'Квота review на этот расчётный период исчерпана, поэтому winnowl пропустил этот review. Merge не блокируется. Обновите план или дождитесь следующего периода, затем запушьте коммит или используйте команду review, чтобы перезапустить.',

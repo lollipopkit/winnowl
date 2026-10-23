@@ -18,7 +18,7 @@ describe('默认配置', () => {
     // Unset: the platform decides.
     expect(cfg.sandbox.network.mode).toBeUndefined();
     expect(cfg.sandbox.resources).toEqual({});
-    expect(cfg.sandbox.runner_policy).toBe('prefer-self-hosted');
+    expect(cfg.sandbox.runner).toBe('platform');
     expect(cfg.merge_gate.enabled).toBe(false);
     expect(cfg.actions.post_merge.enabled).toBe(false);
   });

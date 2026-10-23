@@ -55,7 +55,7 @@ export const CONFIG_DOCS_ZH: Record<string, string> = {
   'tools.enabled': '强制启用的分析器。',
   'tools.disabled': '强制关闭的分析器。',
 
-  'sandbox.runner_policy': '命令在哪里跑:平台的机器、你自己的机器,或"有自己的就用自己的"。',
+  'sandbox.runner': 'review 在哪里运行:平台,或本仓库的 GitHub Actions(需要添加 winnowl workflow;运行不了时直接报错,不会改回平台)。',
   'sandbox.labels': '要求承接本仓库的执行机带哪些标签。',
   'sandbox.network.mode': '跑你代码的那个环境能不能上网。默认完全禁止。',
   'sandbox.network.ecosystems': 'mode 为 `package-registry-only` 时,允许访问哪些包管理源。',

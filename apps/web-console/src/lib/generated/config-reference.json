@@ -260,10 +260,10 @@
       "description": "Analyzers to force off."
     },
     {
-      "path": "sandbox.runner_policy",
-      "type": "saas-only | self-hosted-required | prefer-self-hosted",
-      "default": "prefer-self-hosted",
-      "description": "Where commands may run: hosted runners, your own runners, or your own when available."
+      "path": "sandbox.runner",
+      "type": "platform | actions",
+      "default": "platform",
+      "description": "Where reviews run: on the platform, or in this repository's GitHub Actions (needs the winnowl workflow; never falls back to the platform)."
     },
     {
       "path": "sandbox.labels",

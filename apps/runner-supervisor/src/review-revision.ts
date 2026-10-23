@@ -16,6 +16,9 @@ import {
 } from '@reviewbot/review-runtime';
 import { sql } from '@reviewbot/db';
 import { canRunReviewInSandbox, runReviewInSandbox } from './review-in-sandbox.js';
+import { actionsExecutorImage } from '@reviewbot/runner-protocol';
+import { ActionsRunCancelledError, runReviewInActions } from './review-in-actions.js';
+import { RunnerSetupError } from './executor-error.js';
 import { autoReviewSkip, countReviewablePaths } from './auto-review-gate.js';
 import type { AutoReviewSkip } from './status-comment.js';
 import { reviewSandboxResources } from './sandbox-backend.js';
@@ -434,7 +437,28 @@ export function createReviewRevisionHandler(deps: ReviewRevisionDeps): JobHandle
       // In the sandbox path only exploration + verification run there; publishing stays here.
       const runReview = async (): Promise<ReviewOutcome> => {
         let outcome: ReviewOutcome;
-        if (
+        if (env.runner === 'actions') {
+          // GitHub gives fork pull requests no OIDC token, so the action could not prove which run is its own.
+          if (cr.source_is_fork) throw new RunnerSetupError('actions-fork');
+          if (!env.executorSpec) throw new Error('the GitHub Actions runner needs a configured model (no executor spec)');
+          // The user's own key pays for these calls.
+          ctx.modelSourceKind = 'byok';
+          const { produced, pluginCalls } = await runReviewInActions(env.executorSpec, {
+            db: ctx.db,
+            tenantId: payload.tenantId,
+            jobId: job.id,
+            repositoryId: payload.repositoryId,
+            changeRequestNumber: cr.number,
+            headSha: payload.headSha,
+            image: actionsExecutorImage(process.env),
+            log,
+            onProgress: progress.report,
+            isCancelled,
+            signal,
+          });
+          for (const call of pluginCalls) await env.onPluginCall?.(call);
+          outcome = await publishReview(produced, orchestratorDeps);
+        } else if (
           process.env.REVIEW_IN_SANDBOX === '1' &&
           env.executorSpec &&
           canRunReviewInSandbox(sandbox, env.codePlane)
@@ -571,6 +595,11 @@ export function createReviewRevisionHandler(deps: ReviewRevisionDeps): JobHandle
           : {}),
       });
     } catch (error) {
+      if (error instanceof ActionsRunCancelledError) {
+        await progress.finish('cancelled');
+        log('review cancelled before GitHub Actions claimed it', { changeRequestId: payload.changeRequestId, headSha: payload.headSha });
+        return;
+      }
       await progress.finish('failed');
       // Terminal = last attempt or non-retryable (same decision as failJob). Not terminal once the
       // signal is aborted: the job goes back to the queue.

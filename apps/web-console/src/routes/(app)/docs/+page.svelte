@@ -3,6 +3,8 @@
   import { LL, locale } from '$lib/i18n/i18n-svelte';
   import PageHeader from '$lib/components/PageHeader.svelte';
   import Section from '$lib/components/Section.svelte';
+  import CodeText from '$lib/components/CodeText.svelte';
+  import { ACTIONS_WORKFLOW, ACTIONS_WORKFLOW_PATH } from '$lib/actions-workflow';
 
   import reference from '$lib/generated/config-reference.json';
   import { CONFIG_DOCS_ZH } from '$lib/config-docs.zh';
@@ -115,6 +117,16 @@ actions:
 
   <h3 class="mt-6 mb-2 text-sm font-semibold">{$LL.docs.configExampleTitle()}</h3>
   <pre class="code-block">{EXAMPLE}</pre>
+</Section>
+
+<Section title={$LL.docs.actionsTitle()} description={$LL.docs.actionsBody()}>
+  <ol class="text-muted-foreground m-0 grid gap-2 pl-5 text-sm leading-relaxed">
+    <li><CodeText text={$LL.docs.actionsStep1()} /></li>
+    <li><CodeText text={$LL.docs.actionsStep2({ path: ACTIONS_WORKFLOW_PATH })} /></li>
+    <li><CodeText text={$LL.docs.actionsStep3()} /></li>
+  </ol>
+  <pre class="code-block mt-4">{ACTIONS_WORKFLOW}</pre>
+  <p class="text-muted-foreground mt-4 mb-0 text-sm leading-relaxed">{$LL.docs.actionsLimit()}</p>
 </Section>
 
 <Section title={$LL.docs.referenceTitle()} flush>

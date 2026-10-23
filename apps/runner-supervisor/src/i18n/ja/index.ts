@@ -216,6 +216,16 @@ const ja = {
     deniedTitle: 'Review を開始していません',
     denied: 'review をリクエストするには、@{login} にこのリポジトリへの書き込み権限が必要です。',
   },
+  // Why a review could not run where the repository asked (sandbox.runner); shown on the check run and status comment.
+  runnerSetup: {
+    actionsFork: 'このリポジトリのレビューは GitHub Actions で実行されますが、GitHub はフォークからのプルリクエストに OIDC トークンを発行しないため、そこではレビューを実行できません。フォークのプルリクエストをレビューするには `.winnowl.yaml` で `sandbox.runner: platform` を設定してください。',
+    actionsNotClaimed: '{minutes} 分以内にレビューを受け取った GitHub Actions ジョブがありません。winnowl の workflow が `.github/workflows/` にあること、このリポジトリで Actions が有効なこと、ジョブがキューで止まっていないことを確認し、workflow を再実行してください。',
+    actionsStalled: 'GitHub Actions ジョブが進捗の報告を止めました。workflow を再実行してもう一度レビューしてください。',
+    actionsTimedOut: 'GitHub Actions ジョブがレビューの制限時間を超えました。workflow を再実行してもう一度試してください。',
+    actionsNoKey: 'GitHub Actions ジョブにモデルのキーがありません。リポジトリの secret（例: `WINNOWL_LLM_API_KEY`）を追加して action に `llm-api-key` として渡し、workflow を再実行してください。',
+    actionsVersionMismatch: 'GitHub Actions の executor が winnowl サーバーのバージョンと一致しません。古いイメージを固定せず winnowl のドキュメントどおりに action を使い、workflow を再実行してください。',
+    actionsFailed: 'GitHub Actions でレビューが失敗しました: {detail}。workflow を再実行してもう一度試してください。',
+  },
   checks: {
     quotaExhausted: 'クォータ超過 —— review をスキップ',
     quotaExhaustedSummary: '今回の課金期間の review クォータを使い切ったため、winnowl は今回の review をスキップしました。merge はブロックされません。プランをアップグレードするか次の期間を待ってから、commit を push するか review コマンドで再トリガーしてください。',

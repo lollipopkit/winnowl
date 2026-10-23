@@ -115,6 +115,8 @@ export type ReviewEnv = Omit<ReviewOrchestratorDeps, 'publishTarget' | 'newId'> 
   guidanceReport?: { files: string[]; rejected: { path: string; patterns: string[] }[] };
   /** Replays plugin calls made inside the sandbox (recorded in memory only) into audit_events and metering. */
   onPluginCall?: (event: PluginToolCallEvent) => Promise<void>;
+  /** `sandbox.runner` as read for this review (not the stored mirror, which lags one review). */
+  runner: 'platform' | 'actions';
 };
 
 export interface ModelSource {
@@ -1345,6 +1347,7 @@ export function createReviewBuildEnv(
     return {
       disposeWorkspace,
       codePlane: plane,
+      runner: cfg.config.sandbox.runner,
       ...(executorSpec ? { executorSpec } : {}),
       ...(onPluginCall ? { onPluginCall } : {}),
       source: wsView.source,

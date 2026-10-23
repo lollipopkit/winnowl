@@ -216,6 +216,16 @@ const es = {
     deniedTitle: 'Review no iniciada',
     denied: '@{login} necesita acceso de escritura a este repositorio para solicitar una review.',
   },
+  // Why a review could not run where the repository asked (sandbox.runner); shown on the check run and status comment.
+  runnerSetup: {
+    actionsFork: 'Este repositorio ejecuta las revisiones en GitHub Actions, y GitHub no da token OIDC a los pull requests de forks, así que la revisión no puede ejecutarse allí. Configura `sandbox.runner: platform` en `.winnowl.yaml` para revisar pull requests de forks.',
+    actionsNotClaimed: 'Ningún job de GitHub Actions tomó la revisión en {minutes} minutos. Comprueba que el workflow de winnowl esté en `.github/workflows/`, que Actions esté activado en este repositorio y que el job no esté atascado en la cola; luego vuelve a ejecutar el workflow.',
+    actionsStalled: 'El job de GitHub Actions dejó de informar su progreso. Vuelve a ejecutar el workflow para revisar de nuevo.',
+    actionsTimedOut: 'El job de GitHub Actions superó el límite de tiempo de la revisión. Vuelve a ejecutar el workflow para intentarlo otra vez.',
+    actionsNoKey: 'El job de GitHub Actions no tiene clave de modelo. Añade un secret del repositorio (por ejemplo `WINNOWL_LLM_API_KEY`), pásalo a la action como `llm-api-key` y vuelve a ejecutar el workflow.',
+    actionsVersionMismatch: 'El ejecutor en GitHub Actions no coincide con la versión del servidor de winnowl. Usa la action como indica la documentación de winnowl, sin fijar una imagen antigua, y vuelve a ejecutar el workflow.',
+    actionsFailed: 'La revisión falló en GitHub Actions: {detail}. Vuelve a ejecutar el workflow para intentarlo otra vez.',
+  },
   checks: {
     quotaExhausted: 'Cuota agotada — review omitida',
     quotaExhaustedSummary: 'La cuota de reviews de este período de facturación está agotada, por lo que winnowl omitió esta review. No bloquea el merge. Mejora el plan o espera al siguiente período, luego sube un commit o usa el comando de review para reintentar.',

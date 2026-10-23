@@ -16,6 +16,7 @@
     { "path": "../../packages/command-gate" },
     { "path": "../../packages/conversation" },
     { "path": "../../packages/db" },
+    { "path": "../../packages/runner-protocol" },
     { "path": "../../packages/entitlement" },
     { "path": "../../packages/domain" },
     { "path": "../../packages/finding-lifecycle" },

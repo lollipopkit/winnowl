@@ -1564,6 +1564,31 @@ type RootTranslation = {
 	}
 	docs: {
 		/**
+		 * R​u​n​ ​r​e​v​i​e​w​s​ ​i​n​ ​G​i​t​H​u​b​ ​A​c​t​i​o​n​s
+		 */
+		actionsTitle: string
+		/**
+		 * R​e​v​i​e​w​s​ ​c​a​n​ ​r​u​n​ ​i​n​ ​y​o​u​r​ ​r​e​p​o​s​i​t​o​r​y​'​s​ ​o​w​n​ ​G​i​t​H​u​b​ ​A​c​t​i​o​n​s​ ​w​i​t​h​ ​y​o​u​r​ ​o​w​n​ ​m​o​d​e​l​ ​k​e​y​.​ ​w​i​n​n​o​w​l​ ​s​t​i​l​l​ ​p​r​e​p​a​r​e​s​ ​t​h​e​ ​r​e​v​i​e​w​ ​a​n​d​ ​p​u​b​l​i​s​h​e​s​ ​t​h​e​ ​r​e​s​u​l​t​.
+		 */
+		actionsBody: string
+		/**
+		 * S​e​t​ ​`​s​a​n​d​b​o​x​.​r​u​n​n​e​r​:​ ​a​c​t​i​o​n​s​`​ ​i​n​ ​`​.​w​i​n​n​o​w​l​.​y​a​m​l​`​,​ ​o​r​ ​c​h​o​o​s​e​ ​G​i​t​H​u​b​ ​A​c​t​i​o​n​s​ ​i​n​ ​t​h​e​ ​r​e​p​o​s​i​t​o​r​y​ ​s​e​t​t​i​n​g​s​.
+		 */
+		actionsStep1: string
+		/**
+		 * A​d​d​ ​t​h​e​ ​w​o​r​k​f​l​o​w​ ​b​e​l​o​w​ ​a​s​ ​`​{​p​a​t​h​}​`​.
+		 * @param {string} path
+		 */
+		actionsStep2: RequiredParams<'path'>
+		/**
+		 * A​d​d​ ​t​h​e​ ​r​e​p​o​s​i​t​o​r​y​ ​s​e​c​r​e​t​ ​`​W​I​N​N​O​W​L​_​L​L​M​_​A​P​I​_​K​E​Y​`​.​ ​S​e​t​ ​`​l​l​m​-​b​a​s​e​-​u​r​l​`​ ​a​n​d​ ​`​l​l​m​-​m​o​d​e​l​`​ ​w​h​e​n​ ​y​o​u​r​ ​p​r​o​v​i​d​e​r​ ​d​o​e​s​ ​n​o​t​ ​s​e​r​v​e​ ​t​h​e​ ​s​e​r​v​e​r​'​s​ ​m​o​d​e​l​s​.
+		 */
+		actionsStep3: string
+		/**
+		 * P​u​l​l​ ​r​e​q​u​e​s​t​s​ ​f​r​o​m​ ​f​o​r​k​s​ ​g​e​t​ ​n​o​ ​O​I​D​C​ ​t​o​k​e​n​,​ ​s​o​ ​t​h​e​y​ ​c​a​n​n​o​t​ ​b​e​ ​r​e​v​i​e​w​e​d​ ​t​h​i​s​ ​w​a​y​:​ ​t​h​e​ ​r​e​v​i​e​w​ ​f​a​i​l​s​ ​a​n​d​ ​s​a​y​s​ ​w​h​y​,​ ​i​t​ ​d​o​e​s​ ​n​o​t​ ​m​o​v​e​ ​t​o​ ​t​h​e​ ​p​l​a​t​f​o​r​m​.​ ​A​f​t​e​r​ ​a​n​y​ ​f​a​i​l​u​r​e​,​ ​r​e​-​r​u​n​ ​t​h​e​ ​w​o​r​k​f​l​o​w​ ​t​o​ ​r​e​v​i​e​w​ ​a​g​a​i​n​.
+		 */
+		actionsLimit: string
+		/**
 		 * C​o​n​n​e​c​t​ ​a​ ​r​e​p​o​s​i​t​o​r​y
 		 */
 		setupTitle: string
@@ -3572,6 +3597,27 @@ type RootTranslation = {
 		 */
 		sandboxNetHint: string
 		/**
+		 * W​h​e​r​e​ ​r​e​v​i​e​w​s​ ​r​u​n
+		 */
+		runner: string
+		/**
+		 * O​n​ ​t​h​e​ ​p​l​a​t​f​o​r​m​,​ ​o​r​ ​i​n​ ​t​h​i​s​ ​r​e​p​o​s​i​t​o​r​y​’​s​ ​G​i​t​H​u​b​ ​A​c​t​i​o​n​s​ ​w​i​t​h​ ​y​o​u​r​ ​o​w​n​ ​m​o​d​e​l​ ​k​e​y
+		 */
+		runnerHint: string
+		/**
+		 * P​l​a​t​f​o​r​m
+		 */
+		runnerPlatform: string
+		/**
+		 * G​i​t​H​u​b​ ​A​c​t​i​o​n​s
+		 */
+		runnerActions: string
+		/**
+		 * A​d​d​ ​t​h​i​s​ ​w​o​r​k​f​l​o​w​ ​a​s​ ​`​{​p​a​t​h​}​`​ ​a​n​d​ ​a​ ​r​e​p​o​s​i​t​o​r​y​ ​s​e​c​r​e​t​ ​`​W​I​N​N​O​W​L​_​L​L​M​_​A​P​I​_​K​E​Y​`​.​ ​I​f​ ​t​h​e​ ​w​o​r​k​f​l​o​w​ ​c​a​n​n​o​t​ ​r​u​n​ ​(​f​o​r​ ​e​x​a​m​p​l​e​ ​o​n​ ​p​u​l​l​ ​r​e​q​u​e​s​t​s​ ​f​r​o​m​ ​f​o​r​k​s​)​,​ ​t​h​e​ ​r​e​v​i​e​w​ ​f​a​i​l​s​ ​w​i​t​h​ ​t​h​e​ ​r​e​a​s​o​n​ ​i​n​s​t​e​a​d​ ​o​f​ ​r​u​n​n​i​n​g​ ​o​n​ ​t​h​e​ ​p​l​a​t​f​o​r​m​.
+		 * @param {string} path
+		 */
+		runnerActionsSetup: RequiredParams<'path'>
+		/**
 		 * N​o​n​e
 		 */
 		netNone: string
@@ -5307,6 +5353,30 @@ export type TranslationFunctions = {
 		toggleActive: () => LocalizedString
 	}
 	docs: {
+		/**
+		 * Run reviews in GitHub Actions
+		 */
+		actionsTitle: () => LocalizedString
+		/**
+		 * Reviews can run in your repository's own GitHub Actions with your own model key. winnowl still prepares the review and publishes the result.
+		 */
+		actionsBody: () => LocalizedString
+		/**
+		 * Set `sandbox.runner: actions` in `.winnowl.yaml`, or choose GitHub Actions in the repository settings.
+		 */
+		actionsStep1: () => LocalizedString
+		/**
+		 * Add the workflow below as `{path}`.
+		 */
+		actionsStep2: (arg: { path: string }) => LocalizedString
+		/**
+		 * Add the repository secret `WINNOWL_LLM_API_KEY`. Set `llm-base-url` and `llm-model` when your provider does not serve the server's models.
+		 */
+		actionsStep3: () => LocalizedString
+		/**
+		 * Pull requests from forks get no OIDC token, so they cannot be reviewed this way: the review fails and says why, it does not move to the platform. After any failure, re-run the workflow to review again.
+		 */
+		actionsLimit: () => LocalizedString
 		/**
 		 * Connect a repository
 		 */
@@ -7267,6 +7337,26 @@ export type TranslationFunctions = {
 		 * Network access when running tests and tool commands
 		 */
 		sandboxNetHint: () => LocalizedString
+		/**
+		 * Where reviews run
+		 */
+		runner: () => LocalizedString
+		/**
+		 * On the platform, or in this repository’s GitHub Actions with your own model key
+		 */
+		runnerHint: () => LocalizedString
+		/**
+		 * Platform
+		 */
+		runnerPlatform: () => LocalizedString
+		/**
+		 * GitHub Actions
+		 */
+		runnerActions: () => LocalizedString
+		/**
+		 * Add this workflow as `{path}` and a repository secret `WINNOWL_LLM_API_KEY`. If the workflow cannot run (for example on pull requests from forks), the review fails with the reason instead of running on the platform.
+		 */
+		runnerActionsSetup: (arg: { path: string }) => LocalizedString
 		/**
 		 * None
 		 */

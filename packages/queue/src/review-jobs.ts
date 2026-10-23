@@ -1,5 +1,6 @@
 import type { Db } from '@reviewbot/db';
 import { sql } from 'kysely';
+import { enqueueJob } from './queue.js';
 
 /**
  * Model gateway outages last minutes; with `retryable_model` backoff, 4 attempts cover ~250s versus ~90s for 3.
@@ -74,4 +75,46 @@ export async function cancelReviewJobsForChangeRequest(
     returning id
   `.execute(db);
   return res.rows.length;
+}
+
+/**
+ * A review requested by a person (comment, checkbox, re-run of the Actions workflow) for the latest head:
+ * older heads are superseded; one job per head and kind (`full` re-reviews the whole pull request).
+ */
+export async function enqueueManualReview(
+  db: Db,
+  input: {
+    tenantId: string;
+    repositoryId: string;
+    changeRequestId: string;
+    revisionId: string;
+    headSha: string;
+    full?: boolean;
+    initiatedByUserId?: string;
+  },
+): Promise<void> {
+  await supersedeOlderReviewJobs(db, input);
+  await enqueueJob(db, {
+    tenantId: input.tenantId,
+    type: 'review_revision',
+    payload: {
+      tenantId: input.tenantId,
+      repositoryId: input.repositoryId,
+      changeRequestId: input.changeRequestId,
+      revisionId: input.revisionId,
+      headSha: input.headSha,
+      configDigest: '',
+      trigger: 'manual',
+      ...(input.full ? { forceFullReview: true } : {}),
+      ...(input.initiatedByUserId ? { initiatedByUserId: input.initiatedByUserId } : {}),
+    },
+    dedupeKey:
+      reviewDedupeKey({
+        repositoryId: input.repositoryId,
+        changeRequestId: input.changeRequestId,
+        headSha: input.headSha,
+        configDigest: '',
+      }) + (input.full ? ':manual:full' : ':manual'),
+    maxAttempts: REVIEW_JOB_MAX_ATTEMPTS,
+  });
 }

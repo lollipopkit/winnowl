@@ -4,6 +4,7 @@ import { loadEffectiveConfig } from '@reviewbot/review-runtime';
 import type { ReviewRevisionContext, ReviewBlockReason } from './review-revision.js';
 import { botMessages } from './locale.js';
 import { loadRepositoryRef } from './repository-ref.js';
+import { runnerSetupMessage } from './executor-error.js';
 
 /**
  * Immediate review acknowledgement on the PR, before any LLM work:
@@ -69,14 +70,16 @@ export function createReviewAcknowledger(deps: ReviewAckDeps): {
       );
     },
 
-    onTerminalFailure: async (ctx, _error) => {
+    onTerminalFailure: async (ctx, error) => {
       const provider = await deps.buildProvider(ctx.payload.repositoryId);
       const repo = await loadRepositoryRef(ctx.db, ctx.payload.repositoryId);
-      const m = botMessages(await language(ctx.payload.tenantId, ctx.payload.repositoryId)).checks;
+      const all = botMessages(await language(ctx.payload.tenantId, ctx.payload.repositoryId));
+      const m = all.checks;
+      const summary = runnerSetupMessage(all.runnerSetup, error) ?? m.failedSummary();
       // neutral, not failure: never blocks merge.
       await provider.checks.createOrUpdate(
         repo,
-        { name: CHECK_NAME, status: 'completed', conclusion: 'neutral', title: m.failed(), summary: m.failedSummary(), headSha: ctx.payload.headSha },
+        { name: CHECK_NAME, status: 'completed', conclusion: 'neutral', title: m.failed(), summary, headSha: ctx.payload.headSha },
         { key: checkKey(ctx.payload.changeRequestId, ctx.payload.headSha) },
       );
     },

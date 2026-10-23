@@ -1241,6 +1241,31 @@ code.chip {
   }
 }
 
+/* Extra instructions under a settings row (e.g. the workflow to add for the GitHub Actions runner). */
+.setting-note {
+  padding: 12px 0;
+  border-bottom: 1px solid var(--border);
+  font-size: 13px;
+  color: var(--muted-foreground);
+}
+
+.setting-note p {
+  margin: 0 0 10px;
+  line-height: 1.5;
+}
+
+.setting-note pre {
+  margin: 0;
+  padding: 12px 14px;
+  overflow-x: auto;
+  border: 1px solid var(--border);
+  border-radius: var(--radius-md);
+  background: var(--muted);
+  color: var(--foreground);
+  font-size: 12px;
+  line-height: 1.5;
+}
+
 /* Model metadata picker: search-then-pick, the catalog has thousands of entries. */
 .picked-meta {
   display: flex;

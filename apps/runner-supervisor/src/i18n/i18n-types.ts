@@ -948,6 +948,38 @@ type RootTranslation = {
 		 */
 		denied: RequiredParams<'login'>
 	}
+	runnerSetup: {
+		/**
+		 * T​h​i​s​ ​r​e​p​o​s​i​t​o​r​y​ ​r​u​n​s​ ​r​e​v​i​e​w​s​ ​i​n​ ​G​i​t​H​u​b​ ​A​c​t​i​o​n​s​,​ ​a​n​d​ ​G​i​t​H​u​b​ ​g​i​v​e​s​ ​p​u​l​l​ ​r​e​q​u​e​s​t​s​ ​f​r​o​m​ ​f​o​r​k​s​ ​n​o​ ​O​I​D​C​ ​t​o​k​e​n​,​ ​s​o​ ​t​h​e​ ​r​e​v​i​e​w​ ​c​a​n​n​o​t​ ​r​u​n​ ​t​h​e​r​e​.​ ​S​e​t​ ​`​s​a​n​d​b​o​x​.​r​u​n​n​e​r​:​ ​p​l​a​t​f​o​r​m​`​ ​i​n​ ​`​.​w​i​n​n​o​w​l​.​y​a​m​l​`​ ​t​o​ ​r​e​v​i​e​w​ ​f​o​r​k​ ​p​u​l​l​ ​r​e​q​u​e​s​t​s​.
+		 */
+		actionsFork: string
+		/**
+		 * N​o​ ​G​i​t​H​u​b​ ​A​c​t​i​o​n​s​ ​j​o​b​ ​p​i​c​k​e​d​ ​u​p​ ​t​h​e​ ​r​e​v​i​e​w​ ​w​i​t​h​i​n​ ​{​m​i​n​u​t​e​s​}​ ​m​i​n​u​t​e​s​.​ ​C​h​e​c​k​ ​t​h​a​t​ ​t​h​e​ ​w​i​n​n​o​w​l​ ​w​o​r​k​f​l​o​w​ ​i​s​ ​i​n​ ​`​.​g​i​t​h​u​b​/​w​o​r​k​f​l​o​w​s​/​`​,​ ​t​h​a​t​ ​A​c​t​i​o​n​s​ ​i​s​ ​e​n​a​b​l​e​d​ ​f​o​r​ ​t​h​i​s​ ​r​e​p​o​s​i​t​o​r​y​,​ ​a​n​d​ ​t​h​a​t​ ​t​h​e​ ​j​o​b​ ​i​s​ ​n​o​t​ ​s​t​u​c​k​ ​i​n​ ​t​h​e​ ​q​u​e​u​e​,​ ​t​h​e​n​ ​r​e​-​r​u​n​ ​t​h​e​ ​w​o​r​k​f​l​o​w​.
+		 * @param {number} minutes
+		 */
+		actionsNotClaimed: RequiredParams<'minutes'>
+		/**
+		 * T​h​e​ ​G​i​t​H​u​b​ ​A​c​t​i​o​n​s​ ​j​o​b​ ​s​t​o​p​p​e​d​ ​r​e​p​o​r​t​i​n​g​ ​p​r​o​g​r​e​s​s​.​ ​R​e​-​r​u​n​ ​t​h​e​ ​w​o​r​k​f​l​o​w​ ​t​o​ ​r​e​v​i​e​w​ ​a​g​a​i​n​.
+		 */
+		actionsStalled: string
+		/**
+		 * T​h​e​ ​G​i​t​H​u​b​ ​A​c​t​i​o​n​s​ ​j​o​b​ ​r​a​n​ ​p​a​s​t​ ​t​h​e​ ​r​e​v​i​e​w​'​s​ ​t​i​m​e​ ​l​i​m​i​t​.​ ​R​e​-​r​u​n​ ​t​h​e​ ​w​o​r​k​f​l​o​w​ ​t​o​ ​t​r​y​ ​a​g​a​i​n​.
+		 */
+		actionsTimedOut: string
+		/**
+		 * T​h​e​ ​G​i​t​H​u​b​ ​A​c​t​i​o​n​s​ ​j​o​b​ ​h​a​s​ ​n​o​ ​m​o​d​e​l​ ​k​e​y​.​ ​A​d​d​ ​a​ ​r​e​p​o​s​i​t​o​r​y​ ​s​e​c​r​e​t​ ​(​f​o​r​ ​e​x​a​m​p​l​e​ ​`​W​I​N​N​O​W​L​_​L​L​M​_​A​P​I​_​K​E​Y​`​)​,​ ​p​a​s​s​ ​i​t​ ​t​o​ ​t​h​e​ ​a​c​t​i​o​n​ ​a​s​ ​`​l​l​m​-​a​p​i​-​k​e​y​`​,​ ​t​h​e​n​ ​r​e​-​r​u​n​ ​t​h​e​ ​w​o​r​k​f​l​o​w​.
+		 */
+		actionsNoKey: string
+		/**
+		 * T​h​e​ ​e​x​e​c​u​t​o​r​ ​i​n​ ​G​i​t​H​u​b​ ​A​c​t​i​o​n​s​ ​d​o​e​s​ ​n​o​t​ ​m​a​t​c​h​ ​t​h​e​ ​w​i​n​n​o​w​l​ ​s​e​r​v​e​r​ ​v​e​r​s​i​o​n​.​ ​U​s​e​ ​t​h​e​ ​a​c​t​i​o​n​ ​f​r​o​m​ ​t​h​e​ ​w​i​n​n​o​w​l​ ​d​o​c​s​ ​w​i​t​h​o​u​t​ ​p​i​n​n​i​n​g​ ​a​n​ ​o​l​d​ ​i​m​a​g​e​,​ ​t​h​e​n​ ​r​e​-​r​u​n​ ​t​h​e​ ​w​o​r​k​f​l​o​w​.
+		 */
+		actionsVersionMismatch: string
+		/**
+		 * T​h​e​ ​r​e​v​i​e​w​ ​f​a​i​l​e​d​ ​i​n​ ​G​i​t​H​u​b​ ​A​c​t​i​o​n​s​:​ ​{​d​e​t​a​i​l​}​.​ ​R​e​-​r​u​n​ ​t​h​e​ ​w​o​r​k​f​l​o​w​ ​t​o​ ​t​r​y​ ​a​g​a​i​n​.
+		 * @param {string} detail
+		 */
+		actionsFailed: RequiredParams<'detail'>
+	}
 	checks: {
 		/**
 		 * Q​u​o​t​a​ ​e​x​h​a​u​s​t​e​d​ ​—​ ​r​e​v​i​e​w​ ​s​k​i​p​p​e​d
@@ -1848,6 +1880,36 @@ export type TranslationFunctions = {
 		 * @{login} needs write access to this repository to request a review.
 		 */
 		denied: (arg: { login: string }) => LocalizedString
+	}
+	runnerSetup: {
+		/**
+		 * This repository runs reviews in GitHub Actions, and GitHub gives pull requests from forks no OIDC token, so the review cannot run there. Set `sandbox.runner: platform` in `.winnowl.yaml` to review fork pull requests.
+		 */
+		actionsFork: () => LocalizedString
+		/**
+		 * No GitHub Actions job picked up the review within {minutes} minutes. Check that the winnowl workflow is in `.github/workflows/`, that Actions is enabled for this repository, and that the job is not stuck in the queue, then re-run the workflow.
+		 */
+		actionsNotClaimed: (arg: { minutes: number }) => LocalizedString
+		/**
+		 * The GitHub Actions job stopped reporting progress. Re-run the workflow to review again.
+		 */
+		actionsStalled: () => LocalizedString
+		/**
+		 * The GitHub Actions job ran past the review's time limit. Re-run the workflow to try again.
+		 */
+		actionsTimedOut: () => LocalizedString
+		/**
+		 * The GitHub Actions job has no model key. Add a repository secret (for example `WINNOWL_LLM_API_KEY`), pass it to the action as `llm-api-key`, then re-run the workflow.
+		 */
+		actionsNoKey: () => LocalizedString
+		/**
+		 * The executor in GitHub Actions does not match the winnowl server version. Use the action from the winnowl docs without pinning an old image, then re-run the workflow.
+		 */
+		actionsVersionMismatch: () => LocalizedString
+		/**
+		 * The review failed in GitHub Actions: {detail}. Re-run the workflow to try again.
+		 */
+		actionsFailed: (arg: { detail: string }) => LocalizedString
 	}
 	checks: {
 		/**

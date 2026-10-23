@@ -213,6 +213,16 @@ const zh = {
     deniedTitle: 'review 未开始',
     denied: '@{login} 需要这个仓库的写权限才能请求 review。',
   },
+  // Why a review could not run where the repository asked (sandbox.runner); shown on the check run and status comment.
+  runnerSetup: {
+    actionsFork: '本仓库的 review 在 GitHub Actions 中运行，但 GitHub 不会给来自 fork 的 PR 签发 OIDC token，因此无法在那里运行 review。如需 review fork 的 PR，请在 `.winnowl.yaml` 中设置 `sandbox.runner: platform`。',
+    actionsNotClaimed: '{minutes} 分钟内没有 GitHub Actions 任务来领取这次 review。请确认 winnowl workflow 位于 `.github/workflows/`、本仓库已启用 Actions、任务没有一直在排队，然后重新运行 workflow。',
+    actionsStalled: 'GitHub Actions 任务停止上报进度。请重新运行 workflow 再 review 一次。',
+    actionsTimedOut: 'GitHub Actions 任务运行时间超过了 review 的时限。请重新运行 workflow 再试一次。',
+    actionsNoKey: 'GitHub Actions 任务没有模型 key。请添加一个仓库 secret（例如 `WINNOWL_LLM_API_KEY`），作为 `llm-api-key` 传给 action，然后重新运行 workflow。',
+    actionsVersionMismatch: 'GitHub Actions 中的 executor 与 winnowl 服务端版本不一致。请按 winnowl 文档使用 action，不要固定旧镜像，然后重新运行 workflow。',
+    actionsFailed: 'review 在 GitHub Actions 中失败：{detail}。请重新运行 workflow 再试一次。',
+  },
   checks: {
     quotaExhausted: '配额已用尽，本次 review 已跳过',
     quotaExhaustedSummary: '本计费周期的 review 额度已用尽，winnowl 跳过了本次 review。不会阻断合并。升级计划或等待下个周期后，推新 commit 或用 review 命令重新触发。',

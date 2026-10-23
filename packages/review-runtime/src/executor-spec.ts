@@ -125,18 +125,23 @@ export interface ReviewExecutorSpec {
   };
 }
 
+/** The executor was built from different prompts than the control plane (an older or newer image). */
+export class PromptDigestMismatchError extends Error {
+  override readonly name = 'PromptDigestMismatchError';
+}
+
 export function assertPromptDigestParity(
   promptDigests: ReviewExecutorSpec['promptDigests'] | undefined,
   bundles: readonly { role: string; digest: string }[],
 ): void {
-  if (!promptDigests) throw new Error('review executor prompt digests are required');
+  if (!promptDigests) throw new PromptDigestMismatchError('review executor prompt digests are required');
   const expected = new Map(promptDigests.map((bundle) => [bundle.role, bundle.digest]));
   if (expected.size !== bundles.length) {
-    throw new Error('review executor prompt digest set does not match the loaded bundles');
+    throw new PromptDigestMismatchError('review executor prompt digest set does not match the loaded bundles');
   }
   for (const bundle of bundles) {
     if (expected.get(bundle.role) !== bundle.digest) {
-      throw new Error(`review executor prompt mismatch for ${bundle.role}`);
+      throw new PromptDigestMismatchError(`review executor prompt mismatch for ${bundle.role}`);
     }
   }
 }

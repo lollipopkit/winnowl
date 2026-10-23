@@ -47,6 +47,7 @@
     "@reviewbot/retention": "workspace:*",
     "@reviewbot/review-orchestrator": "workspace:*",
     "@reviewbot/review-runtime": "workspace:*",
+    "@reviewbot/runner-protocol": "workspace:*",
     "@reviewbot/sandbox": "workspace:*",
     "@reviewbot/security-agent": "workspace:*",
     "@reviewbot/telemetry": "workspace:*",

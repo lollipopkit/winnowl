@@ -49,9 +49,16 @@ export type {
   PublishDiscussions,
   CrossRepoImpact,
 } from './env.js';
-export { assertPromptDigestParity, buildProduceDeps } from './executor-spec.js';
+export { assertPromptDigestParity, buildProduceDeps, PromptDigestMismatchError } from './executor-spec.js';
 export { relayExecutorSpec } from './executor-relay.js';
 export type { RelayUpstream, RelayedExecutorSpec } from './executor-relay.js';
+export {
+  bindLocalCredentials,
+  executorErrorReport,
+  LocalCredentialsError,
+  unkeyedExecutorSpec,
+} from './executor-user-side.js';
+export type { ExecutorErrorReport, LocalModelEnv } from './executor-user-side.js';
 export type {
   ReviewExecutorSpec,
   ReviewExecutorOutput,

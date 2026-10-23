@@ -531,6 +531,28 @@ export interface AgentCommandsTable {
   finished_at: Date | null;
 }
 
+/** A review whose executor runs in the repository's GitHub Actions (0021). */
+export interface ActionsRunsTable {
+  id: string;
+  tenant_id: string;
+  job_id: string;
+  repository_id: string;
+  change_request_number: number;
+  head_sha: string;
+  status: ColumnType<'pending' | 'running' | 'completed' | 'failed' | 'closed', 'pending' | undefined, 'running' | 'completed' | 'failed' | 'closed'>;
+  executor_image: string;
+  spec: Json<Record<string, unknown>> | null;
+  token_hash: string | null;
+  progress: Json<Record<string, unknown>> | null;
+  cancel_requested: ColumnType<boolean, boolean | undefined, boolean>;
+  output: Json<Record<string, unknown>> | null;
+  error: Json<Record<string, unknown>> | null;
+  created_at: ColumnType<Date, Date | string | undefined, Date | string>;
+  claimed_at: Date | null;
+  heartbeat_at: Date | null;
+  finished_at: Date | null;
+}
+
 /** Measured sandbox needs per repository and kind. */
 export interface SandboxSizingTable {
   tenant_id: string;
@@ -951,6 +973,7 @@ export interface Database {
   review_costs: ReviewCostsTable;
   sandbox_sizing: SandboxSizingTable;
   agent_commands: AgentCommandsTable;
+  actions_runs: ActionsRunsTable;
   repository_relationships: RepositoryRelationshipsTable;
   cross_tenant_relationships: CrossTenantRelationshipsTable;
   cross_tenant_events: CrossTenantEventsTable;

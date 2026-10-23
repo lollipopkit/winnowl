@@ -228,6 +228,16 @@ const de = {
 		deniedTitle: 'Review nicht gestartet',
 		denied: '@{login} benötigt Schreibzugriff auf dieses Repository, um ein Review anzufordern.',
 	},
+	// Why a review could not run where the repository asked (sandbox.runner); shown on the check run and status comment.
+	runnerSetup: {
+		actionsFork: 'Dieses Repository führt Reviews in GitHub Actions aus, und GitHub gibt Pull Requests aus Forks kein OIDC-Token, daher kann das Review dort nicht laufen. Setzen Sie `sandbox.runner: platform` in `.winnowl.yaml`, um Fork-Pull-Requests zu prüfen.',
+		actionsNotClaimed: 'Innerhalb von {minutes} Minuten hat kein GitHub-Actions-Job das Review übernommen. Prüfen Sie, dass der winnowl-Workflow in `.github/workflows/` liegt, Actions für dieses Repository aktiviert ist und der Job nicht in der Warteschlange hängt, und starten Sie den Workflow dann erneut.',
+		actionsStalled: 'Der GitHub-Actions-Job meldet keinen Fortschritt mehr. Starten Sie den Workflow erneut, um noch einmal zu prüfen.',
+		actionsTimedOut: 'Der GitHub-Actions-Job hat das Zeitlimit des Reviews überschritten. Starten Sie den Workflow erneut, um es noch einmal zu versuchen.',
+		actionsNoKey: 'Der GitHub-Actions-Job hat keinen Modellschlüssel. Legen Sie ein Repository-Secret an (z. B. `WINNOWL_LLM_API_KEY`), übergeben Sie es der Action als `llm-api-key` und starten Sie den Workflow erneut.',
+		actionsVersionMismatch: 'Der Executor in GitHub Actions passt nicht zur Version des winnowl-Servers. Verwenden Sie die Action wie in der winnowl-Dokumentation beschrieben, ohne ein altes Image festzulegen, und starten Sie den Workflow erneut.',
+		actionsFailed: 'Das Review ist in GitHub Actions fehlgeschlagen: {detail}. Starten Sie den Workflow erneut, um es noch einmal zu versuchen.',
+	},
 	checks: {
 		quotaExhausted: 'Kontingent erschöpft — Review übersprungen',
 		quotaExhaustedSummary:

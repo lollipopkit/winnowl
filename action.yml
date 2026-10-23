@@ -1,0 +1,94 @@
+name: winnowl review
+description: Run winnowl's review of this pull request in GitHub Actions, with your own model key. winnowl publishes the result.
+branding:
+  icon: check-circle
+  color: purple
+
+inputs:
+  llm-api-key:
+    description: API key for your model provider. Store it as a repository secret.
+    required: true
+  llm-base-url:
+    description: OpenAI-compatible endpoint; empty uses the provider's default endpoint.
+    required: false
+    default: ''
+  llm-provider:
+    description: Provider id (openai, anthropic, deepseek, openrouter, ...); empty keeps the server's choice.
+    required: false
+    default: ''
+  llm-model:
+    description: One model for every review stage; empty keeps the server's models, so your endpoint must serve them.
+    required: false
+    default: ''
+  llm-template-model:
+    description: A known model to copy limits and pricing from when llm-model is not in the catalog.
+    required: false
+    default: ''
+  exa-api-key:
+    description: Optional key for web search during review.
+    required: false
+    default: ''
+  context7-api-key:
+    description: Optional key for library documentation lookups during review.
+    required: false
+    default: ''
+  api-url:
+    description: winnowl API; change it only for a self-hosted deployment.
+    required: false
+    default: https://winnowl-api.lollipopkit.com
+  claim-timeout:
+    description: Seconds to wait for winnowl to prepare the review.
+    required: false
+    default: '600'
+
+runs:
+  using: composite
+  steps:
+    - name: Check out the pull request head
+      uses: actions/checkout@v7
+      with:
+        ref: ${{ github.event.pull_request.head.sha }}
+        path: .winnowl-worktree
+        persist-credentials: false
+        fetch-depth: 1
+
+    - name: Review
+      shell: bash
+      env:
+        WINNOWL_API_URL: ${{ inputs.api-url }}
+        WINNOWL_HEAD_SHA: ${{ github.event.pull_request.head.sha }}
+        WINNOWL_CLAIM_TIMEOUT_S: ${{ inputs.claim-timeout }}
+        LLM_API_KEY: ${{ inputs.llm-api-key }}
+        LLM_BASE_URL: ${{ inputs.llm-base-url }}
+        LLM_PROVIDER: ${{ inputs.llm-provider }}
+        LLM_MODEL: ${{ inputs.llm-model }}
+        LLM_TEMPLATE_MODEL: ${{ inputs.llm-template-model }}
+        EXA_API_KEY: ${{ inputs.exa-api-key }}
+        CONTEXT7_API_KEY: ${{ inputs.context7-api-key }}
+      run: |
+        set -euo pipefail
+        if [ -z "${WINNOWL_HEAD_SHA}" ]; then
+          echo "::error::winnowl reviews pull requests: run this action on a pull_request event"
+          exit 1
+        fi
+        if [ -z "${ACTIONS_ID_TOKEN_REQUEST_URL:-}" ]; then
+          echo "::error::no OIDC token: add 'permissions: id-token: write' to the workflow (pull requests from forks never get one)"
+          exit 1
+        fi
+        api="${WINNOWL_API_URL%/}"
+        image="$(curl -fsS --retry 3 "${api}/v1/actions/executor" | jq -r .image)"
+        echo "executor image: ${image}"
+        # CI publishes the image a few minutes after a server deploy; wait for it rather than run a mismatched one.
+        for i in $(seq 1 20); do
+          if docker pull --quiet "${image}" >/dev/null; then break; fi
+          if [ "$i" = 20 ]; then echo "::error::could not pull ${image}"; exit 1; fi
+          sleep 30
+        done
+        docker run --rm \
+          -v "${GITHUB_WORKSPACE}/.winnowl-worktree:/worktree:ro" \
+          -e WORKTREE_PATH=/worktree \
+          -e WINNOWL_API_URL -e WINNOWL_HEAD_SHA -e WINNOWL_CLAIM_TIMEOUT_S \
+          -e ACTIONS_ID_TOKEN_REQUEST_URL -e ACTIONS_ID_TOKEN_REQUEST_TOKEN \
+          -e LLM_API_KEY -e LLM_BASE_URL -e LLM_PROVIDER -e LLM_MODEL -e LLM_TEMPLATE_MODEL \
+          -e EXA_API_KEY -e CONTEXT7_API_KEY \
+          "${image}" node apps/review-executor/dist/actions.mjs

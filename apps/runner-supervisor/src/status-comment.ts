@@ -3,6 +3,7 @@ import type { Db } from '@reviewbot/db';
 import { botMention, reviewTriggerCheckbox, type ChangeRequestRef } from '@reviewbot/domain';
 import type { SourceControlProvider } from '@reviewbot/provider-contracts';
 import { escapeStructural, publishTopLevelComment } from '@reviewbot/publisher';
+import { runnerSetupMessage } from './executor-error.js';
 import { loadEffectiveConfig } from '@reviewbot/review-runtime';
 import { botMessages } from './locale.js';
 
@@ -69,12 +70,13 @@ export function createStatusComment(deps: StatusCommentDeps): {
   denied: (target: StatusCommentTarget, login: string) => Promise<void>;
   reviewing: (target: StatusCommentTarget) => Promise<void>;
   reviewed: (target: StatusCommentTarget, summary: ReviewedSummary) => Promise<void>;
-  failed: (target: StatusCommentTarget) => Promise<void>;
+  /** `error` picks the reason shown (runner setup); others get the generic text and a retry box. */
+  failed: (target: StatusCommentTarget, error?: unknown) => Promise<void>;
 } {
   /** `fresh`: rewrite even if unchanged; reposting is what resets a ticked checkbox. */
   async function publish(
     target: StatusCommentTarget,
-    render: (m: ReturnType<typeof botMessages>['status']) => string,
+    render: (m: ReturnType<typeof botMessages>['status'], all: ReturnType<typeof botMessages>) => string,
     fresh = false,
     mentions?: readonly string[],
   ) {
@@ -104,7 +106,7 @@ export function createStatusComment(deps: StatusCommentDeps): {
         changeRequestId: target.changeRequestId,
         providerHostId: cr.provider_host_id,
         kind: KIND,
-        bodyMarkdown: render(botMessages(language).status),
+        bodyMarkdown: render(botMessages(language).status, botMessages(language)),
         ...(mentions ? { mentions } : {}),
         ...(fresh ? { fingerprint: randomUUID() } : {}),
       },
@@ -189,7 +191,12 @@ export function createStatusComment(deps: StatusCommentDeps): {
         return withTrigger(m, `${head}${walk}`, partial ? m.continueTrigger() : m.reviewAgain());
       }),
     /** Terminal failure: don't leave "reviewing" hanging; includes a retry checkbox. */
-    failed: (target) => publish(target, (m) => withTrigger(m, alert(m.failedTitle(), [m.failedText()]))),
+    // A runner-setup failure needs a change in the repository or a workflow re-run; the box would not help.
+    failed: (target, error) =>
+      publish(target, (m, all) => {
+        const reason = runnerSetupMessage(all.runnerSetup, error);
+        return reason ? alert(m.failedTitle(), [reason]) : withTrigger(m, alert(m.failedTitle(), [m.failedText()]));
+      }),
     denied: (target, login) =>
       // Deliberate ping: the actor gets no other feedback that their request was refused.
       publish(target, (m) => withTrigger(m, alert(m.deniedTitle(), [m.denied({ login })])), true, [login]),

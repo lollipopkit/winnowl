@@ -217,6 +217,16 @@ const fr = {
     deniedTitle: 'Review non démarrée',
     denied: '@{login} doit avoir l\'accès en écriture à ce dépôt pour demander une review.',
   },
+  // Why a review could not run where the repository asked (sandbox.runner); shown on the check run and status comment.
+  runnerSetup: {
+    actionsFork: 'Ce dépôt exécute ses revues dans GitHub Actions, et GitHub ne fournit pas de jeton OIDC aux pull requests issues de forks : la revue ne peut donc pas y tourner. Définissez `sandbox.runner: platform` dans `.winnowl.yaml` pour relire les pull requests de forks.',
+    actionsNotClaimed: 'Aucun job GitHub Actions n’a pris la revue en {minutes} minutes. Vérifiez que le workflow winnowl est dans `.github/workflows/`, qu’Actions est activé pour ce dépôt et que le job n’est pas bloqué en file d’attente, puis relancez le workflow.',
+    actionsStalled: 'Le job GitHub Actions ne signale plus sa progression. Relancez le workflow pour refaire la revue.',
+    actionsTimedOut: 'Le job GitHub Actions a dépassé la limite de temps de la revue. Relancez le workflow pour réessayer.',
+    actionsNoKey: 'Le job GitHub Actions n’a pas de clé de modèle. Ajoutez un secret de dépôt (par exemple `WINNOWL_LLM_API_KEY`), passez-le à l’action comme `llm-api-key`, puis relancez le workflow.',
+    actionsVersionMismatch: 'L’exécuteur dans GitHub Actions ne correspond pas à la version du serveur winnowl. Utilisez l’action comme indiqué dans la documentation winnowl sans figer une ancienne image, puis relancez le workflow.',
+    actionsFailed: 'La revue a échoué dans GitHub Actions : {detail}. Relancez le workflow pour réessayer.',
+  },
   checks: {
     quotaExhausted: 'Quota épuisé — review ignorée',
     quotaExhaustedSummary:

@@ -37,4 +37,11 @@ export {
 } from './worker-registry.js';
 export type { WorkerMode } from './worker-registry.js';
 
-export { REVIEW_JOB_MAX_ATTEMPTS, cancelReviewJob, cancelReviewJobsForChangeRequest, reviewDedupeKey, supersedeOlderReviewJobs } from './review-jobs.js';
+export {
+  REVIEW_JOB_MAX_ATTEMPTS,
+  cancelReviewJob,
+  cancelReviewJobsForChangeRequest,
+  enqueueManualReview,
+  reviewDedupeKey,
+  supersedeOlderReviewJobs,
+} from './review-jobs.js';

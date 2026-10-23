@@ -13,6 +13,7 @@
 - **增量**:每轮只看真正改动的地方;报过的不重复,修好的关掉,上一轮未修的明确列出。
 - **门禁**:新引入的依赖漏洞、上一轮未修复的 blocking finding 可阻断合并。
 - **多 forge**:GitHub / GitLab / Forgejo 同一套流程;整套可自托管。
+- **在你的 GitHub Actions 里跑**:`sandbox.runner: actions` + 仓库根的 [`action.yml`](./action.yml),用你自己的模型 key;fork 的 PR 拿不到 OIDC token,会直接报错而不是改回平台。
 - **配置随仓库**:仓库内 `.winnowl.yaml`(JSON Schema 见 [`config-schema/`](./config-schema/))优先于面板设置。
 
 ## 技术栈

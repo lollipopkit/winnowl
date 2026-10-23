@@ -28,13 +28,7 @@ import {
 import { insertFeedback, isFeedbackClass, maybeAutoProposeLearning } from '@reviewbot/knowledge';
 import type { RepositoryPermission } from '@reviewbot/provider-contracts';
 import { uuidv7 } from '@reviewbot/ids';
-import {
-  cancelReviewJobsForChangeRequest,
-  enqueueJob,
-  REVIEW_JOB_MAX_ATTEMPTS,
-  reviewDedupeKey,
-  supersedeOlderReviewJobs,
-} from '@reviewbot/queue';
+import { cancelReviewJobsForChangeRequest, enqueueJob, enqueueManualReview } from '@reviewbot/queue';
 import { loadEffectiveConfig } from '@reviewbot/review-runtime';
 import type { EffectiveRepositoryConfig } from '@reviewbot/config';
 import { approveLearningFromComment, matchesIdFragment, proposeLearningFromComment } from './conversation-learning.js';
@@ -518,34 +512,15 @@ export function createConversationRoute(
         .orderBy('created_at', 'desc')
         .executeTakeFirst();
       if (!rev) return;
-      await supersedeOlderReviewJobs(db, {
-        tenantId: payload.tenantId,
-        changeRequestId: payload.changeRequestId,
-        headSha: rev.head_sha,
-      });
       const initiatedByUserId = await resolveActorUserId(db, payload.repositoryId, payload.actorId);
-      await enqueueJob(db, {
+      await enqueueManualReview(db, {
         tenantId: payload.tenantId,
-        type: 'review_revision',
-        payload: {
-          tenantId: payload.tenantId,
-          repositoryId: payload.repositoryId,
-          changeRequestId: payload.changeRequestId,
-          revisionId: rev.id,
-          headSha: rev.head_sha,
-          configDigest: '',
-          trigger: 'manual',
-          ...(intent.intent === 'full-review' ? { forceFullReview: true } : {}),
-          ...(initiatedByUserId ? { initiatedByUserId } : {}),
-        },
-        dedupeKey:
-          reviewDedupeKey({
-            repositoryId: payload.repositoryId,
-            changeRequestId: payload.changeRequestId,
-            headSha: rev.head_sha,
-            configDigest: '',
-          }) + (intent.intent === 'full-review' ? ':manual:full' : ':manual'),
-        maxAttempts: REVIEW_JOB_MAX_ATTEMPTS,
+        repositoryId: payload.repositoryId,
+        changeRequestId: payload.changeRequestId,
+        revisionId: rev.id,
+        headSha: rev.head_sha,
+        ...(intent.intent === 'full-review' ? { full: true } : {}),
+        ...(initiatedByUserId ? { initiatedByUserId } : {}),
       });
       if (payload.command?.kind === 'review-checkbox') {
         await deps.statusComment?.requested(statusTarget, payload.actorLogin);
