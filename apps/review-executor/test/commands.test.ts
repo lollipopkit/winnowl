@@ -55,8 +55,8 @@ describe('commandEnv: what review commands see of the runner', () => {
       {
         PATH: '/opt/hostedtoolcache/node/bin:/usr/bin',
         JAVA_HOME: '/usr/lib/jvm/17',
-        HOME: '/home/runner',
-        CARGO_HOME: '/home/runner/.cargo',
+        HOME: '/nonexistent/runner',
+        CARGO_HOME: '/nonexistent/runner/.cargo',
         ACTIONS_ID_TOKEN_REQUEST_TOKEN: 'x',
         ACTIONS_ID_TOKEN_REQUEST_URL: 'x',
         GITHUB_TOKEN: 'x',
