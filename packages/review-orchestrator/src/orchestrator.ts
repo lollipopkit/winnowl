@@ -243,6 +243,8 @@ export interface ReviewOrchestratorDeps {
   /** `knowledge_read`: full text of rules / fact details listed in short form (all stages need it). */
   knowledgeTools?: AgentTool[];
   pluginTools?: AgentTool[];
+  /** `run_command` for dig and verify; absent where commands cannot run. */
+  commandTools?: AgentTool[];
   /** Public source URLs returned by plugin tools; `record_external_fact` is enabled only with it. */
   lookupSources?: ReadonlySet<string>;
   collectMemories?: boolean;
@@ -720,6 +722,7 @@ export async function stageCandidate(
           bundles: { verifier: deps.bundles.verifier, refuter: deps.bundles.refuter },
           budget: deps.budget,
           ...(deps.pluginTools !== undefined ? { pluginTools: deps.pluginTools } : {}),
+          ...(deps.commandTools !== undefined ? { commandTools: deps.commandTools } : {}),
           ...(deps.knowledgeTools !== undefined ? { knowledgeTools: deps.knowledgeTools } : {}),
           ...(reviewStandardsContext(deps) ? { standards: reviewStandardsContext(deps) } : {}),
           ...(opts.seedMessages && opts.seedMessages.length > 0
@@ -966,6 +969,7 @@ export async function produceReview(deps: ReviewOrchestratorDeps): Promise<Produ
     ...(deps.memoryTools !== undefined ? { memoryTools: deps.memoryTools } : {}),
     ...(deps.knowledgeTools !== undefined ? { knowledgeTools: deps.knowledgeTools } : {}),
     ...(deps.pluginTools !== undefined ? { pluginTools: deps.pluginTools } : {}),
+    ...(deps.commandTools !== undefined ? { commandTools: deps.commandTools } : {}),
     ...(deps.lookupSources !== undefined ? { lookupSources: deps.lookupSources } : {}),
     ...(deps.collectMemories !== undefined ? { collectMemories: deps.collectMemories } : {}),
     ...(deps.exploration !== undefined ? { exploration: deps.exploration } : {}),

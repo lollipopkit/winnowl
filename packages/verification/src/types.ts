@@ -78,6 +78,8 @@ export interface VerifyDeps {
   budget: AgentBudget;
   /** Read-only plugin evidence tools (e.g. exa/context7); results are untrusted data. */
   pluginTools?: AgentTool[];
+  /** `run_command` to reproduce a claim; absent where commands cannot run. */
+  commandTools?: AgentTool[];
   /** `knowledge_read`: full text of rules / fact details listed in short form (all stages need it). */
   knowledgeTools?: AgentTool[];
   /** Repository rules and notes, appended after the system prompt (same as exploration). */

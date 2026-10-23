@@ -199,6 +199,12 @@ importers:
 
   apps/review-executor:
     dependencies:
+      '@reviewbot/agent-pi':
+        specifier: workspace:*
+        version: link:../../packages/agent-pi
+      '@reviewbot/command-gate':
+        specifier: workspace:*
+        version: link:../../packages/command-gate
       '@reviewbot/ids':
         specifier: workspace:*
         version: link:../../packages/ids

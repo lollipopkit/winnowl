@@ -1,7 +1,9 @@
 import { setTimeout as sleep } from 'node:timers/promises';
 import type { ReviewProgress } from '@reviewbot/review-orchestrator';
+import { createModelSource } from '@reviewbot/agent-pi';
 import {
   bindLocalCredentials,
+  checkLocalModels,
   executorErrorReport,
   type ReviewExecutorOutput,
   type ReviewExecutorSpec,
@@ -15,6 +17,7 @@ import {
   type ActionsHeartbeatRequest,
   type ActionsHeartbeatResponse,
 } from '@reviewbot/runner-protocol';
+import { buildActionsCommandTools } from './commands.js';
 import { runExecutor } from './run.js';
 
 /**
@@ -74,6 +77,24 @@ async function claim(api: string, headSha: string, deadline: number): Promise<Ac
   }
 }
 
+/** Commands run only when the config allows them and the action could start its command host. */
+function actionsCommandTools(spec: ReviewExecutorSpec): ReturnType<typeof buildActionsCommandTools> | undefined {
+  if (!spec.runCommands) return undefined;
+  const socketPath = process.env.WINNOWL_COMMAND_SOCKET?.trim();
+  if (!socketPath) {
+    console.log('::notice::this review runs no commands: the runner has no passwordless sudo to run them as a separate user');
+    return undefined;
+  }
+  const { model, streamFn } = createModelSource(spec.model);
+  const repo = process.env.GITHUB_REPOSITORY?.trim();
+  return buildActionsCommandTools({
+    socketPath,
+    task: `Review a pull request${repo ? ` of ${repo}` : ''}: build, test or reproduce what the change does.`,
+    judge: { model, streamFn },
+    log: (line) => console.log(line),
+  });
+}
+
 async function main(): Promise<void> {
   const api = (process.env.WINNOWL_API_URL?.trim() || 'https://winnowl-api.lollipopkit.com').replace(/\/+$/, '');
   const headSha = required('WINNOWL_HEAD_SHA');
@@ -111,10 +132,14 @@ async function main(): Promise<void> {
   }, HEARTBEAT_MS);
 
   try {
-    const spec = bindLocalCredentials(run.spec as unknown as ReviewExecutorSpec, process.env);
+    const spec = await checkLocalModels(bindLocalCredentials(run.spec as unknown as ReviewExecutorSpec, process.env), (m) =>
+      console.log(`::warning::${m}`),
+    );
+    const commandTools = actionsCommandTools(spec);
     const output: ReviewExecutorOutput = await runExecutor({
       spec,
       worktreePath,
+      ...(commandTools ? { commandTools } : {}),
       onProgress: (p) => {
         if (p.stage !== progress?.stage) console.log(`stage: ${p.stage}`);
         progress = p;

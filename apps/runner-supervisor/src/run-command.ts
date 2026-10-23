@@ -4,7 +4,7 @@ import { changeRequestHeadRef, isProviderKind } from '@reviewbot/domain';
 import type { SourceControlProvider } from '@reviewbot/provider-contracts';
 import { loadEffectiveConfig, type CodePlane } from '@reviewbot/review-runtime';
 import type { AgentSandbox } from './agent-sandbox.js';
-import { commandOutputText } from './agent-sandbox.js';
+import { commandOutputText } from '@reviewbot/command-gate';
 import type { ConversationReply, ConversationTurnPayload } from './conversation-turn.js';
 import { botMessages } from './locale.js';
 import { openRepositorySandbox, type StackedFixDeps } from './stacked-fix.js';

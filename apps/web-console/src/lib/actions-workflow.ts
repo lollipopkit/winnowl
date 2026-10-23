@@ -12,10 +12,12 @@ jobs:
   review:
     runs-on: ubuntu-latest
     steps:
+      # Set up the toolchains review commands need to build and test (for example actions/setup-node).
       - uses: lollipopkit/winnowl@main
         with:
           llm-api-key: \${{ secrets.WINNOWL_LLM_API_KEY }}
-          # Optional: your endpoint and one model for every stage.
+          # Your endpoint; empty uses the provider's default.
           # llm-base-url: https://api.openai.com/v1
-          # llm-model: gpt-6-luna
+          # One model your endpoint serves, for every stage.
+          llm-model: gpt-6-luna
 `;

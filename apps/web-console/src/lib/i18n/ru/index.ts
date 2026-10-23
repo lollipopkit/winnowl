@@ -910,6 +910,8 @@ const ru = {
     runnerPlatform: 'Платформа',
     runnerActions: 'GitHub Actions',
     runnerActionsSetup: 'Добавьте этот workflow как `{path}` и secret репозитория `WINNOWL_LLM_API_KEY`. Если workflow не может запуститься (например, для pull request из форков), ревью завершится ошибкой с указанием причины, а не будет выполнено на платформе.',
+    runCommands: 'Выполнять команды во время ревью',
+    runCommandsHint: 'Сборка, тесты и воспроизведение проблем на runner Actions; каждая команда проверяется перед запуском',
     netNone: 'Нет',
     netRegistry: 'Только реестры пакетов',
     netAllowlist: 'Список разрешённых',

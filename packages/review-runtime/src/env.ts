@@ -1325,6 +1325,7 @@ export function createReviewBuildEnv(
             ...(stageModelConfigs.length > 0 ? { stageModels: stageModelConfigs } : {}),
             verifyVotes,
             ...(sessionReuse ? { sessionReuse: true } : {}),
+            ...(cfg.config.sandbox.runner === 'actions' && cfg.config.sandbox.run_commands ? { runCommands: true } : {}),
             ...(digForkFromMap ? { digForkFromMap: true } : {}),
             // Half the parent's budget, so fanning out does not multiply the run's turn budget.
             ...(subagentFanout > 1

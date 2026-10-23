@@ -910,6 +910,8 @@ const ko = {
     runnerPlatform: '플랫폼',
     runnerActions: 'GitHub Actions',
     runnerActionsSetup: '이 workflow를 `{path}`로 추가하고 저장소 secret `WINNOWL_LLM_API_KEY`를 설정하세요. workflow를 실행할 수 없으면(예: 포크에서 온 풀 리퀘스트) 리뷰는 플랫폼에서 실행되지 않고 이유와 함께 실패합니다.',
+    runCommands: '리뷰 중 명령 실행',
+    runCommandsHint: 'Actions runner에서 빌드, 테스트, 문제 재현을 수행합니다. 각 명령은 실행 전에 검토됩니다',
     netNone: '없음',
     netRegistry: '패키지 레지스트리만',
     netAllowlist: '허용 목록',

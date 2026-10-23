@@ -1,6 +1,13 @@
 import { describe, expect, it } from 'vitest';
 import { defaultConfig } from '@reviewbot/config';
-import { bindLocalCredentials, executorErrorReport, LocalCredentialsError, unkeyedExecutorSpec } from '../src/executor-user-side.js';
+import {
+  bindLocalCredentials,
+  checkLocalModels,
+  executorErrorReport,
+  LocalCredentialsError,
+  unkeyedExecutorSpec,
+  type ModelProbe,
+} from '../src/executor-user-side.js';
 import type { ReviewExecutorSpec } from '../src/executor-spec.js';
 
 const spec = (): ReviewExecutorSpec => ({
@@ -75,5 +82,49 @@ describe('bindLocalCredentials: the user key, on the executor side', () => {
     }
     expect(err).toBeInstanceOf(LocalCredentialsError);
     expect(executorErrorReport(err).name).toBe('LocalCredentialsError');
+  });
+});
+
+describe('checkLocalModels: the user endpoint must serve what the review calls', () => {
+  const probeFor =
+    (bad: Record<string, { transient: boolean }>): ModelProbe =>
+    async (m) =>
+      bad[m.modelId] ? { ok: false, transient: bad[m.modelId]!.transient, reason: `no ${m.modelId}` } : { ok: true };
+
+  it('fails on an unusable review model and says what to set', async () => {
+    await expect(checkLocalModels(spec(), () => undefined, probeFor({ 'gpt-6-luna': { transient: false } }))).rejects.toThrow(
+      /gpt-6-luna.*llm-model/,
+    );
+    await expect(checkLocalModels(spec(), () => undefined, probeFor({ 'gpt-6-luna': { transient: false } }))).rejects.toBeInstanceOf(
+      LocalCredentialsError,
+    );
+  });
+
+  it('drops unusable fallbacks with a warning and keeps the rest', async () => {
+    const warnings: string[] = [];
+    const out = await checkLocalModels(spec(), (w) => warnings.push(w), probeFor({ 'deepseek-v4.1-flash': { transient: false } }));
+    expect(out.fallbackModels).toBeUndefined();
+    expect(out.stageModels?.[0]?.models).toHaveLength(1);
+    expect(warnings).toEqual([expect.stringContaining('deepseek-v4.1-flash')]);
+  });
+
+  it('fails when a stage has no usable model', async () => {
+    await expect(checkLocalModels(spec(), () => undefined, probeFor({ 'claude-haiku-5-5': { transient: false } }))).rejects.toThrow(
+      /stage verify/,
+    );
+  });
+
+  it('only warns on transient errors', async () => {
+    const warnings: string[] = [];
+    const out = await checkLocalModels(spec(), (w) => warnings.push(w), probeFor({ 'gpt-6-luna': { transient: true } }));
+    expect(out.model.modelId).toBe('gpt-6-luna');
+    expect(warnings).toEqual([expect.stringContaining('could not be checked')]);
+  });
+
+  it('probes each model once', async () => {
+    const seen: string[] = [];
+    const s = { ...spec(), fallbackModels: [spec().model] };
+    await checkLocalModels(s, () => undefined, async (m) => (seen.push(m.modelId), { ok: true }));
+    expect(seen.sort()).toEqual(['claude-haiku-5-5', 'gpt-6-luna']);
   });
 });

@@ -5,6 +5,7 @@ import {
   type KnowledgeToolEntry,
   createModelSource,
   type AgentBudget,
+  type AgentTool,
   type ModelSourceConfig,
 } from '@reviewbot/agent-pi';
 import { WorkspaceSourceProvider, type ChangedFileEntry } from '@reviewbot/code-intel';
@@ -112,6 +113,8 @@ export interface ReviewExecutorSpec {
   stageModels?: { stage: string; strategy: string; models: ModelSourceConfig[] }[];
   /** Merges map+dig into one session and forks verify/refute from it (REVIEW_SESSION_REUSE). */
   sessionReuse?: boolean;
+  /** Dig and verify may run commands; only user-side executors (GitHub Actions) provide them. */
+  runCommands?: boolean;
   /** Absent = no telemetry inside the sandbox. */
   telemetry?: {
     /** Must be on the squid egress allowlist. */
@@ -158,6 +161,7 @@ export function buildProduceDeps(input: {
   onProgress?: ReviewOrchestratorDeps['onProgress'];
   /** Reads the cancellation sentinel file the control plane writes; absent = not cancellable. */
   isCancelled?: ReviewOrchestratorDeps['isCancelled'];
+  commandTools?: AgentTool[];
 }): { deps: ReviewOrchestratorDeps; pluginCalls: PluginCallRecord[] } {
   const { spec, worktreePath, bundles, newId } = input;
 
@@ -287,6 +291,7 @@ export function buildProduceDeps(input: {
     ...(memoryTools ? { memoryTools } : {}),
     ...(knowledgeTools.length > 0 ? { knowledgeTools } : {}),
     ...(plugins && plugins.tools.length > 0 ? { pluginTools: plugins.tools, lookupSources: plugins.sources } : {}),
+    ...(input.commandTools && input.commandTools.length > 0 ? { commandTools: input.commandTools } : {}),
     ...(spec.collectMemories !== undefined ? { collectMemories: spec.collectMemories } : {}),
     ...(spec.exploration !== undefined ? { exploration: spec.exploration } : {}),
     ...(spec.language !== undefined ? { language: spec.language } : {}),

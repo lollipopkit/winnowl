@@ -54,11 +54,12 @@ export { relayExecutorSpec } from './executor-relay.js';
 export type { RelayUpstream, RelayedExecutorSpec } from './executor-relay.js';
 export {
   bindLocalCredentials,
+  checkLocalModels,
   executorErrorReport,
   LocalCredentialsError,
   unkeyedExecutorSpec,
 } from './executor-user-side.js';
-export type { ExecutorErrorReport, LocalModelEnv } from './executor-user-side.js';
+export type { ExecutorErrorReport, LocalModelEnv, ModelProbe } from './executor-user-side.js';
 export type {
   ReviewExecutorSpec,
   ReviewExecutorOutput,

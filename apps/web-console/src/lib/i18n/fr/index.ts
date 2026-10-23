@@ -910,6 +910,8 @@ const fr = {
     runnerPlatform: 'Plateforme',
     runnerActions: 'GitHub Actions',
     runnerActionsSetup: 'Ajoutez ce workflow sous `{path}` et un secret de dépôt `WINNOWL_LLM_API_KEY`. Si le workflow ne peut pas s’exécuter (par exemple sur des pull requests de forks), la revue échoue en indiquant pourquoi, au lieu de s’exécuter sur la plateforme.',
+    runCommands: 'Exécuter des commandes pendant la revue',
+    runCommandsHint: 'Compiler, tester et reproduire les problèmes sur le runner Actions ; chaque commande est vérifiée avant de s’exécuter',
     netNone: 'Aucun',
     netRegistry: 'Registres de paquets uniquement',
     netAllowlist: 'Liste autorisée',

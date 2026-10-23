@@ -11,6 +11,8 @@
     "start": "node dist/index.js"
   },
   "dependencies": {
+    "@reviewbot/agent-pi": "workspace:*",
+    "@reviewbot/command-gate": "workspace:*",
     "@reviewbot/ids": "workspace:*",
     "@reviewbot/prompts": "workspace:*",
     "@reviewbot/review-orchestrator": "workspace:*",

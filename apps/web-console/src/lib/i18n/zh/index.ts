@@ -911,6 +911,8 @@ const zh = {
     runnerPlatform: '平台',
     runnerActions: 'GitHub Actions',
     runnerActionsSetup: '请把下面的 workflow 保存为 `{path}`，并添加仓库 secret `WINNOWL_LLM_API_KEY`。如果 workflow 无法运行（例如来自 fork 的 PR），review 会失败并说明原因，不会改为在平台上运行。',
+    runCommands: 'review 时执行命令',
+    runCommandsHint: '在 Actions runner 上构建、测试、复现问题；每条命令执行前都会经过审查',
     netNone: '不联网',
     netRegistry: '仅包仓库',
     netAllowlist: '白名单',

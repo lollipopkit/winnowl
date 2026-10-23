@@ -4,7 +4,8 @@ import { join } from 'node:path';
 import { afterAll, beforeAll, describe, expect, it } from 'vitest';
 import { createFauxAgent } from '@reviewbot/agent-pi';
 import { DockerSandboxBackend, runProcess, type SandboxSpec } from '@reviewbot/sandbox';
-import { AgentSandbox, commandOutputText, repoPath } from '../src/agent-sandbox.js';
+import { commandOutputText } from '@reviewbot/command-gate';
+import { AgentSandbox, repoPath } from '../src/agent-sandbox.js';
 import { buildAgentSandboxTools } from '../src/agent-tools.js';
 import { changedFiles, createSandboxFixProducer, validateInSandbox } from '../src/sandbox-fix.js';
 

@@ -13,10 +13,12 @@ import type { ReviewRevisionDeps } from '../review-revision.js';
 
 /** Skips the review (before clone and model calls) when the tenant is over quota. */
 export function createReviewQuotaGate(db: Db): NonNullable<ReviewRevisionDeps['quotaGate']> {
-  return async (ctx) => {
+  return async (ctx, { runner }) => {
     if (!ctx.payload.tenantId) return { block: false };
     // decideForReview decides both the daily cap (per plan, so it is resolved there) and the monthly quota; this only notifies.
     const g = await decideForReview(db, ctx.payload.tenantId, Date.now(), await gateOptions(db));
+    // In GitHub Actions the repository's own key pays, so platform spend caps do not apply; the review count does.
+    if (runner === 'actions') return reviewCountGate(db, ctx.payload.tenantId, g);
     // Daily cost cap first: the monthly quota cannot stop a single day from burning through the budget.
     if (g.daily.tripped) {
       // dedupeKey per day: one notification a day.
@@ -40,40 +42,11 @@ export function createReviewQuotaGate(db: Db): NonNullable<ReviewRevisionDeps['q
       };
     }
     if (g.block) {
-      // Notify in-app and by email, deduplicated per billing period.
-      const period = currentMonthStart().toISOString().slice(0, 7);
       // Cost, token and review quotas have different recovery paths, hence separate kinds.
-      const kind: 'cost' | 'token' | 'review' =
-        g.reason === 'cost_quota_exceeded'
-          ? 'cost'
-          : g.reason === 'token_quota_exceeded'
-            ? 'token'
-            : 'review';
-      const title = {
-        cost: '本周期费用上限已用尽',
-        token: '本周期 token 额度已用尽',
-        review: '本周期 review 额度已用尽',
-      }[kind];
-      const advice = {
-        cost: '可自带 LLM key(BYOK)绕开平台费用上限,或升级计划 / 等待下个周期。',
-        token: '可自带 LLM key(BYOK)绕开平台 token 额度,或升级计划 / 等待下个周期。',
-        review: '升级计划或等待下个周期即可恢复。',
-      }[kind];
-      await createNotification(db, {
-        tenantId: ctx.payload.tenantId,
-        kind: 'quota-warning',
-        title,
-        body: [
-          `当前计划:${g.plan.name}。本计费周期额度已用尽,新的 review 会被跳过(不阻断合并)。`,
-          '',
-          advice,
-        ].join('\n'),
-        link: '/usage',
-        dedupeKey: `quota-exhausted:${ctx.payload.tenantId}:${period}:${kind}`,
-      }).catch(() => undefined);
-      const reasonCode = (
-        { cost: 'cost_quota', token: 'token_quota', review: 'review_quota' } as const
-      )[kind];
+      const kind: QuotaKind =
+        g.reason === 'cost_quota_exceeded' ? 'cost' : g.reason === 'token_quota_exceeded' ? 'token' : 'review';
+      await notifyQuotaExhausted(db, ctx.payload.tenantId, g.plan.name, kind);
+      const reasonCode = ({ cost: 'cost_quota', token: 'token_quota', review: 'review_quota' } as const)[kind];
       return { block: true, ...(g.reason ? { reason: g.reason } : {}), reasonCode };
     }
     // Warn before the quota runs out so the user has time to upgrade or switch to BYOK.
@@ -105,4 +78,37 @@ export function createReviewQuotaGate(db: Db): NonNullable<ReviewRevisionDeps['q
     }
     return { block: false };
   };
+}
+
+type QuotaKind = 'cost' | 'token' | 'review';
+
+/** In-app and email notice, deduplicated per billing period and kind. */
+async function notifyQuotaExhausted(db: Db, tenantId: string, planName: string, kind: QuotaKind): Promise<void> {
+  const title = { cost: '本周期费用上限已用尽', token: '本周期 token 额度已用尽', review: '本周期 review 额度已用尽' }[kind];
+  const advice = {
+    cost: '可自带 LLM key(BYOK)绕开平台费用上限,或升级计划 / 等待下个周期。',
+    token: '可自带 LLM key(BYOK)绕开平台 token 额度,或升级计划 / 等待下个周期。',
+    review: '升级计划或等待下个周期即可恢复。',
+  }[kind];
+  await createNotification(db, {
+    tenantId,
+    kind: 'quota-warning',
+    title,
+    body: [`当前计划:${planName}。本计费周期额度已用尽,新的 review 会被跳过(不阻断合并)。`, '', advice].join('\n'),
+    link: '/usage',
+    dedupeKey: `quota-exhausted:${tenantId}:${currentMonthStart().toISOString().slice(0, 7)}:${kind}`,
+  }).catch(() => undefined);
+}
+
+async function reviewCountGate(
+  db: Db,
+  tenantId: string,
+  g: Awaited<ReturnType<typeof decideForReview>>,
+): Promise<Awaited<ReturnType<NonNullable<ReviewRevisionDeps['quotaGate']>>>> {
+  const quota = g.plan.monthlyReviewQuota;
+  if (!quota || g.overageAction !== 'reject') return { block: false };
+  const usage = await periodUsage(db, tenantId, currentMonthStart(), await resolvePublicRepoBilling(db));
+  if (usage.reviews < quota) return { block: false };
+  await notifyQuotaExhausted(db, tenantId, g.plan.name, 'review');
+  return { block: true, reason: 'review_quota_exceeded', reasonCode: 'review_quota' };
 }

@@ -85,6 +85,8 @@ export interface ReviewEngineDeps {
   knowledgeTools?: AgentTool[];
   /** Platform-vetted read-only plugin tools (e.g. web search); results are treated as untrusted data. */
   pluginTools?: AgentTool[];
+  /** `run_command` for dig (build, test, reproduce); absent where commands cannot run. */
+  commandTools?: AgentTool[];
   /**
    * URLs returned by plugin tools so far. When set, dig exposes `record_external_fact`; fact sources are
    * filtered to these URLs and facts without a real source are dropped. Collected only, not persisted.
@@ -768,6 +770,7 @@ export async function runDig(
     ...(deps.memoryTools ?? []),
     ...(deps.knowledgeTools ?? []),
     ...(deps.pluginTools ?? []),
+    ...(deps.commandTools ?? []),
   ];
   // Subagent candidates and usage are attributed to this scope; usage must count toward the cost breaker.
   const subCandidates: CandidatePayload[] = [];

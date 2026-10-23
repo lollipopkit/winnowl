@@ -61,7 +61,7 @@ export async function runVerifier(
     ...(deps.fallbackModels ? { fallbackModels: deps.fallbackModels } : {}),
     streamFn: deps.streamFn,
     ...(deps.seedMessages && deps.seedMessages.length > 0 ? { seedMessages: deps.seedMessages } : {}),
-    readTools: [...buildSourceTools(deps.source), ...(deps.knowledgeTools ?? []), ...(deps.pluginTools ?? [])],
+    readTools: [...buildSourceTools(deps.source), ...(deps.knowledgeTools ?? []), ...(deps.pluginTools ?? []), ...(deps.commandTools ?? [])],
     finalization: {
       name: 'submit_assessment',
       description: 'Submit the independent assessment of the finding.',

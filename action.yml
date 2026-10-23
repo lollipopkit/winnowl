@@ -84,9 +84,46 @@ runs:
           if [ "$i" = 20 ]; then echo "::error::could not pull ${image}"; exit 1; fi
           sleep 30
         done
+
+        # Review commands run on this host as a separate user: no sudo, no docker, no access to this
+        # user's processes (job tokens, model key) or to the workspace; only with passwordless sudo.
+        cmd_args=()
+        if sudo -n true 2>/dev/null && command -v node >/dev/null; then
+          cmd_user=winnowl-cmd
+          id -u "$cmd_user" >/dev/null 2>&1 || sudo useradd --create-home --shell /bin/bash "$cmd_user"
+          work="$(mktemp -d /tmp/winnowl-work.XXXXXX)"
+          cp -a .winnowl-worktree/. "$work/"
+          sudo chown -R "$cmd_user:" "$work"
+          sock_dir="$(mktemp -d "${RUNNER_TEMP}/winnowl-cmd.XXXXXX")"
+          restore=()
+          for d in "$GITHUB_WORKSPACE" "$RUNNER_TEMP"; do
+            restore+=("$(stat -c %a "$d") $d")
+            chmod o-rwx "$d"
+          done
+          node "${GITHUB_ACTION_PATH}/action/command-host.mjs" "$sock_dir/cmd.sock" "$work" "$cmd_user" &
+          host_pid=$!
+          cleanup() {
+            kill "$host_pid" 2>/dev/null || true
+            sudo -n pkill -KILL -u "$cmd_user" 2>/dev/null || true
+            for r in "${restore[@]}"; do chmod "${r%% *}" "${r#* }"; done
+            sudo -n rm -rf "$work"
+          }
+          trap cleanup EXIT
+          for i in $(seq 1 50); do [ -S "$sock_dir/cmd.sock" ] && break; sleep 0.1; done
+          if [ -S "$sock_dir/cmd.sock" ]; then
+            cmd_args=(-v "${sock_dir}:/winnowl-cmd" -e WINNOWL_COMMAND_SOCKET=/winnowl-cmd/cmd.sock)
+            if ! sudo -n -u "$cmd_user" test -x "$HOME"; then
+              echo "::notice::toolchains installed under ${HOME} (for example rustup) are not available to review commands"
+            fi
+          else
+            echo "::warning::the command host did not start; this review runs no commands"
+          fi
+        fi
         docker run --rm \
           -v "${GITHUB_WORKSPACE}/.winnowl-worktree:/worktree:ro" \
           -e WORKTREE_PATH=/worktree \
+          "${cmd_args[@]}" \
+          -e GITHUB_REPOSITORY \
           -e WINNOWL_API_URL -e WINNOWL_HEAD_SHA -e WINNOWL_CLAIM_TIMEOUT_S \
           -e ACTIONS_ID_TOKEN_REQUEST_URL -e ACTIONS_ID_TOKEN_REQUEST_TOKEN \
           -e LLM_API_KEY -e LLM_BASE_URL -e LLM_PROVIDER -e LLM_MODEL -e LLM_TEMPLATE_MODEL \

@@ -918,6 +918,8 @@ const en = {
     runnerPlatform: 'Platform',
     runnerActions: 'GitHub Actions',
     runnerActionsSetup: 'Add this workflow as `{path:string}` and a repository secret `WINNOWL_LLM_API_KEY`. If the workflow cannot run (for example on pull requests from forks), the review fails with the reason instead of running on the platform.',
+    runCommands: 'Run commands during review',
+    runCommandsHint: 'Build, test and reproduce problems on the Actions runner; each command is reviewed before it runs',
     netNone: 'None',
     netRegistry: 'Package registries only',
     netAllowlist: 'Allowlist',

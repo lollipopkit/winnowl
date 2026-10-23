@@ -89,6 +89,7 @@ export interface ReviewRevisionDeps {
   /** Decided before clone/model spend; block=true skips the review. Degrade is handled by buildEnv. */
   quotaGate?: (
     ctx: ReviewRevisionContext,
+    opts: { runner: 'platform' | 'actions' },
   ) => Promise<{ block: boolean; reason?: string; reasonCode?: ReviewBlockReason }>;
   /** Neutral check-run explaining the block; its failure never lets the review run. */
   onBlocked?: (ctx: ReviewRevisionContext, reason: ReviewBlockReason) => Promise<void>;
@@ -327,7 +328,7 @@ export function createReviewRevisionHandler(deps: ReviewRevisionDeps): JobHandle
       }
     }
 
-    const gate = await deps.quotaGate?.(ctx);
+    const gate = await deps.quotaGate?.(ctx, { runner: effective.sandbox.runner });
     if (gate?.block) {
       log('review skipped by quota', {
         changeRequestId: payload.changeRequestId,

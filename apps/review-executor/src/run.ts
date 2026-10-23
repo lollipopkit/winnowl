@@ -1,3 +1,4 @@
+import type { AgentTool } from '@reviewbot/agent-pi';
 import { uuidv7 } from '@reviewbot/ids';
 import { loadPromptBundles, type PromptBundle } from '@reviewbot/prompts';
 import { produceReview, type ReviewProgress } from '@reviewbot/review-orchestrator';
@@ -18,6 +19,7 @@ export interface RunExecutorInput {
   isCancelled: () => boolean;
   /** Where spans go when the collector is unreachable (sandbox); the control plane relays them. */
   spansPath?: string;
+  commandTools?: AgentTool[];
 }
 
 /** exploration + verification of one review, shared by the sandbox and GitHub Actions entries. */
@@ -53,6 +55,7 @@ export async function runExecutor(input: RunExecutorInput): Promise<ReviewExecut
       newId: () => uuidv7(),
       onProgress: input.onProgress,
       isCancelled: input.isCancelled,
+      ...(input.commandTools ? { commandTools: input.commandTools } : {}),
     });
     // Parented to the control plane's job span; every LLM call carries tenant/repo/PR context.
     const produced = await withRemoteTraceCarrier(spec.telemetry?.traceCarrier, () =>

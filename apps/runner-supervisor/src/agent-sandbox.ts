@@ -6,7 +6,7 @@ import {
   recordCommandResult,
   reviewCommand,
   type CommandAuditScope,
-  type GateDecision,
+  type CommandOutcome,
   type JudgeDeps,
 } from '@reviewbot/command-gate';
 import type { Db } from '@reviewbot/db';
@@ -45,15 +45,6 @@ export interface AgentSandboxOptions {
   log?: (msg: string, data?: Record<string, unknown>) => void;
 }
 
-export interface CommandOutcome {
-  decision: GateDecision;
-  /** Absent when the gate denied it or the host had no room. */
-  result?: ExecResult;
-  /** The sandbox grew and the command ran a second time. */
-  retried?: boolean;
-  /** Why it did not run although allowed. */
-  notRun?: string;
-}
 
 export const REPO_DIR = '/workspace/repo';
 const DEFAULT_TIMEOUT_SEC = 600;
@@ -370,13 +361,3 @@ export function repoPath(path: string): string | null {
 }
 
 /** A command's output for the agent: the head and the tail (the end of a build log says why it failed). */
-export function commandOutputText(o: CommandOutcome, max = 12_000): string {
-  if (o.decision.verdict === 'deny') return `Command denied (${o.decision.decidedBy === 'judge' ? 'review' : 'rule'}): ${o.decision.reason}`;
-  if (o.notRun || !o.result) return `Command not run: ${o.notRun ?? 'unknown reason'}`;
-  const r = o.result;
-  const combined = [r.stdout, r.stderr ? `[stderr]\n${r.stderr}` : ''].filter(Boolean).join('\n');
-  const head = Math.floor(max / 4);
-  const text = combined.length > max ? `${combined.slice(0, head)}\n…[${combined.length - max} characters omitted]…\n${combined.slice(-(max - head))}` : combined;
-  const status = r.timedOut ? 'timed out' : r.oomKilled ? `killed: out of memory${o.retried ? ' (after growing the sandbox once)' : ''}` : `exit code ${r.exitCode}`;
-  return `${status}${o.retried && !r.oomKilled ? ' (ran a second time after the sandbox grew)' : ''}, ${Math.round(r.durationMs / 1000)} s\n${text || '(no output)'}`;
-}

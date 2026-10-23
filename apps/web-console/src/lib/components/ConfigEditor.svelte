@@ -206,6 +206,7 @@
       {/snippet}
       {@render row($LL.config.runner(), $LL.config.runnerHint(), runnerControl)}
       {#if str('sandbox.runner', 'platform') === 'actions'}
+        {@render toggle('sandbox.run_commands', true, $LL.config.runCommands(), $LL.config.runCommandsHint())}
         <div class="setting-note">
           <p><CodeText text={$LL.config.runnerActionsSetup({ path: ACTIONS_WORKFLOW_PATH })} /></p>
           <pre><code>{ACTIONS_WORKFLOW}</code></pre>
