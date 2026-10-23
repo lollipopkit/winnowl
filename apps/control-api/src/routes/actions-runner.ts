@@ -87,7 +87,9 @@ export function registerActionsRunnerRoutes(app: FastifyInstance, db: Db, option
     if (!claims) {
       return fail(reply, 400, 'invalid_request', 'the workflow must run on a pull_request event');
     }
-    const headSha = (req.body as { headSha?: unknown } | undefined)?.headSha;
+    const body = req.body as { headSha?: unknown; continuation?: unknown } | undefined;
+    const headSha = body?.headSha;
+    const continuation = body?.continuation === true;
     if (typeof headSha !== 'string' || !SHA.test(headSha)) {
       return fail(reply, 400, 'invalid_request', 'headSha must be the pull request head commit (40 hex)');
     }
@@ -116,7 +118,7 @@ export function registerActionsRunnerRoutes(app: FastifyInstance, db: Db, option
         const body: ActionsClaimResponse = { runId: run.id, token: runToken, spec: run.spec };
         return body;
       }
-      return explainNothingToClaim(reply, db, { repositoryId, number, headSha });
+      return explainNothingToClaim(reply, db, { repositoryId, number, headSha, continuation });
     });
   });
 
@@ -190,7 +192,7 @@ export function registerActionsRunnerRoutes(app: FastifyInstance, db: Db, option
 async function explainNothingToClaim(
   reply: FastifyReply,
   db: Db,
-  input: { repositoryId: string; number: number; headSha: string },
+  input: { repositoryId: string; number: number; headSha: string; continuation: boolean },
 ): Promise<FastifyReply> {
   const target = await db
     .selectFrom('change_requests as cr')
@@ -219,6 +221,7 @@ async function explainNothingToClaim(
     .orderBy('created_at', 'desc')
     .executeTakeFirst();
   if (!latest || latest.head_sha !== input.headSha) {
+    if (input.continuation) return fail(reply, 404, 'nothing_to_claim', 'the pull request has a newer commit');
     // The webhook for a new head may not have arrived yet.
     return fail(reply, 404, 'not_ready', 'winnowl has not seen this commit yet');
   }
@@ -231,6 +234,7 @@ async function explainNothingToClaim(
     limit 1
   `.execute(db);
   if (active.rows.length === 0) {
+    if (input.continuation) return fail(reply, 404, 'nothing_to_claim', 'the review of this commit is finished');
     await enqueueManualReview(db, {
       tenantId: target.tenantId,
       repositoryId: target.repoId,

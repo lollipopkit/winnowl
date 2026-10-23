@@ -97,6 +97,11 @@ export interface ActionsExecutorResponse {
 export interface ActionsClaimRequest {
   /** `github.event.pull_request.head.sha`; the OIDC token's own sha is the merge commit. */
   headSha: string;
+  /**
+   * Set after this workflow run finished a round: claims the next round of the same head (the review
+   * continues on its own) and never requests a new review.
+   */
+  continuation?: boolean;
 }
 
 export interface ActionsClaimResponse {
@@ -122,10 +127,12 @@ export type ActionsCompleteRequest =
 
 /**
  * `not_ready`: nothing parked yet for this pull request head (the runner may still be preparing), retry.
+ * `nothing_to_claim`: a continuation claim found the review of this head finished.
  * The rest are final; `message` says what to change.
  */
 export type ActionsErrorCode =
   | 'not_ready'
+  | 'nothing_to_claim'
   | 'invalid_token'
   | 'repository_unknown'
   | 'run_closed'

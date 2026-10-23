@@ -33,8 +33,13 @@ describe('GitHub Actions runner endpoints (claim by OIDC, then per-run token)', 
       .setExpirationTime('5m')
       .sign(key);
 
-  const claim = async (token: string, headSha = HEAD) =>
-    app.inject({ method: 'POST', url: '/v1/actions/claim', headers: { authorization: `Bearer ${token}` }, payload: { headSha } });
+  const claim = async (token: string, headSha = HEAD, continuation?: boolean) =>
+    app.inject({
+      method: 'POST',
+      url: '/v1/actions/claim',
+      headers: { authorization: `Bearer ${token}` },
+      payload: { headSha, ...(continuation ? { continuation } : {}) },
+    });
 
   const park = async (overrides: { head_sha?: string; change_request_number?: number } = {}) => {
     const id = uuidv7();
@@ -143,6 +148,17 @@ describe('GitHub Actions runner endpoints (claim by OIDC, then per-run token)', 
     expect(await reviewJobs()).toBe(1);
     // A head winnowl has not seen yet is not requested.
     expect((await claim(await oidc(), 'c'.repeat(40))).json().error).toBe('not_ready');
+    expect(await reviewJobs()).toBe(1);
+  });
+
+  it('a continuation claim waits for the next round and never requests a review', async () => {
+    // The review requested above is still queued: its next round may follow.
+    expect((await claim(await oidc(), HEAD, true)).json().error).toBe('not_ready');
+    expect((await claim(await oidc(), 'c'.repeat(40), true)).json().error).toBe('nothing_to_claim');
+    await db.updateTable('jobs').set({ status: 'completed' }).where('type', '=', 'review_revision').where('tenant_id', '=', TENANT).execute();
+    const done = await claim(await oidc(), HEAD, true);
+    expect(done.statusCode).toBe(404);
+    expect(done.json().error).toBe('nothing_to_claim');
     expect(await reviewJobs()).toBe(1);
   });
 
