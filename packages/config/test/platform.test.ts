@@ -38,8 +38,8 @@ describe('平台运维设置(0058):DB 优先、env 兜底', () => {
     const stageDefaults = ['map', 'dig', 'verify', 'synthesis'].map(
       (k) => resolvePlatformSetting(`review.stage_budget.${k}`, undefined, {}).value,
     );
-    expect(stageDefaults).toEqual(['5', '15', '9', '3']);
-    expect(stageDefaults.reduce((sum, v) => sum + Number(v), 0)).toBeLessThanOrEqual(35);
+    expect(stageDefaults).toEqual(['10', '15', '9', '3']);
+    expect(stageDefaults.reduce((sum, v) => sum + Number(v), 0)).toBeLessThanOrEqual(40);
     expect(isValidPlatformSetting('review.stage_budget.dig', 'off')).toBe(true);
     expect(isValidPlatformSetting('review.stage_budget.dig', '7')).toBe(false);
 

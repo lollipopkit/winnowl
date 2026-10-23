@@ -41,9 +41,9 @@ export const PLATFORM_SETTINGS = [
   {
     key: 'review.stage_budget.map',
     env: 'REVIEW_STAGE_BUDGET_MAP',
-    values: ['5', '2', '10', '20', 'off'],
+    values: ['10', '2', '5', '20', 'off'],
     description:
-      'Minutes the map stage gets to produce the scope list. Measured on live: median 27s, p95 65s, worst 232s — so 5 minutes only ever cuts off a model that is going in circles, and cutting it there rather than at the 95-minute total means the run fails early instead of burning the whole budget for nothing.',
+      'Minutes the map stage gets to produce the scope list. Measured on live: median 27s, p95 65s, worst 232s; with the gateway at 20-80s per call a run can pass 5 minutes. Cutting it here rather than at the 95-minute total means a run going in circles fails early instead of burning the whole budget for nothing.',
   },
   {
     key: 'review.stage_budget.dig',
