@@ -329,6 +329,12 @@ const sandbox = z
       .describe(
         'Where reviews run: on the platform, or in this repository\'s GitHub Actions (needs the winnowl workflow; never falls back to the platform).',
       ),
+    run_commands: z
+      .boolean()
+      .default(true)
+      .describe(
+        'With `runner: actions`, let the review build, test and reproduce problems by running commands on the GitHub Actions runner; each command is reviewed before it runs.',
+      ),
     labels: z
       .array(z.string())
       .default([])

@@ -91,6 +91,8 @@ export async function enqueueManualReview(
     headSha: string;
     full?: boolean;
     initiatedByUserId?: string;
+    /** Requested by a workflow run that is already waiting to claim it (no re-run needed). */
+    startedByWorkflow?: boolean;
   },
 ): Promise<void> {
   await supersedeOlderReviewJobs(db, input);
@@ -107,6 +109,7 @@ export async function enqueueManualReview(
       trigger: 'manual',
       ...(input.full ? { forceFullReview: true } : {}),
       ...(input.initiatedByUserId ? { initiatedByUserId: input.initiatedByUserId } : {}),
+      ...(input.startedByWorkflow ? { startedByWorkflow: true } : {}),
     },
     dedupeKey:
       reviewDedupeKey({

@@ -52,6 +52,8 @@ export interface ReviewRevisionPayload {
   initiatedByUserId?: string;
   /** Set on rounds started by the previous round of the same head (review-continue.ts). */
   continueRound?: number;
+  /** Requested by a workflow run already waiting to claim it (actions-runner.ts). */
+  startedByWorkflow?: boolean;
 }
 
 export type { ReviewEnv };
@@ -63,6 +65,8 @@ export interface ReviewRevisionContext {
   db: JobHandlerDb;
   /** Filled in by buildEnv; defaults to platform. */
   modelSourceKind?: 'platform' | 'byok';
+  /** Resolved before the quota gate; buildEnv executes on it. */
+  runner?: 'platform' | 'actions';
 }
 
 /**
@@ -86,9 +90,20 @@ export interface ReviewRevisionDeps {
    * skipped since they need a complete, published result.
    */
   onCancelled?: (outcome: ReviewOutcome, ctx: ReviewRevisionContext) => Promise<void>;
+  /**
+   * `sandbox.runner` from the trusted config, read without a clone; undefined when it cannot be read that
+   * way (the stored config then decides the gate, and buildEnv its own).
+   */
+  resolveRunner?: (ctx: ReviewRevisionContext) => Promise<'platform' | 'actions' | undefined>;
+  /**
+   * For a manual review in GitHub Actions: re-runs the workflow run that last claimed this head, since no
+   * event starts one; `wait` while that run is still going. Throws RunnerSetupError('actions-no-rerun').
+   */
+  rerunActionsWorkflow?: (ctx: ReviewRevisionContext) => Promise<'started' | 'wait'>;
   /** Decided before clone/model spend; block=true skips the review. Degrade is handled by buildEnv. */
   quotaGate?: (
     ctx: ReviewRevisionContext,
+    opts: { runner: 'platform' | 'actions' },
   ) => Promise<{ block: boolean; reason?: string; reasonCode?: ReviewBlockReason }>;
   /** Neutral check-run explaining the block; its failure never lets the review run. */
   onBlocked?: (ctx: ReviewRevisionContext, reason: ReviewBlockReason) => Promise<void>;
@@ -106,6 +121,14 @@ export interface ReviewRevisionDeps {
   listChangedPaths?: (ctx: ReviewRevisionContext) => Promise<string[] | null>;
   /** Posts a status comment with a "review now" checkbox for skips a human can override. */
   onAutoReviewSkipped?: (ctx: ReviewRevisionContext, skip: AutoReviewSkip) => Promise<void>;
+}
+
+/**
+ * A GitHub Actions review whose workflow run has to be started by winnowl: webhook events start one,
+ * a run asked for by a workflow run is already waiting, and continuation rounds go to the running one.
+ */
+export function needsWorkflowRerun(payload: Pick<ReviewRevisionPayload, 'trigger' | 'startedByWorkflow' | 'continueRound'>): boolean {
+  return payload.trigger === 'manual' && !payload.startedByWorkflow && payload.continueRound === undefined;
 }
 
 /** Superseded heads are skipped here; the publish gate also rejects stale heads. */
@@ -327,7 +350,9 @@ export function createReviewRevisionHandler(deps: ReviewRevisionDeps): JobHandle
       }
     }
 
-    const gate = await deps.quotaGate?.(ctx);
+    const runner = await deps.resolveRunner?.(ctx);
+    if (runner) ctx.runner = runner;
+    const gate = await deps.quotaGate?.(ctx, { runner: runner ?? effective.sandbox.runner });
     if (gate?.block) {
       log('review skipped by quota', {
         changeRequestId: payload.changeRequestId,
@@ -387,6 +412,11 @@ export function createReviewRevisionHandler(deps: ReviewRevisionDeps): JobHandle
       }
       return cancelSeen;
     };
+    // In-process stages see cancellation between steps; this also aborts the call in flight.
+    const cancelAbort = new AbortController();
+    const cancelWatch = setInterval(() => {
+      void isCancelled().then((c) => c && cancelAbort.abort());
+    }, CANCEL_POLL_INTERVAL_MS);
 
     // Trace context for every LLM call; revisionId groups one review as a session. It must also wrap
     // buildEnv, which copies it into the sandbox executor spec.
@@ -412,6 +442,7 @@ export function createReviewRevisionHandler(deps: ReviewRevisionDeps): JobHandle
       const orchestratorDeps: ReviewOrchestratorDeps = {
         ...env,
         isCancelled,
+        abortSignal: AbortSignal.any([signal, cancelAbort.signal]),
         onProgress: progress.report,
         newId: deps.newId ?? ((): string => uuidv7()),
         publishTarget: {
@@ -455,6 +486,9 @@ export function createReviewRevisionHandler(deps: ReviewRevisionDeps): JobHandle
             onProgress: progress.report,
             isCancelled,
             signal,
+            ...(needsWorkflowRerun(payload) && deps.rerunActionsWorkflow
+              ? { requestRun: () => deps.rerunActionsWorkflow!(ctx) }
+              : {}),
           });
           for (const call of pluginCalls) await env.onPluginCall?.(call);
           outcome = await publishReview(produced, orchestratorDeps);
@@ -615,6 +649,7 @@ export function createReviewRevisionHandler(deps: ReviewRevisionDeps): JobHandle
       }
       throw error;
     } finally {
+      clearInterval(cancelWatch);
       await disposeWorkspace?.().catch((err) =>
         log('review workspace cleanup failed', {
           changeRequestId: payload.changeRequestId,

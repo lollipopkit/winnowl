@@ -12,10 +12,15 @@ import {
   createReviewBuildEnv,
   extractImageUrls,
   fetchPrImages,
+  loadedConfigFromLayers,
+  loadRepoConfigFromReader,
   recordCoveredFiles,
   stackRootBranchOf,
+  tenantConfigLayers,
 } from '@reviewbot/review-runtime';
 import { createReviewRevisionHandler } from '../review-revision.js';
+import { RunnerSetupError } from '../executor-error.js';
+import { ProviderError } from '@reviewbot/provider-contracts';
 import { continueReview } from '../review-continue.js';
 import { enqueueKnowledgeJobs } from '../knowledge-jobs.js';
 import { createAutoIssueProposer } from '../auto-issue.js';
@@ -54,6 +59,27 @@ export async function reviewHandlers(rt: RunnerRuntime): Promise<Record<string, 
     reviewAck,
     statusComment,
   } = rt;
+  /**
+   * `.winnowl.yaml` at the commit the review's config comes from (trusted-base.ts: base for a normal PR, the
+   * root target branch for a stacked one), read without a clone. `text` null: no file; undefined result: the
+   * provider cannot read files.
+   */
+  const readTrustedConfigFile = async (ctx: {
+    payload: { repositoryId: string; revisionId: string; changeRequestId: string };
+  }): Promise<{ text: string | null } | undefined> => {
+    const repo = await db.selectFrom('repositories').selectAll().where('id', '=', ctx.payload.repositoryId).executeTakeFirstOrThrow();
+    const provider = await buildProviderForRepository(ctx.payload.repositoryId);
+    const getFile = provider.repositories.getFileContent?.bind(provider.repositories);
+    if (!getFile) return undefined;
+    const rev = await db.selectFrom('revisions').select('base_sha').where('id', '=', ctx.payload.revisionId).executeTakeFirst();
+    if (!rev) return undefined;
+    const trustedRef = (await stackRootBranchOf(db, ctx.payload.changeRequestId)) ?? rev.base_sha;
+    for (const name of ['.winnowl.yaml', '.winnowl.yml']) {
+      const text = await getFile(repositoryRefFromRow(repo), name, trustedRef);
+      if (text !== null) return { text };
+    }
+    return { text: null };
+  };
   const loaded = await loadPromptBundles([
     'mapper',
     'reviewer',
@@ -383,29 +409,38 @@ export async function reviewHandlers(rt: RunnerRuntime): Promise<Record<string, 
           .filter((p) => p !== '');
       },
       recheckAutoFromRepoFile: async (ctx) => {
-        const repo = await db
-          .selectFrom('repositories')
-          .selectAll()
-          .where('id', '=', ctx.payload.repositoryId)
-          .executeTakeFirstOrThrow();
-        const provider = await buildProviderForRepository(ctx.payload.repositoryId);
-        const getFile = provider.repositories.getFileContent?.bind(provider.repositories);
-        if (!getFile) return null;
-        const ref = repositoryRefFromRow(repo);
-        // Same source as the review's config (review-runtime trusted-base.ts): base for a normal PR, the root target
-        // branch for a stacked one, so a PR cannot change the config it is reviewed with.
-        const rev = await db
-          .selectFrom('revisions')
-          .select('base_sha')
-          .where('id', '=', ctx.payload.revisionId)
+        const file = await readTrustedConfigFile(ctx);
+        return file?.text ? readAutoFragmentFromYaml(file.text) : null;
+      },
+      // Provider errors propagate (the job retries): a guessed runner could bill the platform for a user-paid review.
+      resolveRunner: async (ctx) => {
+        const file = await readTrustedConfigFile(ctx);
+        if (!file) return undefined;
+        const layers = await tenantConfigLayers(db, ctx.payload);
+        const cfg = file.text !== null ? await loadRepoConfigFromReader(async () => file.text, layers) : loadedConfigFromLayers(layers);
+        return cfg.config.sandbox.runner;
+      },
+      rerunActionsWorkflow: async (ctx) => {
+        const last = await db
+          .selectFrom('actions_runs')
+          .select('github_run_id')
+          .where('tenant_id', '=', ctx.payload.tenantId)
+          .where('repository_id', '=', ctx.payload.repositoryId)
+          .where('change_request_number', '=', ctx.changeRequest.number)
+          .where('head_sha', '=', ctx.payload.headSha)
+          .where('github_run_id', 'is not', null)
+          .orderBy('created_at', 'desc')
           .executeTakeFirst();
-        if (!rev) return null;
-        const trustedRef = (await stackRootBranchOf(db, ctx.payload.changeRequestId)) ?? rev.base_sha;
-        for (const name of ['.winnowl.yaml', '.winnowl.yml']) {
-          const text = await getFile(ref, name, trustedRef);
-          if (text !== null) return readAutoFragmentFromYaml(text);
+        if (!last?.github_run_id) throw new RunnerSetupError('actions-no-rerun', 'no-run');
+        const provider = await buildProviderForRepository(ctx.payload.repositoryId);
+        if (!provider.pipelines.rerun) throw new RunnerSetupError('actions-no-rerun', 'no-run');
+        try {
+          const r = await provider.pipelines.rerun({ nativeId: last.github_run_id, repositoryId: ctx.payload.repositoryId });
+          return r === 'started' ? 'started' : 'wait';
+        } catch (err) {
+          if (err instanceof ProviderError && err.status === 403) throw new RunnerSetupError('actions-no-rerun', 'permission');
+          throw err;
         }
-        return null;
       },
       quotaGate: createReviewQuotaGate(db),
       // Superseded by a newer head: record usage only and skip all post-publish steps (they need a complete,

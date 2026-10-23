@@ -266,6 +266,12 @@
       "description": "Where reviews run: on the platform, or in this repository's GitHub Actions (needs the winnowl workflow; never falls back to the platform)."
     },
     {
+      "path": "sandbox.run_commands",
+      "type": "boolean",
+      "default": "true",
+      "description": "With `runner: actions`, let the review build, test and reproduce problems by running commands on the GitHub Actions runner; each command is reviewed before it runs."
+    },
+    {
       "path": "sandbox.labels",
       "type": "string[]",
       "default": "[]",

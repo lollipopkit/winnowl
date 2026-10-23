@@ -35,7 +35,15 @@ export interface RunInActionsDeps {
   stallTimeoutMs?: number;
   pollMs?: number;
   now?: () => number;
+  /**
+   * When no event starts a workflow run: called while the run is unclaimed until it reports `started`
+   * (`wait`: the workflow run to re-run has not finished yet). Throws when no re-run can be made.
+   */
+  requestRun?: () => Promise<'started' | 'wait'>;
 }
+
+/** GitHub API calls while waiting for a workflow run to finish are spaced this far apart. */
+const REQUEST_RUN_INTERVAL_MS = 20_000;
 
 const DEFAULT_CLAIM_TIMEOUT_MS = ACTIONS_CLAIM_TIMEOUT_MINUTES * 60_000;
 const DEFAULT_STALL_TIMEOUT_MS = 2 * 60_000;
@@ -89,6 +97,8 @@ export async function runReviewInActions(
   deps.log('review waiting for GitHub Actions', { runId: id, headSha: deps.headSha, image: deps.image });
 
   const parkedAt = now();
+  let runRequested = !deps.requestRun;
+  let lastRequestAt = -Infinity;
   let cancelSent = false;
   let finished = false;
   try {
@@ -115,6 +125,11 @@ export async function runReviewInActions(
       const t = now();
       if (row.status === 'pending' && t - parkedAt > claimTimeoutMs) {
         throw new RunnerSetupError('actions-not-claimed');
+      }
+      if (row.status === 'pending' && !runRequested && t - lastRequestAt >= REQUEST_RUN_INTERVAL_MS) {
+        lastRequestAt = t;
+        runRequested = (await deps.requestRun!()) === 'started';
+        if (runRequested) deps.log('re-ran the workflow for this review', { runId: id });
       }
       if (row.status === 'running') {
         const last = (row.heartbeat_at ?? row.claimed_at)?.getTime() ?? parkedAt;

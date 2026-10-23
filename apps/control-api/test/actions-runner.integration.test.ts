@@ -33,8 +33,13 @@ describe('GitHub Actions runner endpoints (claim by OIDC, then per-run token)', 
       .setExpirationTime('5m')
       .sign(key);
 
-  const claim = async (token: string, headSha = HEAD) =>
-    app.inject({ method: 'POST', url: '/v1/actions/claim', headers: { authorization: `Bearer ${token}` }, payload: { headSha } });
+  const claim = async (token: string, headSha = HEAD, continuation?: boolean) =>
+    app.inject({
+      method: 'POST',
+      url: '/v1/actions/claim',
+      headers: { authorization: `Bearer ${token}` },
+      payload: { headSha, ...(continuation ? { continuation } : {}) },
+    });
 
   const park = async (overrides: { head_sha?: string; change_request_number?: number } = {}) => {
     const id = uuidv7();
@@ -139,6 +144,9 @@ describe('GitHub Actions runner endpoints (claim by OIDC, then per-run token)', 
     expect(first.statusCode).toBe(404);
     expect(first.json().error).toBe('not_ready');
     expect(await reviewJobs()).toBe(1);
+    // That run is waiting to claim it already; a retry must not re-run the workflow again.
+    const requested = await db.selectFrom('jobs').select('payload').where('type', '=', 'review_revision').where('tenant_id', '=', TENANT).executeTakeFirstOrThrow();
+    expect(requested.payload).toMatchObject({ trigger: 'manual', startedByWorkflow: true });
     expect((await claim(await oidc())).json().error).toBe('not_ready');
     expect(await reviewJobs()).toBe(1);
     // A head winnowl has not seen yet is not requested.
@@ -146,16 +154,28 @@ describe('GitHub Actions runner endpoints (claim by OIDC, then per-run token)', 
     expect(await reviewJobs()).toBe(1);
   });
 
+  it('a continuation claim waits for the next round and never requests a review', async () => {
+    // The review requested above is still queued: its next round may follow.
+    expect((await claim(await oidc(), HEAD, true)).json().error).toBe('not_ready');
+    expect((await claim(await oidc(), 'c'.repeat(40), true)).json().error).toBe('nothing_to_claim');
+    await db.updateTable('jobs').set({ status: 'completed' }).where('type', '=', 'review_revision').where('tenant_id', '=', TENANT).execute();
+    const done = await claim(await oidc(), HEAD, true);
+    expect(done.statusCode).toBe(404);
+    expect(done.json().error).toBe('nothing_to_claim');
+    expect(await reviewJobs()).toBe(1);
+  });
+
   it('claims only the run of this repository, pull request and head; then heartbeat, cancel and complete', async () => {
     const elsewhere = await park({ change_request_number: 7 });
     const run = await park();
-    const res = await claim(await oidc());
+    const res = await claim(await oidc({ run_id: '1234567' }));
     expect(res.statusCode).toBe(200);
     const body = res.json() as { runId: string; token: string; spec: { marker: string } };
     expect(body.runId).toBe(run);
     expect(body.spec.marker).toBe(run);
-    const stored = await db.selectFrom('actions_runs').select(['status', 'token_hash']).where('id', '=', run).executeTakeFirstOrThrow();
+    const stored = await db.selectFrom('actions_runs').select(['status', 'token_hash', 'github_run_id']).where('id', '=', run).executeTakeFirstOrThrow();
     expect(stored.status).toBe('running');
+    expect(stored.github_run_id).toBe('1234567');
     expect(stored.token_hash).not.toContain(body.token);
     expect((await db.selectFrom('actions_runs').select('status').where('id', '=', elsewhere).executeTakeFirstOrThrow()).status).toBe('pending');
     // Claimed once only.

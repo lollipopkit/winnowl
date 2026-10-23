@@ -911,6 +911,8 @@ const zhHant = {
     runnerPlatform: '平台',
     runnerActions: 'GitHub Actions',
     runnerActionsSetup: '請把下面的 workflow 儲存為 `{path}`，並新增儲存庫 secret `WINNOWL_LLM_API_KEY`。如果 workflow 無法執行（例如來自 fork 的 PR），review 會失敗並說明原因，不會改為在平台上執行。',
+    runCommands: 'review 時執行命令',
+    runCommandsHint: '在 Actions runner 上建置、測試、重現問題；每條命令執行前都會經過審查',
     netNone: '不連網',
     netRegistry: '僅套件儲存庫',
     netAllowlist: '白名單',

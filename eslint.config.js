@@ -57,7 +57,7 @@ export default tseslint.config(
   },
   {
     // .mjs scripts have no TS lib, so node globals must be declared for no-undef.
-    files: ['**/scripts/**', '**/test/**', '**/*.test.ts'],
+    files: ['**/scripts/**', 'action/**', '**/test/**', '**/*.test.ts'],
     languageOptions: {
       globals: {
         console: 'readonly',

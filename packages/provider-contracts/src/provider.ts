@@ -198,6 +198,8 @@ export interface PipelineApi {
   listRuns(ref: ChangeRequestRef): Promise<PipelineRun[]>;
   getJobs(run: PipelineRunRef): Promise<PipelineJob[]>;
   getLogs(job: PipelineJobRef): Promise<PipelineLogs>;
+  /** Runs a finished run again, all of it, with its original event; `running`: not finished, nothing done. */
+  rerun?(run: PipelineRunRef): Promise<'started' | 'running'>;
 }
 
 export interface BranchApi {

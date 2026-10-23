@@ -1,6 +1,6 @@
 import { describe, expect, it } from 'vitest';
 import { createFauxAgent } from '@reviewbot/agent-pi';
-import { judgeCommand, judgeTask, reviewCommand, type JudgeInput } from '../src/index.js';
+import { commandOutputText, judgeCommand, judgeTask, reviewCommand, type JudgeInput } from '../src/index.js';
 
 const ctx = { task: 'Review pull request #43 of acme/app', purpose: 'check the API docs' };
 
@@ -52,5 +52,16 @@ describe('judgeCommand', () => {
       },
     });
     expect(broken.verdict).toBe('deny');
+  });
+});
+
+describe('commandOutputText', () => {
+  it('never cuts a character in half where it shortens the output', () => {
+    const decision = { verdict: 'allow' as const, decidedBy: 'rule' as const, rule: 'r', reason: 'ok' };
+    for (const pad of [0, 1, 2, 3]) {
+      const stdout = 'a'.repeat(pad) + '😀'.repeat(200);
+      const text = commandOutputText({ decision, result: { exitCode: 0, stdout, stderr: '', timedOut: false, durationMs: 0 } }, 101);
+      expect(text).not.toMatch(/[\uD800-\uDBFF](?![\uDC00-\uDFFF])|(?<![\uD800-\uDBFF])[\uDC00-\uDFFF]/);
+    }
   });
 });

@@ -224,6 +224,8 @@ const ja = {
     actionsTimedOut: 'GitHub Actions ジョブがレビューの制限時間を超えました。workflow を再実行してもう一度試してください。',
     actionsNoKey: 'GitHub Actions ジョブにモデルのキーがありません。リポジトリの secret（例: `WINNOWL_LLM_API_KEY`）を追加して action に `llm-api-key` として渡し、workflow を再実行してください。',
     actionsVersionMismatch: 'GitHub Actions の executor が winnowl サーバーのバージョンと一致しません。古いイメージを固定せず winnowl のドキュメントどおりに action を使い、workflow を再実行してください。',
+    actionsNoRerunRun: 'この commit ではまだ winnowl の workflow が実行されていないため、再実行できるものがありません。commit をプッシュするか、Actions タブから workflow を実行してください。',
+    actionsNoRerunPermission: 'winnowl は workflow を再実行できませんでした。app にはこのリポジトリの Actions（読み取りと書き込み）権限が必要です。winnowl app の更新された権限を承認するか、Actions タブから workflow を再実行してください。',
     actionsFailed: 'GitHub Actions でレビューが失敗しました: {detail}。workflow を再実行してもう一度試してください。',
   },
   checks: {

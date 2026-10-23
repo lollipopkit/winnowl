@@ -221,6 +221,8 @@ const zh = {
     actionsTimedOut: 'GitHub Actions 任务运行时间超过了 review 的时限。请重新运行 workflow 再试一次。',
     actionsNoKey: 'GitHub Actions 任务没有模型 key。请添加一个仓库 secret（例如 `WINNOWL_LLM_API_KEY`），作为 `llm-api-key` 传给 action，然后重新运行 workflow。',
     actionsVersionMismatch: 'GitHub Actions 中的 executor 与 winnowl 服务端版本不一致。请按 winnowl 文档使用 action，不要固定旧镜像，然后重新运行 workflow。',
+    actionsNoRerunRun: '这个 commit 还没有运行过 winnowl 的 workflow，没有可以重新运行的记录。请推送一个 commit，或在 Actions 页面运行 workflow。',
+    actionsNoRerunPermission: 'winnowl 无法重新运行 workflow：app 需要本仓库的 Actions（读写）权限。请接受 winnowl app 更新后的权限，或在 Actions 页面重新运行 workflow。',
     actionsFailed: 'review 在 GitHub Actions 中失败：{detail}。请重新运行 workflow 再试一次。',
   },
   checks: {

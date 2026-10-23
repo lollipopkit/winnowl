@@ -72,7 +72,8 @@ export class RecordingHttpServer {
   }
 
   async listen(): Promise<string> {
-    this.server.listen(0);
+    // The address the URL names: on `::` another process bound to 127.0.0.1 on the same port takes the requests.
+    this.server.listen(0, '127.0.0.1');
     await once(this.server, 'listening');
     const { port } = this.server.address() as AddressInfo;
     return `http://127.0.0.1:${port}`;

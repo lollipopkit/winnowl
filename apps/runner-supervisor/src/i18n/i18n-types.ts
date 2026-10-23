@@ -975,6 +975,14 @@ type RootTranslation = {
 		 */
 		actionsVersionMismatch: string
 		/**
+		 * N​o​ ​w​o​r​k​f​l​o​w​ ​r​u​n​ ​o​f​ ​t​h​i​s​ ​c​o​m​m​i​t​ ​h​a​s​ ​r​u​n​ ​w​i​n​n​o​w​l​ ​y​e​t​,​ ​s​o​ ​t​h​e​r​e​ ​i​s​ ​n​o​t​h​i​n​g​ ​t​o​ ​r​e​-​r​u​n​.​ ​P​u​s​h​ ​a​ ​c​o​m​m​i​t​ ​o​r​ ​r​u​n​ ​t​h​e​ ​w​o​r​k​f​l​o​w​ ​f​r​o​m​ ​t​h​e​ ​A​c​t​i​o​n​s​ ​t​a​b​.
+		 */
+		actionsNoRerunRun: string
+		/**
+		 * w​i​n​n​o​w​l​ ​c​o​u​l​d​ ​n​o​t​ ​r​e​-​r​u​n​ ​t​h​e​ ​w​o​r​k​f​l​o​w​:​ ​t​h​e​ ​a​p​p​ ​n​e​e​d​s​ ​t​h​e​ ​A​c​t​i​o​n​s​ ​(​r​e​a​d​ ​a​n​d​ ​w​r​i​t​e​)​ ​p​e​r​m​i​s​s​i​o​n​ ​o​n​ ​t​h​i​s​ ​r​e​p​o​s​i​t​o​r​y​.​ ​A​c​c​e​p​t​ ​t​h​e​ ​u​p​d​a​t​e​d​ ​p​e​r​m​i​s​s​i​o​n​s​ ​o​f​ ​t​h​e​ ​w​i​n​n​o​w​l​ ​a​p​p​,​ ​o​r​ ​r​e​-​r​u​n​ ​t​h​e​ ​w​o​r​k​f​l​o​w​ ​f​r​o​m​ ​t​h​e​ ​A​c​t​i​o​n​s​ ​t​a​b​.
+		 */
+		actionsNoRerunPermission: string
+		/**
 		 * T​h​e​ ​r​e​v​i​e​w​ ​f​a​i​l​e​d​ ​i​n​ ​G​i​t​H​u​b​ ​A​c​t​i​o​n​s​:​ ​{​d​e​t​a​i​l​}​.​ ​R​e​-​r​u​n​ ​t​h​e​ ​w​o​r​k​f​l​o​w​ ​t​o​ ​t​r​y​ ​a​g​a​i​n​.
 		 * @param {string} detail
 		 */
@@ -1906,6 +1914,14 @@ export type TranslationFunctions = {
 		 * The executor in GitHub Actions does not match the winnowl server version. Use the action from the winnowl docs without pinning an old image, then re-run the workflow.
 		 */
 		actionsVersionMismatch: () => LocalizedString
+		/**
+		 * No workflow run of this commit has run winnowl yet, so there is nothing to re-run. Push a commit or run the workflow from the Actions tab.
+		 */
+		actionsNoRerunRun: () => LocalizedString
+		/**
+		 * winnowl could not re-run the workflow: the app needs the Actions (read and write) permission on this repository. Accept the updated permissions of the winnowl app, or re-run the workflow from the Actions tab.
+		 */
+		actionsNoRerunPermission: () => LocalizedString
 		/**
 		 * The review failed in GitHub Actions: {detail}. Re-run the workflow to try again.
 		 */

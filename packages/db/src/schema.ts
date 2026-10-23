@@ -551,6 +551,8 @@ export interface ActionsRunsTable {
   claimed_at: Date | null;
   heartbeat_at: Date | null;
   finished_at: Date | null;
+  /** GitHub workflow run that claimed it (OIDC `run_id`); a retry re-runs that run. */
+  github_run_id: ColumnType<string | null, string | null | undefined, string | null>;
 }
 
 /** Measured sandbox needs per repository and kind. */

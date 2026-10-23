@@ -3,7 +3,7 @@ export type { PrepareWorkspaceInput, PreparedWorkspace } from './workspace.js';
 export { buildReviewContractDigest, buildReviewFileStates } from './file-state.js';
 export type { ReviewFileState } from './file-state.js';
 
-export { loadRepoConfig, loadRepoConfigFromReader } from './config.js';
+export { loadedConfigFromLayers, loadRepoConfig, loadRepoConfigFromReader, tenantConfigLayers } from './config.js';
 export type { LoadedRepoConfig, ConfigFileReader } from './config.js';
 
 export { CodePlaneReader, codePlaneClient } from './code-plane.js';
@@ -54,11 +54,12 @@ export { relayExecutorSpec } from './executor-relay.js';
 export type { RelayUpstream, RelayedExecutorSpec } from './executor-relay.js';
 export {
   bindLocalCredentials,
+  checkLocalModels,
   executorErrorReport,
   LocalCredentialsError,
   unkeyedExecutorSpec,
 } from './executor-user-side.js';
-export type { ExecutorErrorReport, LocalModelEnv } from './executor-user-side.js';
+export type { ExecutorErrorReport, LocalModelEnv, ModelProbe } from './executor-user-side.js';
 export type {
   ReviewExecutorSpec,
   ReviewExecutorOutput,

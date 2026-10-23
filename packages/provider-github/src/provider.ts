@@ -794,6 +794,17 @@ export class GithubProvider implements SourceControlProvider {
       const text = typeof res.data === 'string' ? res.data : '';
       return { text, truncated: false };
     },
+    // The whole run: a failed conclusion may come from another job, and only re-running everything reaches winnowl's.
+    rerun: async (run: PipelineRunRef): Promise<'started' | 'running'> => {
+      if (!run.repositoryId) throw new ProviderError('invalid_request', 'pipelines.rerun needs run.repositoryId');
+      const coords = await this.coords(run.repositoryId);
+      const base = `repos/${coords.owner}/${coords.repo}/actions/runs/${run.nativeId}`;
+      const current = await this.options.client.get<{ status: string }>(base);
+      // GitHub refuses to re-run a run that has not finished.
+      if (current.data.status !== 'completed') return 'running';
+      await this.options.client.post(`${base}/rerun`, {});
+      return 'started';
+    },
   };
 
   branches = {

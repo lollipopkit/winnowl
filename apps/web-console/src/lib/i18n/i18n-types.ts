@@ -3618,6 +3618,14 @@ type RootTranslation = {
 		 */
 		runnerActionsSetup: RequiredParams<'path'>
 		/**
+		 * R​u​n​ ​c​o​m​m​a​n​d​s​ ​d​u​r​i​n​g​ ​r​e​v​i​e​w
+		 */
+		runCommands: string
+		/**
+		 * B​u​i​l​d​,​ ​t​e​s​t​ ​a​n​d​ ​r​e​p​r​o​d​u​c​e​ ​p​r​o​b​l​e​m​s​ ​o​n​ ​t​h​e​ ​A​c​t​i​o​n​s​ ​r​u​n​n​e​r​;​ ​e​a​c​h​ ​c​o​m​m​a​n​d​ ​i​s​ ​r​e​v​i​e​w​e​d​ ​b​e​f​o​r​e​ ​i​t​ ​r​u​n​s
+		 */
+		runCommandsHint: string
+		/**
 		 * N​o​n​e
 		 */
 		netNone: string
@@ -7357,6 +7365,14 @@ export type TranslationFunctions = {
 		 * Add this workflow as `{path}` and a repository secret `WINNOWL_LLM_API_KEY`. If the workflow cannot run (for example on pull requests from forks), the review fails with the reason instead of running on the platform.
 		 */
 		runnerActionsSetup: (arg: { path: string }) => LocalizedString
+		/**
+		 * Run commands during review
+		 */
+		runCommands: () => LocalizedString
+		/**
+		 * Build, test and reproduce problems on the Actions runner; each command is reviewed before it runs
+		 */
+		runCommandsHint: () => LocalizedString
 		/**
 		 * None
 		 */

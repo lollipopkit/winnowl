@@ -1,4 +1,4 @@
-import type { ModelSourceConfig } from '@reviewbot/agent-pi';
+import { createModelSource, runAgentInvocation, Type, type ModelSourceConfig, type StreamFailureKind } from '@reviewbot/agent-pi';
 import type { ReviewExecutorSpec } from './executor-spec.js';
 
 /**
@@ -84,6 +84,80 @@ export function bindLocalCredentials(spec: ReviewExecutorSpec, env: LocalModelEn
       (['EXA_API_KEY', 'CONTEXT7_API_KEY'] as const).flatMap((k) => (env[k]?.trim() ? [[k, env[k]!.trim()]] : [])),
     );
     out.plugins = { config: spec.plugins.config, platformEnv };
+  }
+  return out;
+}
+
+const TRANSIENT: ReadonlySet<StreamFailureKind> = new Set(['rate_limit', 'gateway_transport', 'timeout']);
+
+export type ModelProbe = (config: ModelSourceConfig) => Promise<{ ok: true } | { ok: false; transient: boolean; reason: string }>;
+
+/** One tool call: a model that cannot call tools cannot review either. */
+export const probeModel: ModelProbe = async (config) => {
+  try {
+    const { model, streamFn } = createModelSource(config);
+    const r = await runAgentInvocation({
+      systemPrompt: 'Answer by calling submit.',
+      task: 'Call submit with ok = true.',
+      model,
+      streamFn,
+      readTools: [],
+      finalization: { name: 'submit', description: 'Submit the answer.', label: 'Submit', schema: Type.Object({ ok: Type.Boolean() }) },
+      budget: { maxTurns: 2, maxToolCalls: 2 },
+      maxAttempts: 2,
+    });
+    if (r.status === 'complete') return { ok: true };
+    const reason = (r.errorMessage ?? r.incompleteReason ?? `it ended with status ${r.status}`).slice(0, 300);
+    return { ok: false, transient: r.failureKind !== undefined && TRANSIENT.has(r.failureKind), reason };
+  } catch (err) {
+    return { ok: false, transient: false, reason: (err as Error).message.slice(0, 300) };
+  }
+};
+
+/**
+ * Checks every model the review would call on the user's endpoint before any review work: an unusable
+ * primary fails the run with what to set, an unusable fallback is dropped. Transient errors only warn.
+ */
+export async function checkLocalModels(
+  spec: ReviewExecutorSpec,
+  warn: (message: string) => void,
+  probe: ModelProbe = probeModel,
+): Promise<ReviewExecutorSpec> {
+  const key = (m: ModelSourceConfig): string => `${m.provider}\u0000${m.modelId}`;
+  const all = [spec.model, ...(spec.fallbackModels ?? []), ...(spec.stageModels ?? []).flatMap((s) => s.models)];
+  const unique = [...new Map(all.map((m) => [key(m), m])).values()];
+  const results = new Map(await Promise.all(unique.map(async (m) => [key(m), await probe(m)] as const)));
+  const usable = (m: ModelSourceConfig): boolean => {
+    const r = results.get(key(m));
+    return r?.ok === true || r?.transient === true;
+  };
+  for (const m of unique) {
+    const r = results.get(key(m));
+    if (r && !r.ok && r.transient) warn(`model ${m.modelId} could not be checked (${r.reason}); continuing`);
+  }
+  const unusable = (m: ModelSourceConfig): string => {
+    const r = results.get(key(m));
+    return `${m.provider}/${m.modelId}: ${r && !r.ok ? r.reason : 'unknown'}`;
+  };
+  const advice = 'set `llm-model` (and `llm-provider` if needed) to a model your endpoint serves';
+  if (!usable(spec.model)) throw new LocalCredentialsError(`the endpoint cannot serve the review model (${unusable(spec.model)}); ${advice}`);
+
+  const out: ReviewExecutorSpec = { ...spec };
+  if (spec.fallbackModels) {
+    const kept = spec.fallbackModels.filter(usable);
+    for (const m of spec.fallbackModels.filter((m) => !usable(m))) warn(`dropping fallback model (${unusable(m)})`);
+    if (kept.length > 0) out.fallbackModels = kept;
+    else delete out.fallbackModels;
+  }
+  if (spec.stageModels) {
+    out.stageModels = spec.stageModels.map((st) => {
+      const kept = st.models.filter(usable);
+      if (kept.length === 0) {
+        throw new LocalCredentialsError(`the endpoint cannot serve any model of stage ${st.stage} (${st.models.map(unusable).join('; ')}); ${advice}`);
+      }
+      for (const m of st.models.filter((m) => !usable(m))) warn(`dropping ${st.stage} model (${unusable(m)})`);
+      return { ...st, models: kept };
+    });
   }
   return out;
 }

@@ -910,6 +910,8 @@ const ja = {
     runnerPlatform: 'プラットフォーム',
     runnerActions: 'GitHub Actions',
     runnerActionsSetup: 'この workflow を `{path}` として追加し、リポジトリの secret `WINNOWL_LLM_API_KEY` を設定してください。workflow を実行できない場合（フォークからのプルリクエストなど）、レビューはプラットフォームで実行されず、理由を示して失敗します。',
+    runCommands: 'レビュー中にコマンドを実行',
+    runCommandsHint: 'Actions runner 上でビルド、テスト、問題の再現を行います。各コマンドは実行前に審査されます',
     netNone: 'なし',
     netRegistry: 'パッケージレジストリのみ',
     netAllowlist: '許可リスト',

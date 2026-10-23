@@ -1,6 +1,14 @@
 import { readFile } from 'node:fs/promises';
 import { join } from 'node:path';
-import { loadConfigYaml, resolveConfig, type ConfigLayer, type EffectiveRepositoryConfig } from '@reviewbot/config';
+import {
+  loadConfigYaml,
+  loadOrganizationLayer,
+  loadPanelLayer,
+  resolveConfig,
+  type ConfigLayer,
+  type EffectiveRepositoryConfig,
+} from '@reviewbot/config';
+import type { Db } from '@reviewbot/db';
 import { resolveProfile, type ProfileSettings } from '@reviewbot/review-profile';
 
 export interface LoadedRepoConfig {
@@ -39,6 +47,16 @@ function finalizeLoadedConfig(
     budget: { maxTurns: profile.exploreBudget.maxTurns, maxToolCalls: profile.exploreBudget.maxToolCalls },
     hasRepoFile,
   };
+}
+
+/** The console panel and organization defaults, in precedence order; the repository file goes before them. */
+export async function tenantConfigLayers(db: Db, ids: { tenantId?: string; repositoryId?: string }): Promise<ConfigLayer[]> {
+  const layers: ConfigLayer[] = [];
+  const panel = ids.repositoryId ? await loadPanelLayer(db, ids.repositoryId) : null;
+  if (panel) layers.push(panel);
+  const organization = ids.tenantId ? await loadOrganizationLayer(db, ids.tenantId) : null;
+  if (organization) layers.push(organization);
+  return layers;
 }
 
 /** Config without a repo file. The mirrored `settings` column is display-only and is not a layer. */

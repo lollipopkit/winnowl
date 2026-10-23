@@ -1,7 +1,9 @@
 import { setTimeout as sleep } from 'node:timers/promises';
 import type { ReviewProgress } from '@reviewbot/review-orchestrator';
+import { createModelSource } from '@reviewbot/agent-pi';
 import {
   bindLocalCredentials,
+  checkLocalModels,
   executorErrorReport,
   type ReviewExecutorOutput,
   type ReviewExecutorSpec,
@@ -15,6 +17,7 @@ import {
   type ActionsHeartbeatRequest,
   type ActionsHeartbeatResponse,
 } from '@reviewbot/runner-protocol';
+import { buildActionsCommandTools } from './commands.js';
 import { runExecutor } from './run.js';
 
 /**
@@ -59,12 +62,14 @@ async function post<T>(url: string, bearer: string, body: unknown): Promise<{ st
   return { status: res.status, body: parsed as T };
 }
 
-async function claim(api: string, headSha: string, deadline: number): Promise<ActionsClaimResponse> {
+/** A continuation claim resolves to null once the review of this head has no further round. */
+async function claim(api: string, headSha: string, deadline: number, continuation = false): Promise<ActionsClaimResponse | null> {
   for (;;) {
-    const req: ActionsClaimRequest = { headSha };
+    const req: ActionsClaimRequest = { headSha, ...(continuation ? { continuation: true } : {}) };
     const r = await post<ActionsClaimResponse | ActionsErrorBody>(`${api}/v1/actions/claim`, await oidcToken(), req);
     if (r.status === 200) return r.body as ActionsClaimResponse;
     const err = r.body as ActionsErrorBody;
+    if (continuation && (err.error === 'nothing_to_claim' || err.error === 'run_closed')) return null;
     if (err.error === 'not_ready' && Date.now() < deadline) {
       console.log(`waiting for winnowl to prepare the review (${err.message})`);
       await sleep(CLAIM_RETRY_MS);
@@ -74,13 +79,25 @@ async function claim(api: string, headSha: string, deadline: number): Promise<Ac
   }
 }
 
-async function main(): Promise<void> {
-  const api = (process.env.WINNOWL_API_URL?.trim() || 'https://winnowl-api.lollipopkit.com').replace(/\/+$/, '');
-  const headSha = required('WINNOWL_HEAD_SHA');
-  const worktreePath = required('WORKTREE_PATH');
-  const claimTimeoutMs = (Number(process.env.WINNOWL_CLAIM_TIMEOUT_S) || 600) * 1000;
+/** Commands run only when the config allows them and the action could start its command host. */
+function actionsCommandTools(spec: ReviewExecutorSpec): ReturnType<typeof buildActionsCommandTools> | undefined {
+  if (!spec.runCommands) return undefined;
+  const socketPath = process.env.WINNOWL_COMMAND_SOCKET?.trim();
+  if (!socketPath) {
+    console.log('::notice::this review runs no commands: the runner has no passwordless sudo to run them as a separate user');
+    return undefined;
+  }
+  const { model, streamFn } = createModelSource(spec.model);
+  const repo = process.env.GITHUB_REPOSITORY?.trim();
+  return buildActionsCommandTools({
+    socketPath,
+    task: `Review a pull request${repo ? ` of ${repo}` : ''}: build, test or reproduce what the change does.`,
+    judge: { model, streamFn },
+    log: (line) => console.log(line),
+  });
+}
 
-  const run = await claim(api, headSha, Date.now() + claimTimeoutMs);
+async function runRound(api: string, worktreePath: string, run: ActionsClaimResponse): Promise<void> {
   // GitHub masks the value in all later log lines.
   console.log(`::add-mask::${run.token}`);
   console.log(`claimed review run ${run.runId}`);
@@ -89,6 +106,7 @@ async function main(): Promise<void> {
 
   let progress: ReviewProgress | undefined;
   let cancelled = false;
+  const abort = new AbortController();
   const beat = setInterval(() => {
     const body: ActionsHeartbeatRequest = progress
       ? {
@@ -105,31 +123,52 @@ async function main(): Promise<void> {
         if ((r.status === 200 && (r.body as ActionsHeartbeatResponse).cancel) || r.status === 410) {
           if (!cancelled) console.log('winnowl asked to stop this review (a newer commit or a timeout)');
           cancelled = true;
+          abort.abort();
         }
       })
       .catch(() => undefined);
   }, HEARTBEAT_MS);
 
   try {
-    const spec = bindLocalCredentials(run.spec as unknown as ReviewExecutorSpec, process.env);
+    const spec = await checkLocalModels(bindLocalCredentials(run.spec as unknown as ReviewExecutorSpec, process.env), (m) =>
+      console.log(`::warning::${m}`),
+    );
+    const commandTools = actionsCommandTools(spec);
     const output: ReviewExecutorOutput = await runExecutor({
       spec,
       worktreePath,
+      ...(commandTools ? { commandTools } : {}),
       onProgress: (p) => {
         if (p.stage !== progress?.stage) console.log(`stage: ${p.stage}`);
         progress = p;
       },
       isCancelled: () => cancelled,
+      abortSignal: abort.signal,
     });
     const r = await complete({ output: output as unknown as Record<string, unknown> });
     if (r.status !== 200) throw new Error(`posting the result failed: HTTP ${r.status} ${JSON.stringify(r.body).slice(0, 300)}`);
-    console.log('review finished; winnowl publishes it on the pull request');
+    console.log('round finished; winnowl publishes it on the pull request');
   } catch (err) {
     await complete({ error: executorErrorReport(err) }).catch(() => undefined);
     throw err;
   } finally {
     clearInterval(beat);
   }
+}
+
+async function main(): Promise<void> {
+  const api = (process.env.WINNOWL_API_URL?.trim() || 'https://winnowl-api.lollipopkit.com').replace(/\/+$/, '');
+  const headSha = required('WINNOWL_HEAD_SHA');
+  const worktreePath = required('WORKTREE_PATH');
+  const claimTimeoutMs = (Number(process.env.WINNOWL_CLAIM_TIMEOUT_S) || 600) * 1000;
+
+  // A large change is reviewed in rounds; no new workflow run starts for the later ones, so this one takes them.
+  let run = await claim(api, headSha, Date.now() + claimTimeoutMs);
+  while (run) {
+    await runRound(api, worktreePath, run);
+    run = await claim(api, headSha, Date.now() + claimTimeoutMs, true);
+  }
+  console.log('review finished');
 }
 
 main().catch((err) => {

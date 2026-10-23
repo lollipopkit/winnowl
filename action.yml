@@ -84,9 +84,60 @@ runs:
           if [ "$i" = 20 ]; then echo "::error::could not pull ${image}"; exit 1; fi
           sleep 30
         done
+
+        # Review commands run on this host as a separate user: no sudo, no docker, no access to this
+        # user's processes (job tokens, model key) or to the workspace; only with passwordless sudo.
+        cmd_args=()
+        # One account per invocation, so cleanup never touches another job's commands on a shared host.
+        cmd_user="wnl-$(od -An -N4 -tx1 /dev/urandom | tr -d ' \n')"
+        cmd_user_made=0
+        host_pid=""
+        work=""
+        restore=()
+        # Safe at any point of the setup: each step undoes only what was done.
+        cleanup() {
+          if [ -n "$host_pid" ]; then kill "$host_pid" 2>/dev/null || true; fi
+          if [ "$cmd_user_made" = 1 ]; then sudo -n pkill -KILL -u "$cmd_user" 2>/dev/null || true; fi
+          for r in "${restore[@]}"; do chmod "${r%% *}" "${r#* }" || true; done
+          if [ -n "$work" ]; then sudo -n rm -rf "$work" || true; fi
+          if [ "$cmd_user_made" = 1 ]; then sudo -n userdel -r "$cmd_user" 2>/dev/null || true; fi
+        }
+        setup_commands() {
+          sudo -n useradd --create-home --shell /bin/bash "$cmd_user" || return 1
+          cmd_user_made=1
+          work="$(mktemp -d /tmp/winnowl-work.XXXXXX)" || return 1
+          cp -a .winnowl-worktree/. "$work/" || return 1
+          sudo -n chown -R "$cmd_user:" "$work" || return 1
+          sock_dir="$(mktemp -d "${RUNNER_TEMP}/winnowl-cmd.XXXXXX")" || return 1
+          # Closed to other users: the workspace (persisted checkout credentials), the runner's file commands,
+          # and this user's home, whose readable files a command (or a symlink a pull request commits) could reach.
+          for d in "$GITHUB_WORKSPACE" "$RUNNER_TEMP" "$HOME"; do
+            mode="$(stat -c %a "$d")" || return 1
+            chmod o-rwx "$d" || return 1
+            restore+=("$mode $d")
+          done
+          node "${GITHUB_ACTION_PATH}/action/command-host.mjs" "$sock_dir/cmd.sock" "$work" "$cmd_user" &
+          host_pid=$!
+          for i in $(seq 1 50); do [ -S "$sock_dir/cmd.sock" ] && break; sleep 0.1; done
+          [ -S "$sock_dir/cmd.sock" ] || return 1
+          cmd_args=(-v "${sock_dir}:/winnowl-cmd" -e WINNOWL_COMMAND_SOCKET=/winnowl-cmd/cmd.sock)
+        }
+        if sudo -n true 2>/dev/null && command -v node >/dev/null; then
+          trap cleanup EXIT
+          if setup_commands; then
+            echo "::notice::review commands cannot use toolchains installed under ${HOME} (for example rustup); install them system-wide to use them"
+          else
+            echo "::warning::review commands could not be set up; this review runs no commands"
+            cleanup
+            trap - EXIT
+            cmd_args=()
+          fi
+        fi
         docker run --rm \
           -v "${GITHUB_WORKSPACE}/.winnowl-worktree:/worktree:ro" \
           -e WORKTREE_PATH=/worktree \
+          "${cmd_args[@]}" \
+          -e GITHUB_REPOSITORY \
           -e WINNOWL_API_URL -e WINNOWL_HEAD_SHA -e WINNOWL_CLAIM_TIMEOUT_S \
           -e ACTIONS_ID_TOKEN_REQUEST_URL -e ACTIONS_ID_TOKEN_REQUEST_TOKEN \
           -e LLM_API_KEY -e LLM_BASE_URL -e LLM_PROVIDER -e LLM_MODEL -e LLM_TEMPLATE_MODEL \
