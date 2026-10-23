@@ -514,8 +514,8 @@ const en = {
   },
   landing: {
     eyebrow: 'AI code review',
-    title: 'Finds deep bugs fast',
-    subtitle: 'Grew out of security auditing. The same depth now goes into every code review, and finds more vulnerabilities.',
+    title: 'Finds subtle bugs before they ship',
+    subtitle: 'Built for security audits. Now it brings the same careful analysis to every code review.',
     signIn: 'Sign in',
     // Hero demo data, not real customer content.
     demoNote: 'Illustrative example',
@@ -527,8 +527,8 @@ const en = {
     demoKeptClaim: 'New dependency carries a known advisory with no patched release',
     demoKeptLoc: 'go.mod',
     featuresTitle: 'Features',
-    verifyTitle: 'Checks itself before it posts',
-    verifyBody: 'Finds every problem it can, and comments only on the ones it re-checked and confirmed.',
+    verifyTitle: 'Reports only what it can verify',
+    verifyBody: 'It checks potential issues again and comments only when the evidence holds up.',
     selfHostTitle: 'Self-hostable',
     selfHostBody: 'Pick your own model and provider, so your code stays private.',
     commandsTitle: 'Lives in your issues and pull requests',

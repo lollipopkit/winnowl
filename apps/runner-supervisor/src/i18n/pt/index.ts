@@ -3,12 +3,12 @@ import type { Translation } from '../i18n-types.js';
 const pt = {
   conversation: {
     explainPreparing: 'Preparando a explicação e as evidências deste finding…',
-    reverifyAck: 'Recebido — reverificando com um verifier novo e mostrando como as evidências mudam.',
+    reverifyAck: 'Certo. Um novo verifier vai revisar o finding e indicar se as evidências mudaram.',
     fixAck:
-      'Pedido de correção recebido. A correção será validada em sandbox e entregue como um stacked PR separado, que você precisa confirmar antes de rodar (a branch atual nunca é escrita diretamente).',
-    resolveAck: 'Sua decisão foi registrada; uma decisão pontual não vira regra permanente automaticamente.',
+      'Pedido recebido. A correção será verificada em um sandbox e proposta em um stacked PR separado. Ela não altera esta branch e precisa da sua aprovação antes de ser executada.',
+    resolveAck: 'Decisão registrada. Uma resposta pontual não se transforma automaticamente em regra permanente.',
     commandNotApplicable: '`{intent}` não se aplica aqui (o comando atua sobre um pull request, uma issue ou a thread de um finding). `{bot} help` lista os comandos e onde funcionam.',
-    proposalHeader: 'Um plano de ação foi preparado e precisa da sua confirmação antes de rodar (a proposta em si não tem efeitos colaterais):',
+    proposalHeader: 'O plano está pronto. Aprove antes de executá-lo. Nada foi alterado durante a preparação:',
     proposalFooter: "Responda `{bot} approve` para executá-lo, ou aprove-o no console. Plano `{planId}`, válido por 30 minutos; só quem o pediu pode aprová-lo.",
     changeRequestUnknown: "Ainda não vejo este pull request: a plataforma ainda não nos avisou que ele existe. Comente `{bot} review` de novo em um minuto.",
     planApproved: "Plano `{planId}` ({actions}) aprovado; está em execução.",
@@ -39,10 +39,10 @@ const pt = {
     runNeedsPullRequest: '`run` funciona em um pull request: ele executa o comando no head do pull request.',
     runUsage: 'Escreva o comando depois de `run`, por exemplo `{bot} run npm test`.',
     runNotAllowed: 'Somente pessoas com acesso de escrita ou superior podem executar comandos aqui.',
-    runUnavailable: 'Não foi possível iniciar o comando: este deploy não tem um sandbox para isso, ou o head do pull request é desconhecido.',
+    runUnavailable: 'Não foi possível iniciar o comando. O sandbox de execução não está disponível ou não foi possível identificar o head do pull request.',
     runResult: 'Saída de `{command}` em `{sha}`:\n\n````\n{output}\n````',
     agentOverQuota: 'Esta conta esgotou a sua cota, então não consigo responder agora.',
-    agentFailed: 'Desta vez não consegui concluir uma resposta. Pergunte de novo ou use um comando (`help` lista todos).',
+    agentFailed: 'Não foi possível gerar uma resposta. Tente novamente ou digite `help` para ver os comandos disponíveis.',
     help: {
       review: 'Revisar os commits adicionados desde a última review.',
       fullReview: 'Revisar o pull request inteiro de novo.',
@@ -92,7 +92,7 @@ const pt = {
     stoppedInFlight: 'A review que já estava em andamento foi interrompida; não vai publicar conclusões.',
     resumed: 'Review automática retomada para este PR; novos commits vão disparar review normalmente.',
     authorOnly: 'Este comando é restrito ao autor do PR e a pessoas com acesso de escrita ou superior (admin/maintain/write) neste repositório.',
-    changeRequestClosed: 'Este {kind} já está {state}, então não há mais nada para revisar. Reabra-o se quiser outra passagem.',
+    changeRequestClosed: 'Este {kind} já está {state} e não pode ser revisado. Reabra-o para iniciar outra revisão.',
   },
   enrich: {
     triage: 'Triagem da issue',

@@ -2085,11 +2085,11 @@ type RootTranslation = {
 		 */
 		eyebrow: string
 		/**
-		 * F​i​n​d​s​ ​d​e​e​p​ ​b​u​g​s​ ​f​a​s​t
+		 * F​i​n​d​s​ ​s​u​b​t​l​e​ ​b​u​g​s​ ​b​e​f​o​r​e​ ​t​h​e​y​ ​s​h​i​p
 		 */
 		title: string
 		/**
-		 * G​r​e​w​ ​o​u​t​ ​o​f​ ​s​e​c​u​r​i​t​y​ ​a​u​d​i​t​i​n​g​.​ ​T​h​e​ ​s​a​m​e​ ​d​e​p​t​h​ ​n​o​w​ ​g​o​e​s​ ​i​n​t​o​ ​e​v​e​r​y​ ​c​o​d​e​ ​r​e​v​i​e​w​,​ ​a​n​d​ ​f​i​n​d​s​ ​m​o​r​e​ ​v​u​l​n​e​r​a​b​i​l​i​t​i​e​s​.
+		 * B​u​i​l​t​ ​f​o​r​ ​s​e​c​u​r​i​t​y​ ​a​u​d​i​t​s​.​ ​N​o​w​ ​i​t​ ​b​r​i​n​g​s​ ​t​h​e​ ​s​a​m​e​ ​c​a​r​e​f​u​l​ ​a​n​a​l​y​s​i​s​ ​t​o​ ​e​v​e​r​y​ ​c​o​d​e​ ​r​e​v​i​e​w​.
 		 */
 		subtitle: string
 		/**
@@ -2133,11 +2133,11 @@ type RootTranslation = {
 		 */
 		featuresTitle: string
 		/**
-		 * C​h​e​c​k​s​ ​i​t​s​e​l​f​ ​b​e​f​o​r​e​ ​i​t​ ​p​o​s​t​s
+		 * R​e​p​o​r​t​s​ ​o​n​l​y​ ​w​h​a​t​ ​i​t​ ​c​a​n​ ​v​e​r​i​f​y
 		 */
 		verifyTitle: string
 		/**
-		 * F​i​n​d​s​ ​e​v​e​r​y​ ​p​r​o​b​l​e​m​ ​i​t​ ​c​a​n​,​ ​a​n​d​ ​c​o​m​m​e​n​t​s​ ​o​n​l​y​ ​o​n​ ​t​h​e​ ​o​n​e​s​ ​i​t​ ​r​e​-​c​h​e​c​k​e​d​ ​a​n​d​ ​c​o​n​f​i​r​m​e​d​.
+		 * I​t​ ​c​h​e​c​k​s​ ​p​o​t​e​n​t​i​a​l​ ​i​s​s​u​e​s​ ​a​g​a​i​n​ ​a​n​d​ ​c​o​m​m​e​n​t​s​ ​o​n​l​y​ ​w​h​e​n​ ​t​h​e​ ​e​v​i​d​e​n​c​e​ ​h​o​l​d​s​ ​u​p​.
 		 */
 		verifyBody: string
 		/**
@@ -5665,11 +5665,11 @@ export type TranslationFunctions = {
 		 */
 		eyebrow: () => LocalizedString
 		/**
-		 * Finds deep bugs fast
+		 * Finds subtle bugs before they ship
 		 */
 		title: () => LocalizedString
 		/**
-		 * Grew out of security auditing. The same depth now goes into every code review, and finds more vulnerabilities.
+		 * Built for security audits. Now it brings the same careful analysis to every code review.
 		 */
 		subtitle: () => LocalizedString
 		/**
@@ -5713,11 +5713,11 @@ export type TranslationFunctions = {
 		 */
 		featuresTitle: () => LocalizedString
 		/**
-		 * Checks itself before it posts
+		 * Reports only what it can verify
 		 */
 		verifyTitle: () => LocalizedString
 		/**
-		 * Finds every problem it can, and comments only on the ones it re-checked and confirmed.
+		 * It checks potential issues again and comments only when the evidence holds up.
 		 */
 		verifyBody: () => LocalizedString
 		/**

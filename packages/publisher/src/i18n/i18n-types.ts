@@ -82,7 +82,7 @@ type RootTranslation = {
 		 */
 		unverifiedRisks: string
 		/**
-		 * L​o​w​-​e​v​i​d​e​n​c​e​ ​l​e​a​d​s​ ​(​n​o​t​ ​c​o​n​f​i​r​m​e​d​ ​—​ ​v​e​r​i​f​y​ ​b​e​f​o​r​e​ ​a​c​t​i​n​g​)
+		 * U​n​c​o​n​f​i​r​m​e​d​ ​l​e​a​d​s​ ​—​ ​v​e​r​i​f​y​ ​b​e​f​o​r​e​ ​a​c​t​i​n​g
 		 */
 		lowEvidence: string
 		/**
@@ -102,14 +102,14 @@ type RootTranslation = {
 		 */
 		previouslyReported: string
 		/**
-		 * S​t​a​c​k​e​d​ ​p​u​l​l​ ​r​e​q​u​e​s​t​ ​—​ ​l​a​y​e​r​ ​{​p​o​s​i​t​i​o​n​}​ ​o​f​ ​{​s​i​z​e​}​ ​(​s​t​a​c​k​ ​l​a​n​d​s​ ​o​n​ ​`​{​b​a​s​e​}​`​)​.​ ​R​e​v​i​e​w​e​d​ ​a​g​a​i​n​s​t​ ​t​h​e​ ​l​a​y​e​r​ ​b​e​l​o​w​,​ ​s​o​ ​o​n​l​y​ ​t​h​i​s​ ​P​R​'​s​ ​o​w​n​ ​c​h​a​n​g​e​s​ ​a​r​e​ ​c​o​v​e​r​e​d​.
+		 * S​t​a​c​k​e​d​ ​p​u​l​l​ ​r​e​q​u​e​s​t​ ​—​ ​l​a​y​e​r​ ​{​p​o​s​i​t​i​o​n​}​ ​o​f​ ​{​s​i​z​e​}​ ​(​b​a​s​e​:​ ​`​{​b​a​s​e​}​`​)​.​ ​R​e​v​i​e​w​e​d​ ​a​g​a​i​n​s​t​ ​t​h​e​ ​l​a​y​e​r​ ​b​e​l​o​w​;​ ​o​n​l​y​ ​t​h​i​s​ ​P​R​'​s​ ​c​h​a​n​g​e​s​ ​a​r​e​ ​c​o​v​e​r​e​d​.
 		 * @param {string} base
 		 * @param {number} position
 		 * @param {number} size
 		 */
 		stackedLayer: RequiredParams<'base' | 'position' | 'size'>
 		/**
-		 * S​t​a​c​k​e​d​ ​o​n​ ​#​{​n​u​m​b​e​r​}​ ​—​ ​r​e​v​i​e​w​e​d​ ​a​g​a​i​n​s​t​ ​t​h​a​t​ ​P​R​'​s​ ​b​r​a​n​c​h​,​ ​s​o​ ​o​n​l​y​ ​t​h​i​s​ ​P​R​'​s​ ​o​w​n​ ​c​h​a​n​g​e​s​ ​a​r​e​ ​c​o​v​e​r​e​d​.
+		 * S​t​a​c​k​e​d​ ​o​n​ ​#​{​n​u​m​b​e​r​}​.​ ​R​e​v​i​e​w​e​d​ ​a​g​a​i​n​s​t​ ​t​h​a​t​ ​P​R​'​s​ ​b​r​a​n​c​h​;​ ​o​n​l​y​ ​t​h​i​s​ ​P​R​'​s​ ​c​h​a​n​g​e​s​ ​a​r​e​ ​c​o​v​e​r​e​d​.
 		 * @param {number} number
 		 */
 		stackedOn: RequiredParams<'number'>
@@ -137,7 +137,7 @@ type RootTranslation = {
 		 */
 		notApprovingBlocking: RequiredParams<'count'>
 		/**
-		 * N​o​t​ ​a​p​p​r​o​v​i​n​g​ ​—​ ​t​h​i​s​ ​r​u​n​ ​d​i​d​ ​n​o​t​ ​c​o​v​e​r​ ​t​h​e​ ​w​h​o​l​e​ ​c​h​a​n​g​e​.
+		 * N​o​t​ ​a​p​p​r​o​v​i​n​g​ ​—​ ​t​h​e​ ​r​e​v​i​e​w​ ​d​i​d​ ​n​o​t​ ​c​o​v​e​r​ ​a​l​l​ ​c​h​a​n​g​e​s​.
 		 */
 		notApprovingIncomplete: string
 		/**
@@ -145,7 +145,7 @@ type RootTranslation = {
 		 */
 		notApprovingAutoApproveOff: string
 		/**
-		 * N​o​t​ ​a​p​p​r​o​v​i​n​g​ ​—​ ​t​h​e​ ​n​e​w​ ​f​i​n​d​i​n​g​s​ ​i​n​ ​t​h​i​s​ ​r​o​u​n​d​ ​a​r​e​ ​n​i​t​p​i​c​k​s​ ​o​r​ ​p​r​e​-​e​x​i​s​t​i​n​g​ ​i​s​s​u​e​s​;​ ​n​o​t​h​i​n​g​ ​h​e​r​e​ ​h​a​s​ ​t​o​ ​c​h​a​n​g​e​ ​b​e​f​o​r​e​ ​m​e​r​g​i​n​g​.
+		 * N​o​t​ ​a​p​p​r​o​v​i​n​g​ ​—​ ​t​h​i​s​ ​r​o​u​n​d​ ​f​o​u​n​d​ ​o​n​l​y​ ​m​i​n​o​r​ ​s​u​g​g​e​s​t​i​o​n​s​ ​o​r​ ​p​r​e​-​e​x​i​s​t​i​n​g​ ​i​s​s​u​e​s​.​ ​N​o​n​e​ ​n​e​e​d​ ​f​i​x​i​n​g​ ​b​e​f​o​r​e​ ​m​e​r​g​e​.
 		 */
 		notApprovingNonBlocking: string
 		/**
@@ -346,7 +346,7 @@ type RootTranslation = {
 		 */
 		nitpick: string
 		/**
-		 * C​o​m​m​i​t​t​a​b​l​e​ ​s​u​g​g​e​s​t​i​o​n​ ​—​ ​r​e​v​i​e​w​ ​i​t​ ​b​e​f​o​r​e​ ​c​o​m​m​i​t​t​i​n​g​;​ ​i​t​ ​i​s​ ​g​e​n​e​r​a​t​e​d​,​ ​n​o​t​ ​p​r​o​v​e​n​.
+		 * S​u​g​g​e​s​t​e​d​ ​p​a​t​c​h​ ​—​ ​r​e​v​i​e​w​ ​b​e​f​o​r​e​ ​c​o​m​m​i​t​t​i​n​g​;​ ​i​t​ ​h​a​s​ ​n​o​t​ ​b​e​e​n​ ​v​e​r​i​f​i​e​d​.
 		 */
 		committableSuggestion: string
 	}
@@ -411,7 +411,7 @@ export type TranslationFunctions = {
 		 */
 		unverifiedRisks: () => LocalizedString
 		/**
-		 * Low-evidence leads (not confirmed — verify before acting)
+		 * Unconfirmed leads — verify before acting
 		 */
 		lowEvidence: () => LocalizedString
 		/**
@@ -431,11 +431,11 @@ export type TranslationFunctions = {
 		 */
 		previouslyReported: () => LocalizedString
 		/**
-		 * Stacked pull request — layer {position} of {size} (stack lands on `{base}`). Reviewed against the layer below, so only this PR's own changes are covered.
+		 * Stacked pull request — layer {position} of {size} (base: `{base}`). Reviewed against the layer below; only this PR's changes are covered.
 		 */
 		stackedLayer: (arg: { base: string, position: number, size: number }) => LocalizedString
 		/**
-		 * Stacked on #{number} — reviewed against that PR's branch, so only this PR's own changes are covered.
+		 * Stacked on #{number}. Reviewed against that PR's branch; only this PR's changes are covered.
 		 */
 		stackedOn: (arg: { number: number }) => LocalizedString
 		/**
@@ -459,7 +459,7 @@ export type TranslationFunctions = {
 		 */
 		notApprovingBlocking: (arg: { count: number }) => LocalizedString
 		/**
-		 * Not approving — this run did not cover the whole change.
+		 * Not approving — the review did not cover all changes.
 		 */
 		notApprovingIncomplete: () => LocalizedString
 		/**
@@ -467,7 +467,7 @@ export type TranslationFunctions = {
 		 */
 		notApprovingAutoApproveOff: () => LocalizedString
 		/**
-		 * Not approving — the new findings in this round are nitpicks or pre-existing issues; nothing here has to change before merging.
+		 * Not approving — this round found only minor suggestions or pre-existing issues. None need fixing before merge.
 		 */
 		notApprovingNonBlocking: () => LocalizedString
 		/**
@@ -657,7 +657,7 @@ export type TranslationFunctions = {
 		 */
 		nitpick: () => LocalizedString
 		/**
-		 * Committable suggestion — review it before committing; it is generated, not proven.
+		 * Suggested patch — review before committing; it has not been verified.
 		 */
 		committableSuggestion: () => LocalizedString
 	}

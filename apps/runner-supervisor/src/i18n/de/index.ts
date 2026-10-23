@@ -3,15 +3,15 @@ import type { Translation } from '../i18n-types.js';
 const de = {
 	conversation: {
 		explainPreparing: 'Erklärung und Nachweise für dieses Finding werden vorbereitet…',
-		reverifyAck: 'Empfangen — wird mit neuem Verifier erneut geprüft; Änderungen der Nachweise werden angezeigt.',
+		reverifyAck: 'Alles klar. Ein neuer Verifier prüft das Finding erneut und zeigt, ob sich die Nachweise geändert haben.',
 		fixAck:
-			'Fix-Anfrage empfangen. Der Fix wird in einer Sandbox validiert und als separater Stacked PR ausgeliefert, den Sie vor der Ausführung bestätigen müssen (der aktuelle Branch wird nie direkt beschrieben).',
+			'Alles klar. Die Änderung wird in einer Sandbox geprüft und als separater Stacked PR vorgeschlagen. Dieser Branch bleibt unverändert; vor der Ausführung musst du den Plan freigeben.',
 		resolveAck: 'Ihre Entscheidung wurde erfasst; eine einmalige Entscheidung wird nicht automatisch zur dauerhaften Regel.',
-		commandNotApplicable: '`{intent}` gilt hier nicht (der Befehl wirkt auf einen Pull Request, ein Issue oder einen Finding-Thread). `{bot} help` listet die Befehle und wo sie gelten.',
+		commandNotApplicable: '`{intent}` kann hier nicht verwendet werden. Der Befehl ist für Pull Requests, Issues oder Finding-Threads gedacht. Mit `{bot} help` siehst du alle Befehle und wo sie verwendet werden können.',
 		proposalHeader:
-			'Ein Aktionsplan wurde erstellt und benötigt vor der Ausführung Ihre Bestätigung (der Vorschlag selbst hat keine Nebenwirkungen):',
-		proposalFooter: "Antworte `{bot} approve`, um ihn auszuführen, oder genehmige ihn in der Konsole. Plan `{planId}`, 30 Minuten gültig; nur wer ihn angefordert hat, kann ihn genehmigen.",
-		changeRequestUnknown: "Diesen Pull Request sehe ich noch nicht: Die Plattform hat uns noch nicht über ihn informiert. Kommentiere in einer Minute erneut `{bot} review`.",
+			'Der Aktionsplan ist bereit. Bestätige ihn vor der Ausführung. Beim Erstellen wurden keine Änderungen vorgenommen:',
+		proposalFooter: "Antworte mit `{bot} approve` oder gib den Plan in der Konsole frei. Plan `{planId}` ist 30 Minuten gültig; nur wer ihn angefordert hat, kann ihn freigeben.",
+		changeRequestUnknown: "Dieser Pull Request ist noch nicht verfügbar. Die Plattform hat uns möglicherweise noch nicht darüber informiert. Kommentiere später erneut mit `{bot} review`.",
 		planApproved: "Plan `{planId}` ({actions}) genehmigt; er läuft jetzt.",
 		approveNothingPending: "In dieser Unterhaltung wartet kein Plan auf Genehmigung. Fordere zuerst einen an, z. B. `{bot} fix`.",
 		approveNotYours: "Der wartende Plan hier wurde von jemand anderem angefordert; nur diese Person kann ihn genehmigen.",
@@ -34,16 +34,16 @@ const de = {
 		approveLearningNotFound: 'Für dieses Repository passt kein wartendes Learning zu `{id}`, oder das Fragment passt zu mehreren.',
 		approveLearningConsoleOnly: 'Learning `{id}` gilt für {scope}; genehmige es in der Konsole.',
 		learningApproved: 'Learning `{id}` genehmigt: {instruction}',
-		helpHeader: 'Befehle (Kommentar mit `{bot}` beginnen). Alles andere, was Sie mir schreiben, wird als Frage beantwortet; ich kann diese Befehle auch mit Ihren Berechtigungen für Sie ausführen:',
+		helpHeader: 'Beginne einen Befehl im Kommentar mit `{bot}`. Andere Kommentare beantworte ich als Fragen. Befehle führe ich mit deinen Berechtigungen aus:',
 		showConfig: 'Wirksame Konfiguration dieses Repositorys (seine `.winnowl.yaml` über den Standardwerten):\n\n<details><summary>Konfiguration</summary>\n\n```yaml\n{yaml}\n```\n\n</details>',
 		runDisabled: 'Das Ausführen von Befehlen aus Kommentaren ist für dieses Repository deaktiviert (`chat.allow_run_command: false`).',
-		runNeedsPullRequest: '`run` funktioniert in einem Pull Request: Es führt den Befehl auf dem Head des Pull Requests aus.',
-		runUsage: 'Schreiben Sie den Befehl hinter `run`, z. B. `{bot} run npm test`.',
+		runNeedsPullRequest: '`run` kann nur in einem Pull Request verwendet werden. Der Befehl wird auf dessen Head ausgeführt.',
+		runUsage: 'Schreib den Befehl hinter `run`, zum Beispiel `{bot} run npm test`.',
 		runNotAllowed: 'Nur Personen mit Schreibzugriff oder höher können hier Befehle ausführen.',
-		runUnavailable: 'Der Befehl konnte nicht gestartet werden: Diese Installation hat dafür keine Sandbox, oder der Head des Pull Requests ist unbekannt.',
+		runUnavailable: 'Der Befehl konnte nicht gestartet werden. Es ist keine Sandbox verfügbar oder der Head des Pull Requests ist unbekannt.',
 		runResult: 'Ausgabe von `{command}` bei `{sha}`:\n\n````\n{output}\n````',
 		agentOverQuota: 'Das Kontingent dieses Kontos ist aufgebraucht, daher kann ich gerade nicht antworten.',
-		agentFailed: 'Diesmal konnte ich keine Antwort fertigstellen. Fragen Sie erneut oder verwenden Sie einen Befehl (`help` listet sie auf).',
+		agentFailed: 'Ich konnte gerade nicht antworten. Versuch es erneut oder gib `help` ein, um die verfügbaren Befehle zu sehen.',
 		help: {
 			review: 'Die seit dem letzten Review hinzugekommenen Commits prüfen.',
 			fullReview: 'Den gesamten Pull Request erneut prüfen.',
@@ -75,12 +75,12 @@ const de = {
 			feedback: 'Festhalten, wie ein Finding ausgegangen ist (in seinem Thread): fixed, accepted, false-positive, not-important, duplicate, already-known, wrong-location, wrong-severity oder bad-suggestion.',
 			help: 'Diese Befehle auflisten.',
 		},
-		actionFailed: "Plan `{planId}` konnte nicht ausgeführt werden: {reason}. Er wird nicht erneut versucht — frage erneut, wenn du ihn weiterhin möchtest.",
+		actionFailed: "Plan `{planId}` konnte nicht ausgeführt werden: {reason}. Es gibt keinen weiteren Versuch. Wenn du die Aktion noch möchtest, fordere sie erneut an.",
 		reverifyTriggered:
-			'Review für den aktuellen HEAD erneut ausgelöst; bestehende Schlussfolgerungen werden mit einem neuen Verifier erneut geprüft.',
+			'Für den aktuellen HEAD wurde ein neuer Review gestartet. Ein neuer Verifier prüft die bisherigen Ergebnisse erneut.',
 		autofixDisabled: 'Autofix ist per Repository-Konfiguration deaktiviert (`actions.autofix.enabled=false`).',
 		autoApproved:
-			'Die Repository-Konfiguration autorisiert Autofix im Voraus (`actions.autofix.require_confirmation=false`); Aktionsplan `{planId}` wurde automatisch genehmigt und zur Ausführung eingereiht.',
+			'Autofix benötigt laut Repository-Konfiguration keine Bestätigung (`actions.autofix.require_confirmation=false`). Aktionsplan `{planId}` wurde automatisch freigegeben und wird ausgeführt.',
 		stackedDeliveryDisabled:
 			'Die Auslieferung als Stacked Change Request ist per Repository-Konfiguration deaktiviert (`actions.autofix.delivery` enthält `stacked-change-request` nicht).',
 		noActiveFindings: 'Derzeit gibt es keine aktiven Findings zu beheben.',
@@ -90,20 +90,20 @@ const de = {
 		implementDisabled:
 			'Das Erstellen eines CR aus einem Issue (Branch-Write-Auslieferung wie bei Autofix) ist per Repository-Konfiguration deaktiviert (`actions.autofix.enabled=false`).',
 		ignored:
-			'Dieses Finding **in diesem PR** ignoriert: {claim}. Es blockiert das Merge Gate hier nicht mehr und wird nicht erneut gemeldet (andere PRs sind nicht betroffen). Meinung geändert? `{bot} unignore`.',
+			'Finding **in diesem PR** ignoriert: {claim}. Es blockiert das Merge Gate nicht mehr und wird hier nicht erneut gemeldet. Andere PRs sind nicht betroffen. Mit `{bot} unignore` machst du das rückgängig.',
 		unignored: 'Nicht mehr ignoriert: {claim}. Es zählt wieder zum Gate dieses PR und wird wie gewohnt gemeldet.',
 		unignoreNotIgnored: 'Dieses Finding ist in diesem PR nicht ignoriert, es gibt daher nichts wiederherzustellen.',
 		ignoredPr:
-			'Dieser PR wird ignoriert: Neue Commits lösen keinen Review mehr aus. Bei Bedarf mit `{bot} review` manuell auslösen (hebt die Ignorierung nicht auf), oder mit `{bot} unignore` / `{bot} resume` wiederherstellen. Um stattdessen nur **ein einzelnes Finding** zu ignorieren, unter dessen Inline-Kommentar mit `{bot} ignore` antworten.',
+			'Neue Commits in diesem PR lösen keinen Review mehr aus. Mit `{bot} review` kannst du bei Bedarf manuell einen starten; dadurch wird das Ignorieren nicht aufgehoben. Mit `{bot} unignore` oder `{bot} resume` aktivierst du automatische Reviews wieder. Um nur **ein Finding** zu ignorieren, antworte unter seinem Inline-Kommentar mit `{bot} ignore`.',
 		ignoreNoTarget:
 			'Konnte nicht ermitteln, welches Finding ignoriert werden soll. Mit `{bot} ignore` **unter dem Inline-Kommentar dieses Findings** antworten — ein Kommentar auf oberster Ebene identifiziert keines.',
 		paused:
-			'Automatischer Review ist für diesen PR pausiert. Neue Commits lösen ihn nicht aus; bei Bedarf mit `{bot} review` manuell auslösen (hebt die Pause nicht auf), oder mit `{bot} resume` den automatischen Review wiederherstellen.',
+			'Der automatische Review für diesen PR ist pausiert. Neue Commits lösen keinen Review aus. Mit `{bot} review` kannst du manuell einen starten; mit `{bot} resume` setzt du automatische Reviews fort.',
 		stoppedInFlight: 'Der bereits laufende Review wurde gestoppt — es werden keine Ergebnisse veröffentlicht.',
 		resumed: 'Automatischer Review ist für diesen PR wieder aktiv; neue Commits lösen ihn wie gewohnt aus.',
 		authorOnly:
 			'Dieser Befehl ist dem PR-Autor sowie Personen mit Schreibzugriff oder höher (admin/maintain/write) auf dieses Repository vorbehalten.',
-		changeRequestClosed: 'Dieser {kind} ist bereits {state} — es gibt nichts mehr zu prüfen. Öffne ihn erneut, wenn du einen weiteren Durchlauf möchtest.',
+		changeRequestClosed: 'Dieser {kind} ist bereits {state}; es gibt nichts mehr zu prüfen. Öffne ihn erneut, um einen weiteren Review zu starten.',
 	},
 	enrich: {
 		triage: 'Issue-Triage',
@@ -123,8 +123,8 @@ const de = {
 		testSteps: 'Testschritte',
 		risks: 'Risiken',
 		openQuestions: 'Offene Fragen',
-		canStartAgentYes: '_Kann einen Coding Agent starten: ja (bedeutet nicht, dass nicht ausgeführte Pfade verifiziert sind)._',
-		canStartAgentNo: '_Kann einen Coding Agent starten: nein (bedeutet nicht, dass nicht ausgeführte Pfade verifiziert sind)._',
+		canStartAgentYes: '_Kann einen Coding Agent starten: ja (nicht ausgeführte Pfade sind dadurch nicht verifiziert)._',
+		canStartAgentNo: '_Kann einen Coding Agent starten: nein (nicht ausgeführte Pfade sind dadurch nicht verifiziert)._',
 	},
 	explain: {
 		noFinding: 'Kein aktives Finding zum Erklären verfügbar.',

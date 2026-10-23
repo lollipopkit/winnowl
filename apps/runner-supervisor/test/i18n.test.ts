@@ -61,7 +61,7 @@ describe('botMessages — bot 输出 i18n(§37 typesafe-i18n)', () => {
 
   it('新增发布路径:postMerge reason / autoIssue 页脚(bot 参数化)/ checks 标题', () => {
     // post-merge action reasons are localized from typed reason codes.
-    expect(botMessages('zh').postMerge.reasonContractChange()).toBe('契约面变化,刷新生成客户端');
+    expect(botMessages('zh').postMerge.reasonContractChange()).toBe('契约面变化，刷新生成客户端');
     expect(botMessages('en').postMerge.reasonMigrationChange()).toContain('migration change');
     // auto-issue footer: bot name and label are parameters.
     const footer = botMessages('en').autoIssue.footer({ bot: 'winnowl', label: 'ai-found' });

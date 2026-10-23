@@ -7,12 +7,12 @@ import type { BaseTranslation } from '../i18n-types.js';
 const en = {
   conversation: {
     explainPreparing: 'Preparing the explanation and evidence for this finding…',
-    reverifyAck: 'Received — re-verifying with a fresh verifier and showing how the evidence changes.',
+    reverifyAck: 'Got it. A new verifier will recheck the finding and show any changes to the evidence.',
     fixAck:
-      'Fix request received. The fix will be validated in a sandbox and delivered as a separate stacked PR that you must confirm before it runs (the current branch is never written directly).',
+      'Got it. The fix will be checked in a sandbox and offered as a separate stacked PR. It will not change this branch, and it needs your approval before it runs.',
     resolveAck: 'Your judgment has been recorded; a one-off decision does not automatically become a long-term rule.',
     commandNotApplicable: '`{intent:string}` does not apply here (it acts on a pull request, an issue or a finding thread that this is not). `{bot:string} help` lists the commands and where they work.',
-    proposalHeader: 'An action plan has been prepared and needs your confirmation before it runs (the proposal itself has no side effects):',
+    proposalHeader: 'The action plan is ready. Confirm before it runs; preparing the plan made no changes:',
     proposalFooter: "Reply `{bot:string} approve` to run it, or approve it in the console. Plan `{planId:string}`, valid for 30 minutes; only the person who asked can approve it.",
     changeRequestUnknown: "I can't see this pull request yet: the forge has not told us it exists. Comment `{bot:string} review` again in a minute.",
     planApproved: "Approved plan `{planId:string}` ({actions:string}); it is running now.",
@@ -43,10 +43,10 @@ const en = {
     runNeedsPullRequest: '`run` works on a pull request: it runs the command on the pull request head.',
     runUsage: 'Write the command after `run`, e.g. `{bot:string} run npm test`.',
     runNotAllowed: 'Only people with write access or above can run commands here.',
-    runUnavailable: 'The command could not be started: this deployment has no sandbox for it, or the pull request head is unknown.',
+    runUnavailable: 'Could not start the command: no sandbox is available, or the pull request head is unknown.',
     runResult: 'Output of `{command:string}` at `{sha:string}`:\n\n````\n{output:string}\n````',
     agentOverQuota: 'This account has used up its quota, so I cannot answer right now.',
-    agentFailed: 'I could not finish an answer this time. Ask again, or use a command (`help` lists them).',
+    agentFailed: 'I could not answer just now. Try again, or type `help` to see the available commands.',
     help: {
       review: 'Review the commits added since the last review.',
       fullReview: 'Review the whole pull request again.',

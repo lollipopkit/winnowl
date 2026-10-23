@@ -28,11 +28,11 @@ type RootTranslation = {
 		 */
 		explainPreparing: string
 		/**
-		 * R​e​c​e​i​v​e​d​ ​—​ ​r​e​-​v​e​r​i​f​y​i​n​g​ ​w​i​t​h​ ​a​ ​f​r​e​s​h​ ​v​e​r​i​f​i​e​r​ ​a​n​d​ ​s​h​o​w​i​n​g​ ​h​o​w​ ​t​h​e​ ​e​v​i​d​e​n​c​e​ ​c​h​a​n​g​e​s​.
+		 * G​o​t​ ​i​t​.​ ​A​ ​n​e​w​ ​v​e​r​i​f​i​e​r​ ​w​i​l​l​ ​r​e​c​h​e​c​k​ ​t​h​e​ ​f​i​n​d​i​n​g​ ​a​n​d​ ​s​h​o​w​ ​a​n​y​ ​c​h​a​n​g​e​s​ ​t​o​ ​t​h​e​ ​e​v​i​d​e​n​c​e​.
 		 */
 		reverifyAck: string
 		/**
-		 * F​i​x​ ​r​e​q​u​e​s​t​ ​r​e​c​e​i​v​e​d​.​ ​T​h​e​ ​f​i​x​ ​w​i​l​l​ ​b​e​ ​v​a​l​i​d​a​t​e​d​ ​i​n​ ​a​ ​s​a​n​d​b​o​x​ ​a​n​d​ ​d​e​l​i​v​e​r​e​d​ ​a​s​ ​a​ ​s​e​p​a​r​a​t​e​ ​s​t​a​c​k​e​d​ ​P​R​ ​t​h​a​t​ ​y​o​u​ ​m​u​s​t​ ​c​o​n​f​i​r​m​ ​b​e​f​o​r​e​ ​i​t​ ​r​u​n​s​ ​(​t​h​e​ ​c​u​r​r​e​n​t​ ​b​r​a​n​c​h​ ​i​s​ ​n​e​v​e​r​ ​w​r​i​t​t​e​n​ ​d​i​r​e​c​t​l​y​)​.
+		 * G​o​t​ ​i​t​.​ ​T​h​e​ ​f​i​x​ ​w​i​l​l​ ​b​e​ ​c​h​e​c​k​e​d​ ​i​n​ ​a​ ​s​a​n​d​b​o​x​ ​a​n​d​ ​o​f​f​e​r​e​d​ ​a​s​ ​a​ ​s​e​p​a​r​a​t​e​ ​s​t​a​c​k​e​d​ ​P​R​.​ ​I​t​ ​w​i​l​l​ ​n​o​t​ ​c​h​a​n​g​e​ ​t​h​i​s​ ​b​r​a​n​c​h​,​ ​a​n​d​ ​i​t​ ​n​e​e​d​s​ ​y​o​u​r​ ​a​p​p​r​o​v​a​l​ ​b​e​f​o​r​e​ ​i​t​ ​r​u​n​s​.
 		 */
 		fixAck: string
 		/**
@@ -46,7 +46,7 @@ type RootTranslation = {
 		 */
 		commandNotApplicable: RequiredParams<'bot' | 'intent'>
 		/**
-		 * A​n​ ​a​c​t​i​o​n​ ​p​l​a​n​ ​h​a​s​ ​b​e​e​n​ ​p​r​e​p​a​r​e​d​ ​a​n​d​ ​n​e​e​d​s​ ​y​o​u​r​ ​c​o​n​f​i​r​m​a​t​i​o​n​ ​b​e​f​o​r​e​ ​i​t​ ​r​u​n​s​ ​(​t​h​e​ ​p​r​o​p​o​s​a​l​ ​i​t​s​e​l​f​ ​h​a​s​ ​n​o​ ​s​i​d​e​ ​e​f​f​e​c​t​s​)​:
+		 * T​h​e​ ​a​c​t​i​o​n​ ​p​l​a​n​ ​i​s​ ​r​e​a​d​y​.​ ​C​o​n​f​i​r​m​ ​b​e​f​o​r​e​ ​i​t​ ​r​u​n​s​;​ ​p​r​e​p​a​r​i​n​g​ ​t​h​e​ ​p​l​a​n​ ​m​a​d​e​ ​n​o​ ​c​h​a​n​g​e​s​:
 		 */
 		proposalHeader: string
 		/**
@@ -207,7 +207,7 @@ type RootTranslation = {
 		 */
 		runNotAllowed: string
 		/**
-		 * T​h​e​ ​c​o​m​m​a​n​d​ ​c​o​u​l​d​ ​n​o​t​ ​b​e​ ​s​t​a​r​t​e​d​:​ ​t​h​i​s​ ​d​e​p​l​o​y​m​e​n​t​ ​h​a​s​ ​n​o​ ​s​a​n​d​b​o​x​ ​f​o​r​ ​i​t​,​ ​o​r​ ​t​h​e​ ​p​u​l​l​ ​r​e​q​u​e​s​t​ ​h​e​a​d​ ​i​s​ ​u​n​k​n​o​w​n​.
+		 * C​o​u​l​d​ ​n​o​t​ ​s​t​a​r​t​ ​t​h​e​ ​c​o​m​m​a​n​d​:​ ​n​o​ ​s​a​n​d​b​o​x​ ​i​s​ ​a​v​a​i​l​a​b​l​e​,​ ​o​r​ ​t​h​e​ ​p​u​l​l​ ​r​e​q​u​e​s​t​ ​h​e​a​d​ ​i​s​ ​u​n​k​n​o​w​n​.
 		 */
 		runUnavailable: string
 		/**
@@ -226,7 +226,7 @@ type RootTranslation = {
 		 */
 		agentOverQuota: string
 		/**
-		 * I​ ​c​o​u​l​d​ ​n​o​t​ ​f​i​n​i​s​h​ ​a​n​ ​a​n​s​w​e​r​ ​t​h​i​s​ ​t​i​m​e​.​ ​A​s​k​ ​a​g​a​i​n​,​ ​o​r​ ​u​s​e​ ​a​ ​c​o​m​m​a​n​d​ ​(​`​h​e​l​p​`​ ​l​i​s​t​s​ ​t​h​e​m​)​.
+		 * I​ ​c​o​u​l​d​ ​n​o​t​ ​a​n​s​w​e​r​ ​j​u​s​t​ ​n​o​w​.​ ​T​r​y​ ​a​g​a​i​n​,​ ​o​r​ ​t​y​p​e​ ​`​h​e​l​p​`​ ​t​o​ ​s​e​e​ ​t​h​e​ ​a​v​a​i​l​a​b​l​e​ ​c​o​m​m​a​n​d​s​.
 		 */
 		agentFailed: string
 		help: {
@@ -1061,11 +1061,11 @@ export type TranslationFunctions = {
 		 */
 		explainPreparing: () => LocalizedString
 		/**
-		 * Received — re-verifying with a fresh verifier and showing how the evidence changes.
+		 * Got it. A new verifier will recheck the finding and show any changes to the evidence.
 		 */
 		reverifyAck: () => LocalizedString
 		/**
-		 * Fix request received. The fix will be validated in a sandbox and delivered as a separate stacked PR that you must confirm before it runs (the current branch is never written directly).
+		 * Got it. The fix will be checked in a sandbox and offered as a separate stacked PR. It will not change this branch, and it needs your approval before it runs.
 		 */
 		fixAck: () => LocalizedString
 		/**
@@ -1077,7 +1077,7 @@ export type TranslationFunctions = {
 		 */
 		commandNotApplicable: (arg: { bot: string, intent: string }) => LocalizedString
 		/**
-		 * An action plan has been prepared and needs your confirmation before it runs (the proposal itself has no side effects):
+		 * The action plan is ready. Confirm before it runs; preparing the plan made no changes:
 		 */
 		proposalHeader: () => LocalizedString
 		/**
@@ -1209,7 +1209,7 @@ export type TranslationFunctions = {
 		 */
 		runNotAllowed: () => LocalizedString
 		/**
-		 * The command could not be started: this deployment has no sandbox for it, or the pull request head is unknown.
+		 * Could not start the command: no sandbox is available, or the pull request head is unknown.
 		 */
 		runUnavailable: () => LocalizedString
 		/**
@@ -1225,7 +1225,7 @@ export type TranslationFunctions = {
 		 */
 		agentOverQuota: () => LocalizedString
 		/**
-		 * I could not finish an answer this time. Ask again, or use a command (`help` lists them).
+		 * I could not answer just now. Try again, or type `help` to see the available commands.
 		 */
 		agentFailed: () => LocalizedString
 		help: {

@@ -44,7 +44,7 @@ describe('renderFindingComment — CodeRabbit 风格富文本行内评论(§25.1
       'zh',
     );
     expect(md).toContain('本次改动引入');
-    expect(md).toContain('经推理复现');
+    expect(md).toContain('经独立推理复现');
     expect(md).not.toContain('independently-verified');
     // Unknown values are shown as is.
     expect(renderFindingComment({ category: 'correctness', severity: 'medium', claim: 'x', changeRelation: 'weird' })).toContain('weird');
@@ -160,8 +160,8 @@ describe('render 模板标签本地化(§37 i18n / typesafe-i18n)', () => {
       },
       'zh',
     );
-    expect(md).toContain('**需处理的评论:0 条**');
-    expect(md).toContain('✅ 未发现阻断性问题');
+    expect(md).toContain('**已发布 0 条需处理的评论**');
+    expect(md).toContain('✅ 没有发现阻断问题');
     expect(md).toContain('Review 信息');
     expect(md).toContain('lint: 失败');
     expect(md).toContain('被抑制/去重的诊断');
@@ -185,7 +185,7 @@ describe('render 模板标签本地化(§37 i18n / typesafe-i18n)', () => {
     }
     expect(md).not.toContain('No blocking issues found');
     // Says it was not approved without explaining the internal cause.
-    expect(md).toContain('did not cover the whole change');
+    expect(md).toContain('did not cover all changes');
   });
 
   // Without a reason, "0 actionable + everything folded" reads like a clean PR while blocking items gate it.
@@ -212,7 +212,7 @@ describe('render 模板标签本地化(§37 i18n / typesafe-i18n)', () => {
 
     // Only nitpicks / old issues: neither request changes nor endorse.
     const notes = renderReviewSummary({ ...base, notApprovingReason: 'non-blocking' }, 'zh');
-    expect(notes).toContain('合并前无须修改');
+    expect(notes).toContain('没有必须在合并前修复的内容');
     expect(notes).not.toContain('🚧');
   });
 
@@ -311,7 +311,7 @@ describe('render 模板标签本地化(§37 i18n / typesafe-i18n)', () => {
       path: 'a.ts',
       suggestion: 'return 1;',
     });
-    expect(suggestion).toContain('📝 **Committable suggestion');
+    expect(suggestion).toContain('📝 **Suggested patch');
   });
 
   it('i18n 字典里不得出现徽标 emoji(它与语言无关,归代码)', async () => {
@@ -337,7 +337,7 @@ describe('render 模板标签本地化(§37 i18n / typesafe-i18n)', () => {
     expect(md).toContain(
       '```suggestion\n  if (i < 0 || i >= xs.length) throw new RangeError();\n  return xs[i];\n```',
     );
-    expect(md).toContain('Committable suggestion');
+    expect(md).toContain('Suggested patch');
     expect(
       renderFindingComment({ category: 'correctness', severity: 'high', claim: 'x', path: 'a.ts' }),
     ).not.toContain('suggestion');
@@ -387,7 +387,7 @@ describe('render 模板标签本地化(§37 i18n / typesafe-i18n)', () => {
     expect(en).toContain('- race in &lt;cache&gt; spanning two lines');
     expect(en).not.toContain('no blocking issues');
     const zh = renderReviewSummary(data, 'zh');
-    expect(zh).toContain('<summary>⛔ 上一轮未修复(2 项)——修复前不予 approve</summary>');
+    expect(zh).toContain('<summary>⛔ 上一轮遗留的问题（2 项）——修复前不会批准</summary>');
     const none = renderReviewSummary({ ...data, unresolvedFromPrevious: [] });
     expect(none).not.toContain('Unresolved from previous review');
   });
@@ -423,7 +423,7 @@ describe('render 模板标签本地化(§37 i18n / typesafe-i18n)', () => {
     // Content with ``` upgrades the fence to 4 backticks.
     expect(md).toContain('claim with ``` fence attempt\n````');
     const zh = renderReviewSummary(data, 'zh');
-    expect(zh).toContain('<summary>🤖 给 AI Agent 的 Prompt —— 全部 finding (3)</summary>');
+    expect(zh).toContain('<summary>🤖 供 AI Agent 使用的提示词 —— 所有问题 (3)</summary>');
     const none = renderReviewSummary({ ...data, agentPrompts: [] });
     expect(none).not.toContain('🤖');
   });
@@ -473,7 +473,7 @@ describe('render 模板标签本地化(§37 i18n / typesafe-i18n)', () => {
     expect(en).toContain('To have the bot fix these findings, comment `@winnowl fix`.');
     expect(en.match(/@winnowl fix/g)).toHaveLength(1);
     const zh = renderReviewSummary({ ...base, actionableCount: 2 }, 'zh');
-    expect(zh).toContain('让 bot 修复这些问题:评论 `@winnowl fix`。');
+    expect(zh).toContain('要让 bot 修复这些问题，请评论 `@winnowl fix`。');
     // No inline comments but folded findings / unfixed history: still fixable, so printed.
     expect(
       renderReviewSummary({

@@ -7,7 +7,7 @@ export const en = {
   list: {
     search: 'Search',
     searchAccount: 'Search account…',
-    searchRepo: 'Search namespace / name…',
+    searchRepo: 'Search namespace or repository name…',
     searchClaim: 'Search claim…',
     searchActor: 'Search actor / target…',
     all: 'All',
@@ -27,7 +27,7 @@ export const zh = {
   list: {
     search: '搜索',
     searchAccount: '搜索账号…',
-    searchRepo: '搜索命名空间 / 名称…',
+    searchRepo: '搜索命名空间或仓库名…',
     searchClaim: '搜索结论…',
     searchActor: '搜索操作者 / 目标…',
     all: '全部',
@@ -35,7 +35,7 @@ export const zh = {
     prev: '上一页',
     next: '下一页',
     range: '{from}–{to} / 共 {total}',
-    empty: '无匹配结果。',
+    empty: '没有找到结果。',
     reset: '重置',
     clearFilters: '清除筛选',
     total: '共 {total} 条',
@@ -47,9 +47,9 @@ export const ja = {
   list: {
     search: '検索',
     searchAccount: 'アカウントを検索…',
-    searchRepo: 'ネームスペース / 名前 を検索…',
+    searchRepo: 'リポジトリ名や名前空間を検索…',
     searchClaim: '問題を検索…',
-    searchActor: '実行者 / 対象 を検索…',
+    searchActor: '実行者や対象を検索…',
     all: 'すべて',
     allRepositories: 'すべてのリポジトリ',
     prev: '前へ',
@@ -59,7 +59,7 @@ export const ja = {
     reset: 'リセット',
     clearFilters: 'フィルターをクリア',
     total: '全 {total} 件',
-    pagination: 'ページ送り',
+    pagination: 'ページ移動',
   },
 } as const;
 
@@ -67,9 +67,9 @@ export const ko = {
   list: {
     search: '검색',
     searchAccount: '계정 검색…',
-    searchRepo: '네임스페이스 / 이름 검색…',
+    searchRepo: '네임스페이스나 저장소 이름 검색…',
     searchClaim: '문제 검색…',
-    searchActor: '작업자 / 대상 검색…',
+    searchActor: '작업자나 대상 검색…',
     all: '전체',
     allRepositories: '모든 저장소',
     prev: '이전',
@@ -79,7 +79,7 @@ export const ko = {
     reset: '초기화',
     clearFilters: '필터 지우기',
     total: '총 {total}개',
-    pagination: '페이지 매기기',
+    pagination: '페이지 이동',
   },
 } as const;
 
@@ -88,7 +88,7 @@ export const zhHant = {
   list: {
     search: '搜尋',
     searchAccount: '搜尋帳號…',
-    searchRepo: '搜尋命名空間 / 名稱…',
+    searchRepo: '搜尋命名空間或儲存庫名稱…',
     searchClaim: '搜尋問題…',
     searchActor: '搜尋操作者 / 目標…',
     all: '全部',
@@ -108,7 +108,7 @@ export const fr = {
   list: {
     search: 'Rechercher',
     searchAccount: 'Rechercher un compte…',
-    searchRepo: 'Rechercher un espace de noms / nom…',
+    searchRepo: 'Rechercher un dépôt par nom ou espace de noms…',
     searchClaim: 'Rechercher un problème…',
     searchActor: 'Rechercher un auteur / une cible…',
     all: 'Tout',
@@ -128,9 +128,9 @@ export const de = {
   list: {
     search: 'Suchen',
     searchAccount: 'Konto suchen…',
-    searchRepo: 'Namespace / Name suchen…',
+    searchRepo: 'Repository nach Namespace oder Name suchen…',
     searchClaim: 'Problem suchen…',
-    searchActor: 'Aktor / Ziel suchen…',
+    searchActor: 'Person / Ziel suchen…',
     all: 'Alle',
     allRepositories: 'Alle Repositories',
     prev: 'Zurück',
@@ -148,15 +148,15 @@ export const pt = {
   list: {
     search: 'Pesquisar',
     searchAccount: 'Pesquisar conta…',
-    searchRepo: 'Pesquisar namespace / nome…',
+    searchRepo: 'Pesquisar namespace ou nome do repositório…',
     searchClaim: 'Pesquisar problema…',
-    searchActor: 'Pesquisar autor / alvo…',
+    searchActor: 'Pesquisar pessoa / alvo…',
     all: 'Tudo',
     allRepositories: 'Todos os repositórios',
     prev: 'Anterior',
     next: 'Próximo',
     range: '{from}–{to} de {total}',
-    empty: 'Nenhum resultado correspondente.',
+    empty: 'Nenhum resultado encontrado.',
     reset: 'Redefinir',
     clearFilters: 'Limpar filtros',
     total: '{total} no total',
@@ -168,7 +168,7 @@ export const ru = {
   list: {
     search: 'Поиск',
     searchAccount: 'Поиск аккаунта…',
-    searchRepo: 'Поиск пространства имён / названия…',
+    searchRepo: 'Поиск по пространству имён или названию репозитория…',
     searchClaim: 'Поиск проблемы…',
     searchActor: 'Поиск автора / цели…',
     all: 'Все',
@@ -188,7 +188,7 @@ export const es = {
   list: {
     search: 'Buscar',
     searchAccount: 'Buscar cuenta…',
-    searchRepo: 'Buscar espacio de nombres / nombre…',
+    searchRepo: 'Buscar espacio de nombres o nombre del repositorio…',
     searchClaim: 'Buscar problema…',
     searchActor: 'Buscar autor / destino…',
     all: 'Todo',
