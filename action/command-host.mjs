@@ -84,6 +84,8 @@ function runOne(command, timeoutSec) {
     child.stderr.on('data', (c) => err.push(c));
     // Backstop for a command that ignores timeout's signals.
     const guard = setTimeout(() => killLeftovers(), (timeoutSec + 30) * 1000);
+    // A background process left holding stdout/stderr would keep 'close' from firing.
+    child.on('exit', () => killLeftovers());
     child.on('close', (code) => {
       if (settled) return;
       settled = true;
@@ -110,17 +112,16 @@ const server = createServer((req, res) => {
   }
   const chunks = [];
   let size = 0;
+  // Read to the end without keeping it, so the client gets the answer rather than a reset.
   req.on('data', (c) => {
     size += c.length;
-    if (size > MAX_BODY_BYTES) {
-      res.writeHead(413).end('request too large');
-      req.destroy();
-      return;
-    }
-    chunks.push(c);
+    if (size <= MAX_BODY_BYTES) chunks.push(c);
   });
   req.on('end', async () => {
-    if (size > MAX_BODY_BYTES) return;
+    if (size > MAX_BODY_BYTES) {
+      res.writeHead(413).end('request too large');
+      return;
+    }
     let body;
     try {
       body = JSON.parse(Buffer.concat(chunks).toString('utf8'));
@@ -146,6 +147,10 @@ const server = createServer((req, res) => {
       return;
     }
     busy = true;
+    // The executor dropped the request (its review was stopped): stop the command too.
+    res.on('close', () => {
+      if (!res.writableFinished) killLeftovers();
+    });
     try {
       const result = await runOne(body.command, body.timeoutSec);
       res.writeHead(200, { 'content-type': 'application/json' }).end(JSON.stringify(result));

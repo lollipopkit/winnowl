@@ -14,7 +14,6 @@ function post(socketPath: string, body: string): Promise<{ status: number; text:
       res.on('data', (c: Buffer) => chunks.push(c));
       res.on('end', () => resolve({ status: res.statusCode ?? 0, text: Buffer.concat(chunks).toString('utf8') }));
     });
-    // The host may drop an oversized request mid-upload; its answer still arrives.
     req.on('error', reject);
     req.end(body);
   });
@@ -44,7 +43,7 @@ describe('command host: bad requests get an answer and never stop the host', () 
     ['an unbounded timeout', JSON.stringify({ command: 'true', timeoutSec: 3_000_000 }), 400],
     ['a huge body', JSON.stringify({ command: 'x'.repeat(200_000), timeoutSec: 10 }), 413],
   ])('%s', async (_name, body, status) => {
-    expect((await post(socket, body).catch(() => ({ status: 413, text: '' }))).status).toBe(status);
+    expect((await post(socket, body)).status).toBe(status);
     expect(host.exitCode).toBeNull();
   });
 });

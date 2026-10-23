@@ -109,7 +109,9 @@ runs:
           cp -a .winnowl-worktree/. "$work/" || return 1
           sudo -n chown -R "$cmd_user:" "$work" || return 1
           sock_dir="$(mktemp -d "${RUNNER_TEMP}/winnowl-cmd.XXXXXX")" || return 1
-          for d in "$GITHUB_WORKSPACE" "$RUNNER_TEMP"; do
+          # Closed to other users: the workspace (persisted checkout credentials), the runner's file commands,
+          # and this user's home, whose readable files a command (or a symlink a pull request commits) could reach.
+          for d in "$GITHUB_WORKSPACE" "$RUNNER_TEMP" "$HOME"; do
             mode="$(stat -c %a "$d")" || return 1
             chmod o-rwx "$d" || return 1
             restore+=("$mode $d")
@@ -123,9 +125,7 @@ runs:
         if sudo -n true 2>/dev/null && command -v node >/dev/null; then
           trap cleanup EXIT
           if setup_commands; then
-            if ! sudo -n -u "$cmd_user" test -x "$HOME"; then
-              echo "::notice::toolchains installed under ${HOME} (for example rustup) are not available to review commands"
-            fi
+            echo "::notice::review commands cannot use toolchains installed under ${HOME} (for example rustup); install them system-wide to use them"
           else
             echo "::warning::review commands could not be set up; this review runs no commands"
             cleanup

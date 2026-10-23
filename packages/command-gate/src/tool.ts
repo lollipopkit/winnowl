@@ -27,7 +27,14 @@ export function commandOutputText(o: CommandOutcome, max = 12_000): string {
   const r = o.result;
   const combined = [r.stdout, r.stderr ? `[stderr]\n${r.stderr}` : ''].filter(Boolean).join('\n');
   const head = Math.floor(max / 4);
-  const text = combined.length > max ? `${combined.slice(0, head)}\n…[${combined.length - max} characters omitted]…\n${combined.slice(-(max - head))}` : combined;
+  let text = combined;
+  if (combined.length > max) {
+    // Cut points moved off the middle of a surrogate pair, so no half character reaches the agent.
+    const lowAt = (i: number): boolean => i > 0 && i < combined.length && /[\uDC00-\uDFFF]/.test(combined[i]!);
+    const end = lowAt(head) ? head - 1 : head;
+    const tailStart = lowAt(combined.length - (max - head)) ? combined.length - (max - head) + 1 : combined.length - (max - head);
+    text = `${combined.slice(0, end)}\n…[${tailStart - end} characters omitted]…\n${combined.slice(tailStart)}`;
+  }
   const status = r.timedOut ? 'timed out' : r.oomKilled ? `killed: out of memory${o.retried ? ' (after growing the sandbox once)' : ''}` : `exit code ${r.exitCode}`;
   return `${status}${o.retried && !r.oomKilled ? ' (ran a second time after the sandbox grew)' : ''}, ${Math.round(r.durationMs / 1000)} s\n${text || '(no output)'}`;
 }
@@ -38,7 +45,8 @@ export function buildRunCommandTool(o: {
   where: string;
   defaultTimeoutSec: number;
   maxTimeoutSec: number;
-  run: (command: string, opts: { purpose: string; timeoutSec?: number }) => Promise<CommandOutcome>;
+  /** `signal`: the agent was stopped (deadline, cancel); a command still running should be stopped. */
+  run: (command: string, opts: { purpose: string; timeoutSec?: number; signal?: AbortSignal }) => Promise<CommandOutcome>;
 }): AgentTool {
   return {
     name: 'run_command',
@@ -54,9 +62,13 @@ export function buildRunCommandTool(o: {
       purpose: Type.String({ description: 'One sentence: why this command serves the task.' }),
       timeoutSec: Type.Optional(Type.Integer({ minimum: 10, maximum: o.maxTimeoutSec })),
     }),
-    execute: async (_id, params) => {
+    execute: async (_id, params, signal) => {
       const p = params as { command: string; purpose: string; timeoutSec?: number };
-      const outcome = await o.run(p.command, { purpose: p.purpose, ...(p.timeoutSec ? { timeoutSec: p.timeoutSec } : {}) });
+      const outcome = await o.run(p.command, {
+        purpose: p.purpose,
+        ...(p.timeoutSec ? { timeoutSec: p.timeoutSec } : {}),
+        ...(signal ? { signal } : {}),
+      });
       return toolTextResult(commandOutputText(outcome), {
         verdict: outcome.decision.verdict,
         ...(outcome.result ? { exitCode: outcome.result.exitCode } : {}),

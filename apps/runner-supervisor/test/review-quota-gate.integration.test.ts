@@ -42,11 +42,16 @@ describe('review quota gate by runner', () => {
   });
 
   it('a spent platform budget skips platform reviews but not reviews paid by the repository key', async () => {
+    await db.insertInto('platform_settings').values({ key: 'quota.warn_ratio', value: '0.5', updated_by: 'test' }).execute();
     const gate = createReviewQuotaGate(db);
     const ctx = { payload: { tenantId: T } } as never;
     await cost(0.6);
     expect(await gate(ctx, { runner: 'platform' })).toMatchObject({ block: true, reasonCode: 'cost_quota' });
     expect(await gate(ctx, { runner: 'actions' })).toEqual({ block: false });
+
+    // One review of two used: past the warn ratio, Actions tenants are warned too.
+    const warnings = await db.selectFrom('notifications').select('title').where('tenant_id', '=', T).where('kind', '=', 'quota-warning').execute();
+    expect(warnings.map((w) => w.title)).toContain('本周期额度已用 50%');
 
     await cost(0);
     expect(await gate(ctx, { runner: 'actions' })).toMatchObject({ block: true, reasonCode: 'review_quota' });

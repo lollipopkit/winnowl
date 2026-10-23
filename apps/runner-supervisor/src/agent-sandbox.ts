@@ -45,7 +45,6 @@ export interface AgentSandboxOptions {
   log?: (msg: string, data?: Record<string, unknown>) => void;
 }
 
-
 export const REPO_DIR = '/workspace/repo';
 const DEFAULT_TIMEOUT_SEC = 600;
 const MAX_TIMEOUT_SEC = 1800;
@@ -360,4 +359,3 @@ export function repoPath(path: string): string | null {
   return p;
 }
 
-/** A command's output for the agent: the head and the tail (the end of a build log says why it failed). */

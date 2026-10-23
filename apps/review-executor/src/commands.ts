@@ -9,12 +9,21 @@ export const ACTIONS_COMMAND_ENVIRONMENT =
 const DEFAULT_TIMEOUT_SEC = 300;
 const MAX_TIMEOUT_SEC = 900;
 
-/** Runs a command through the host's command service (action/command-host.mjs) on a unix socket. */
-export function hostCommand(socketPath: string, command: string, timeoutSec: number): Promise<CommandRunResult> {
+/**
+ * Runs a command through the host's command service (action/command-host.mjs) on a unix socket. Aborting
+ * drops the request, which makes the host stop the command.
+ */
+export function hostCommand(socketPath: string, command: string, timeoutSec: number, signal?: AbortSignal): Promise<CommandRunResult> {
   const body = JSON.stringify({ command, timeoutSec });
   return new Promise((resolve, reject) => {
     const req = request(
-      { socketPath, path: '/run', method: 'POST', headers: { 'content-type': 'application/json', 'content-length': Buffer.byteLength(body) } },
+      {
+        socketPath,
+        path: '/run',
+        method: 'POST',
+        headers: { 'content-type': 'application/json', 'content-length': Buffer.byteLength(body) },
+        ...(signal ? { signal } : {}),
+      },
       (res) => {
         const chunks: Buffer[] = [];
         res.on('data', (c: Buffer) => chunks.push(c));
@@ -45,14 +54,15 @@ export function buildActionsCommandTools(o: {
   const run = o.run ?? hostCommand;
   const previous: { command: string; verdict: 'allow' | 'deny' }[] = [];
   let chain: Promise<unknown> = Promise.resolve();
-  const runNow = async (command: string, opts: { purpose: string; timeoutSec?: number }): Promise<CommandOutcome> => {
+  const runNow = async (command: string, opts: { purpose: string; timeoutSec?: number; signal?: AbortSignal }): Promise<CommandOutcome> => {
+    if (opts.signal?.aborted) return { decision: { verdict: 'deny', decidedBy: 'rule', rule: 'stopped', reason: 'the review was stopped' } };
     const decision = await reviewCommand(command, { task: o.task, purpose: opts.purpose, previous: [...previous] }, { ...o.judge, environment: ACTIONS_COMMAND_ENVIRONMENT });
     previous.push({ command, verdict: decision.verdict });
     o.log(`run_command [${decision.verdict}] ${command.replace(/\s+/g, ' ').slice(0, 300)}`);
     if (decision.verdict === 'deny') return { decision };
     const timeoutSec = Math.min(MAX_TIMEOUT_SEC, Math.max(10, opts.timeoutSec ?? DEFAULT_TIMEOUT_SEC));
     try {
-      return { decision, result: await run(o.socketPath, command, timeoutSec) };
+      return { decision, result: await run(o.socketPath, command, timeoutSec, opts.signal) };
     } catch (err) {
       return { decision, notRun: (err as Error).message };
     }
