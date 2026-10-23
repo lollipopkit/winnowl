@@ -20,6 +20,8 @@ export interface RunExecutorInput {
   /** Where spans go when the collector is unreachable (sandbox); the control plane relays them. */
   spansPath?: string;
   commandTools?: AgentTool[];
+  /** Aborts in-flight model calls once the run is cancelled. */
+  abortSignal?: AbortSignal;
 }
 
 /** exploration + verification of one review, shared by the sandbox and GitHub Actions entries. */
@@ -56,6 +58,7 @@ export async function runExecutor(input: RunExecutorInput): Promise<ReviewExecut
       onProgress: input.onProgress,
       isCancelled: input.isCancelled,
       ...(input.commandTools ? { commandTools: input.commandTools } : {}),
+      ...(input.abortSignal ? { abortSignal: input.abortSignal } : {}),
     });
     // Parented to the control plane's job span; every LLM call carries tenant/repo/PR context.
     const produced = await withRemoteTraceCarrier(spec.telemetry?.traceCarrier, () =>

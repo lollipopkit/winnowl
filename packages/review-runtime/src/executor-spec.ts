@@ -162,6 +162,7 @@ export function buildProduceDeps(input: {
   /** Reads the cancellation sentinel file the control plane writes; absent = not cancellable. */
   isCancelled?: ReviewOrchestratorDeps['isCancelled'];
   commandTools?: AgentTool[];
+  abortSignal?: AbortSignal;
 }): { deps: ReviewOrchestratorDeps; pluginCalls: PluginCallRecord[] } {
   const { spec, worktreePath, bundles, newId } = input;
 
@@ -328,6 +329,7 @@ export function buildProduceDeps(input: {
       : {}),
     ...(input.onProgress ? { onProgress: input.onProgress } : {}),
     ...(input.isCancelled ? { isCancelled: input.isCancelled } : {}),
+    ...(input.abortSignal ? { abortSignal: input.abortSignal } : {}),
     ...(spec.costCapUsd !== undefined ? { costCapUsd: spec.costCapUsd } : {}),
     ...(dedupStrategy ? { dedupStrategy } : {}),
     ...(spec.sessionReuse !== undefined ? { sessionReuse: spec.sessionReuse } : {}),

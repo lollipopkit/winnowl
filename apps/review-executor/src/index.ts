@@ -41,13 +41,18 @@ async function main(): Promise<void> {
   // The control plane signals cancellation with a sentinel file.
   const cancelPath = process.env.CANCEL_PATH ?? '/workspace/cancel';
 
+  const abort = new AbortController();
+  const watch = setInterval(() => {
+    if (existsSync(cancelPath)) abort.abort();
+  }, 2_000);
   const output = await runExecutor({
     spec,
     worktreePath,
     onProgress: writeProgress,
     isCancelled: () => existsSync(cancelPath),
+    abortSignal: abort.signal,
     ...(process.env.SPANS_PATH ? { spansPath: process.env.SPANS_PATH } : {}),
-  });
+  }).finally(() => clearInterval(watch));
   await writeFile(outputPath, JSON.stringify(output), 'utf8');
 }
 

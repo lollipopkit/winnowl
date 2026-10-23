@@ -147,9 +147,11 @@ export interface ReviewEngineDeps {
   /**
    * Checked before each new invocation; when superseded by a newer head, remaining scopes/synthesis are
    * skipped and the ledger is marked `cancelled`. Does not throw: spent usage must still be billed, and a
-   * retry would rerun the stale head. In-flight calls are not aborted.
+   * retry would rerun the stale head. In-flight calls are aborted only through `abortSignal`.
    */
   isCancelled?: () => boolean | Promise<boolean>;
+  /** Aborts in-flight calls when the review is cancelled. */
+  abortSignal?: AbortSignal;
   /**
    * Per-stage wall-clock limits. On expiry, move on with what was produced instead of failing the run;
    * unfinished work shows in coverage. Per stage so one stage cannot consume the whole run. Omitted = unlimited.
@@ -250,15 +252,19 @@ export function createCostBreaker(capUsd: number | undefined): CostBreaker {
 function deadline(
   ms: number | undefined,
   clock: StageClock,
+  abort?: AbortSignal,
 ): {
   expired: () => boolean;
   signal: () => AbortSignal | undefined;
 } {
-  if (ms === undefined || ms <= 0) return { expired: () => false, signal: () => undefined };
+  if (ms === undefined || ms <= 0) return { expired: () => false, signal: () => abort };
   const endsAt = clock.now() + ms;
   return {
     expired: () => clock.now() >= endsAt,
-    signal: () => stageSignal(Math.max(1, endsAt - clock.now()), clock),
+    signal: () => {
+      const stage = stageSignal(Math.max(1, endsAt - clock.now()), clock)!;
+      return abort ? AbortSignal.any([stage, abort]) : stage;
+    },
   };
 }
 
@@ -1014,7 +1020,7 @@ export async function runReviewPipeline(deps: ReviewEngineDeps): Promise<ReviewL
   const clock = deps.stageClock ?? systemStageClock;
   report(deps, { stage: 'map' });
   const mapStartedAt = clock.now();
-  const mapDeadline = deadline(deps.stageBudgetMs?.map, clock);
+  const mapDeadline = deadline(deps.stageBudgetMs?.map, clock, deps.abortSignal);
   const map: Awaited<ReturnType<typeof runMap>> = deps.plannedScopes
     ? { scopes: deps.plannedScopes.map((s) => ({ ...toReviewScope(deps, s), origin: 'planned' as const })), status: 'complete' }
     : await withSpan(reviewTracer, 'review.map', (span) => {
@@ -1042,7 +1048,7 @@ export async function runReviewPipeline(deps: ReviewEngineDeps): Promise<ReviewL
    * One budget for the whole dig stage, not per scope: the model decides the scope count, so per-scope
    * budgets would let it decide total time. On expiry unstarted scopes are skipped and in-flight ones keep their candidates.
    */
-  const digDeadline = deadline(deps.stageBudgetMs?.dig, clock);
+  const digDeadline = deadline(deps.stageBudgetMs?.dig, clock, deps.abortSignal);
 
   // Checked before starting each item; map spend counts too.
   const costBreaker = deps.costBreaker ?? createCostBreaker(deps.costCapUsd);
@@ -1161,7 +1167,7 @@ export async function runReviewPipeline(deps: ReviewEngineDeps): Promise<ReviewL
     costCappedScopes += 1;
   }
   if (map.scopes.length >= 2) report(deps, { stage: 'synthesis' });
-  const synthesisDeadline = deadline(deps.stageBudgetMs?.synthesis, clock);
+  const synthesisDeadline = deadline(deps.stageBudgetMs?.synthesis, clock, deps.abortSignal);
   const synthesisStartedAt = clock.now();
   const synth: {
     candidates: Candidate[];

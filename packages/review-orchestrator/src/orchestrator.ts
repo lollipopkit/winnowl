@@ -444,6 +444,8 @@ export interface ReviewOrchestratorDeps {
    * must throttle.
    */
   isCancelled?: () => boolean | Promise<boolean>;
+  /** Aborts in-flight calls when the review is cancelled. */
+  abortSignal?: AbortSignal;
 }
 
 /** Deterministic CVE finding input; claim already localised. */
@@ -723,6 +725,7 @@ export async function stageCandidate(
           budget: deps.budget,
           ...(deps.pluginTools !== undefined ? { pluginTools: deps.pluginTools } : {}),
           ...(deps.commandTools !== undefined ? { commandTools: deps.commandTools } : {}),
+          ...(deps.abortSignal ? { signal: deps.abortSignal } : {}),
           ...(deps.knowledgeTools !== undefined ? { knowledgeTools: deps.knowledgeTools } : {}),
           ...(reviewStandardsContext(deps) ? { standards: reviewStandardsContext(deps) } : {}),
           ...(opts.seedMessages && opts.seedMessages.length > 0
@@ -998,6 +1001,7 @@ export async function produceReview(deps: ReviewOrchestratorDeps): Promise<Produ
         }
       : {}),
     ...(deps.isCancelled ? { isCancelled: checkCancelled } : {}),
+    ...(deps.abortSignal ? { abortSignal: deps.abortSignal } : {}),
     ...(deps.stageBudgetMs !== undefined ? { stageBudgetMs: deps.stageBudgetMs } : {}),
     ...(deps.stageClock ? { stageClock: deps.stageClock } : {}),
     ...(costCapUsd > 0 ? { costCapUsd } : {}),

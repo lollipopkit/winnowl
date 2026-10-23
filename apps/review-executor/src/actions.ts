@@ -110,6 +110,7 @@ async function main(): Promise<void> {
 
   let progress: ReviewProgress | undefined;
   let cancelled = false;
+  const abort = new AbortController();
   const beat = setInterval(() => {
     const body: ActionsHeartbeatRequest = progress
       ? {
@@ -126,6 +127,7 @@ async function main(): Promise<void> {
         if ((r.status === 200 && (r.body as ActionsHeartbeatResponse).cancel) || r.status === 410) {
           if (!cancelled) console.log('winnowl asked to stop this review (a newer commit or a timeout)');
           cancelled = true;
+          abort.abort();
         }
       })
       .catch(() => undefined);
@@ -145,6 +147,7 @@ async function main(): Promise<void> {
         progress = p;
       },
       isCancelled: () => cancelled,
+      abortSignal: abort.signal,
     });
     const r = await complete({ output: output as unknown as Record<string, unknown> });
     if (r.status !== 200) throw new Error(`posting the result failed: HTTP ${r.status} ${JSON.stringify(r.body).slice(0, 300)}`);

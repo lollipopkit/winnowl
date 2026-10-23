@@ -388,6 +388,11 @@ export function createReviewRevisionHandler(deps: ReviewRevisionDeps): JobHandle
       }
       return cancelSeen;
     };
+    // In-process stages see cancellation between steps; this also aborts the call in flight.
+    const cancelAbort = new AbortController();
+    const cancelWatch = setInterval(() => {
+      void isCancelled().then((c) => c && cancelAbort.abort());
+    }, CANCEL_POLL_INTERVAL_MS);
 
     // Trace context for every LLM call; revisionId groups one review as a session. It must also wrap
     // buildEnv, which copies it into the sandbox executor spec.
@@ -413,6 +418,7 @@ export function createReviewRevisionHandler(deps: ReviewRevisionDeps): JobHandle
       const orchestratorDeps: ReviewOrchestratorDeps = {
         ...env,
         isCancelled,
+        abortSignal: AbortSignal.any([signal, cancelAbort.signal]),
         onProgress: progress.report,
         newId: deps.newId ?? ((): string => uuidv7()),
         publishTarget: {
@@ -616,6 +622,7 @@ export function createReviewRevisionHandler(deps: ReviewRevisionDeps): JobHandle
       }
       throw error;
     } finally {
+      clearInterval(cancelWatch);
       await disposeWorkspace?.().catch((err) =>
         log('review workspace cleanup failed', {
           changeRequestId: payload.changeRequestId,

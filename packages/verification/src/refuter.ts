@@ -35,6 +35,7 @@ export async function runRefuter(
       ? { seedMessages: deps.seedMessages }
       : {}),
     readTools: [...buildSourceTools(deps.source), ...(deps.knowledgeTools ?? []), ...(deps.pluginTools ?? []), ...(deps.commandTools ?? [])],
+    ...(deps.signal ? { signal: deps.signal } : {}),
     finalization: {
       name: 'confirm_assessment',
       description: 'Submit the final decision on the finding.',

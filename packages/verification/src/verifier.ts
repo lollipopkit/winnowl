@@ -62,6 +62,7 @@ export async function runVerifier(
     streamFn: deps.streamFn,
     ...(deps.seedMessages && deps.seedMessages.length > 0 ? { seedMessages: deps.seedMessages } : {}),
     readTools: [...buildSourceTools(deps.source), ...(deps.knowledgeTools ?? []), ...(deps.pluginTools ?? []), ...(deps.commandTools ?? [])],
+    ...(deps.signal ? { signal: deps.signal } : {}),
     finalization: {
       name: 'submit_assessment',
       description: 'Submit the independent assessment of the finding.',

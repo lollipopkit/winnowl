@@ -80,6 +80,8 @@ export interface VerifyDeps {
   pluginTools?: AgentTool[];
   /** `run_command` to reproduce a claim; absent where commands cannot run. */
   commandTools?: AgentTool[];
+  /** Aborts the in-flight call (the review was cancelled). */
+  signal?: AbortSignal;
   /** `knowledge_read`: full text of rules / fact details listed in short form (all stages need it). */
   knowledgeTools?: AgentTool[];
   /** Repository rules and notes, appended after the system prompt (same as exploration). */
