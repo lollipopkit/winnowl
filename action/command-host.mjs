@@ -61,16 +61,17 @@ function runOne(command, timeoutSec) {
     child.stderr.on('data', (c) => err.push(c));
     // Backstop for a command that ignores timeout's signals.
     const guard = setTimeout(() => killLeftovers(), (timeoutSec + 30) * 1000);
-    child.on('close', (code, signal) => {
+    child.on('close', (code) => {
       clearTimeout(guard);
       killLeftovers();
+      const durationMs = Date.now() - started;
       resolve({
         exitCode: code ?? 128,
         stdout: out.text(),
         stderr: err.text(),
-        // timeout(1) exits 124 on expiry, 137 after --kill-after.
-        timedOut: code === 124 || code === 137 || signal !== null,
-        durationMs: Date.now() - started,
+        // timeout(1) exits 124 on expiry, 137 after --kill-after; 137 alone is any SIGKILL (e.g. OOM).
+        timedOut: code === 124 || (code === 137 && durationMs >= timeoutSec * 1000),
+        durationMs,
       });
     });
   });

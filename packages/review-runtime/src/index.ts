@@ -3,7 +3,7 @@ export type { PrepareWorkspaceInput, PreparedWorkspace } from './workspace.js';
 export { buildReviewContractDigest, buildReviewFileStates } from './file-state.js';
 export type { ReviewFileState } from './file-state.js';
 
-export { loadRepoConfig, loadRepoConfigFromReader } from './config.js';
+export { loadedConfigFromLayers, loadRepoConfig, loadRepoConfigFromReader, tenantConfigLayers } from './config.js';
 export type { LoadedRepoConfig, ConfigFileReader } from './config.js';
 
 export { CodePlaneReader, codePlaneClient } from './code-plane.js';

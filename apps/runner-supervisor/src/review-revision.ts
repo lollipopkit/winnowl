@@ -63,6 +63,8 @@ export interface ReviewRevisionContext {
   db: JobHandlerDb;
   /** Filled in by buildEnv; defaults to platform. */
   modelSourceKind?: 'platform' | 'byok';
+  /** Resolved before the quota gate; buildEnv executes on it. */
+  runner?: 'platform' | 'actions';
 }
 
 /**
@@ -86,6 +88,11 @@ export interface ReviewRevisionDeps {
    * skipped since they need a complete, published result.
    */
   onCancelled?: (outcome: ReviewOutcome, ctx: ReviewRevisionContext) => Promise<void>;
+  /**
+   * `sandbox.runner` from the trusted config, read without a clone; undefined when it cannot be read that
+   * way (the stored config then decides the gate, and buildEnv its own).
+   */
+  resolveRunner?: (ctx: ReviewRevisionContext) => Promise<'platform' | 'actions' | undefined>;
   /** Decided before clone/model spend; block=true skips the review. Degrade is handled by buildEnv. */
   quotaGate?: (
     ctx: ReviewRevisionContext,
@@ -328,7 +335,9 @@ export function createReviewRevisionHandler(deps: ReviewRevisionDeps): JobHandle
       }
     }
 
-    const gate = await deps.quotaGate?.(ctx, { runner: effective.sandbox.runner });
+    const runner = await deps.resolveRunner?.(ctx);
+    if (runner) ctx.runner = runner;
+    const gate = await deps.quotaGate?.(ctx, { runner: runner ?? effective.sandbox.runner });
     if (gate?.block) {
       log('review skipped by quota', {
         changeRequestId: payload.changeRequestId,

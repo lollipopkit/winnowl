@@ -1919,6 +1919,33 @@ describe('review_revision handler 端到端', () => {
     expect(blocked).toEqual([{ reason: 'review_quota' }]);
   });
 
+  it('the runner resolved from the trusted config decides both the quota gate and execution', async () => {
+    const gateRunners: string[] = [];
+    const envRunners: (string | undefined)[] = [];
+    const handler = createReviewRevisionHandler({
+      newId: () => uuidv7(),
+      resolveRunner: async () => 'actions',
+      quotaGate: async (_ctx, { runner }) => {
+        gateRunners.push(runner);
+        return { block: false };
+      },
+      buildEnv: async (ctx) => {
+        envRunners.push(ctx.runner);
+        throw new Error('stop after buildEnv');
+      },
+    });
+    const supervisor = new Supervisor({ db, sandbox: noopSandbox, workerId, handlers: { review_revision: handler } });
+    await enqueueJob(db, {
+      tenantId: TENANT,
+      type: 'review_revision',
+      payload: { tenantId: TENANT, repositoryId: REPO, changeRequestId: CR_ID, revisionId: REVISION_ID, headSha: HEAD, configDigest: '' },
+      dedupeKey: 'review-runner-resolved',
+    });
+    expect(await supervisor.runOnce()).toBe(true);
+    expect(gateRunners).toEqual(['actions']);
+    expect(envRunners).toEqual(['actions']);
+  });
+
   // A non-retryable error on an earlier attempt must also fire the terminal-failure ack, or the check-run
   // and status comment stay "reviewing" forever.
   it('不可重试的失败(墙钟到点且零候选)在第一次尝试就终态 + 回执;可重试的失败不回执、重排队', async () => {

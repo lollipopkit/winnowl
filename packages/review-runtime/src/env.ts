@@ -61,13 +61,10 @@ import {
   type StaleCandidate,
 } from '@reviewbot/review-orchestrator';
 import {
-  loadOrganizationLayer,
-  loadPanelLayer,
   persistEffectiveConfig,
   platformSetting,
   readPlatformSettings,
   resolvePlatformSetting,
-  type ConfigLayer,
 } from '@reviewbot/config';
 import { masterKeyFromEnv } from '@reviewbot/kms';
 import { currentLlmTraceContext, currentTraceCarrier, recordPluginCall } from '@reviewbot/telemetry';
@@ -85,6 +82,7 @@ import {
 } from '@reviewbot/plugins';
 import {
   loadRepoConfigFromReader,
+  tenantConfigLayers,
   loadedConfigFromLayers,
   type LoadedRepoConfig,
 } from './config.js';
@@ -242,6 +240,8 @@ export interface RuntimeCtx {
   db: Db;
   /** Set to 'byok' by buildEnv when a BYOK model is resolved; read by review cost metering. */
   modelSourceKind?: 'platform' | 'byok';
+  /** Resolved before the gates from the same trusted config; execution must use it, not re-resolve. */
+  runner?: 'platform' | 'actions';
 }
 
 export type PublishDiscussions = PublishContext['discussions'];
@@ -381,11 +381,8 @@ export function createReviewBuildEnv(
   ): Promise<ReviewEnv> => {
     // Tenant/panel config fragments; gate fields (plugins.*.enabled, sandbox network mode) take the strictest value.
     // Organization defaults and the console panel; the repository file is read from the trusted commit below.
-    const tenantLayers: ConfigLayer[] = [];
-    const panelLayer = ctx.payload.repositoryId ? await loadPanelLayer(ctx.db, ctx.payload.repositoryId) : null;
-    if (panelLayer) tenantLayers.push(panelLayer);
-    const organizationLayer = ctx.payload.tenantId ? await loadOrganizationLayer(ctx.db, ctx.payload.tenantId) : null;
-    if (organizationLayer) tenantLayers.push(organizationLayer);
+    const tenantLayers = await tenantConfigLayers(ctx.db, ctx.payload);
+    const panelLayer = tenantLayers.find((l) => l.source === 'repository-db');
 
     const rev = await ctx.db
       .selectFrom('revisions')
@@ -440,6 +437,7 @@ export function createReviewBuildEnv(
         cfg = loadedConfigFromLayers(tenantLayers);
       }
     }
+    const runner = ctx.runner ?? cfg.config.sandbox.runner;
     const discussions = await deps.buildDiscussions(ctx);
     const updateSummaryDescription = deps.buildDescriptionUpdater
       ? await deps.buildDescriptionUpdater(ctx)
@@ -1325,7 +1323,7 @@ export function createReviewBuildEnv(
             ...(stageModelConfigs.length > 0 ? { stageModels: stageModelConfigs } : {}),
             verifyVotes,
             ...(sessionReuse ? { sessionReuse: true } : {}),
-            ...(cfg.config.sandbox.runner === 'actions' && cfg.config.sandbox.run_commands ? { runCommands: true } : {}),
+            ...(runner === 'actions' && cfg.config.sandbox.run_commands ? { runCommands: true } : {}),
             ...(digForkFromMap ? { digForkFromMap: true } : {}),
             // Half the parent's budget, so fanning out does not multiply the run's turn budget.
             ...(subagentFanout > 1
@@ -1348,7 +1346,7 @@ export function createReviewBuildEnv(
     return {
       disposeWorkspace,
       codePlane: plane,
-      runner: cfg.config.sandbox.runner,
+      runner,
       ...(executorSpec ? { executorSpec } : {}),
       ...(onPluginCall ? { onPluginCall } : {}),
       source: wsView.source,
