@@ -195,7 +195,7 @@ describe('成员/邀请(用户系统 P2)', () => {
       });
       expect(zh.statusCode).toBe(201);
       expect(sent[1]!.subject).toContain('邀请你加入 acme');
-      expect(sent[1]!.text).toContain('点击链接接受邀请');
+      expect(sent[1]!.text).toContain('再打开链接接受邀请');
       const zhHant = await withMail.inject({
         method: 'POST',
         url: '/v1/members/invite',

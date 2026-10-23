@@ -1,7 +1,7 @@
 name: Docker publish
 
 # 构建两镜像(backend + web)推 ghcr.io。deploy/Dockerfile 多阶段:
-#   reviewbot(target backend:三应用)、reviewbot-web(target web:nginx + SPA)。
+#   winnowl(target backend:三应用)、winnowl-web(target web:nginx + SPA)。
 on:
   push:
     branches: [main]
@@ -22,9 +22,9 @@ jobs:
       fail-fast: false
       matrix:
         include:
-          - image: reviewbot
+          - image: winnowl
             target: backend
-          - image: reviewbot-web
+          - image: winnowl-web
             target: web
     steps:
       - uses: actions/checkout@v7

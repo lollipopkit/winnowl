@@ -1724,7 +1724,7 @@ describe('runReviewAndPublish 端到端', () => {
     expect(outcome.findings[0]!.suppressed).toBeUndefined(); // Presented, but not as a conclusion.
     expect(outcome.publishedInline).toBe(0);
     const summary = discussions.reviewBatches[0]?.summary ?? '';
-    expect(summary).toContain('Low-evidence leads');
+    expect(summary).toContain('Unconfirmed leads');
     expect(summary).toContain('add() may overflow on large inputs');
     expect(summary).not.toContain('Additional findings from this change'); // Not mixed into the confirmed findings.
     expect(summary).not.toContain('address this finding'); // Unconfirmed findings are excluded from fix instructions.

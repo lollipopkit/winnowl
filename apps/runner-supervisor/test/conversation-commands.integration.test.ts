@@ -107,6 +107,6 @@ describe('show config and run', () => {
     });
     const turn = { tenantId: TENANT, target: { kind: 'change-request' as const, nativeId: '42' }, actorLogin: 'writer', body: '', repositoryId: REPO, changeRequestId: CR };
     await handler({ job: { id: uuidv7(), payload: { turn, command: 'npm test' } } as never, db, log: () => undefined } as unknown as Parameters<typeof handler>[0]);
-    expect(posted).toEqual([expect.stringContaining('could not be started')]);
+    expect(posted).toEqual([expect.stringContaining('Could not start the command')]);
   });
 });
