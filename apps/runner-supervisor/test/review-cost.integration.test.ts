@@ -131,7 +131,7 @@ describe('review 完成 → 写 review_costs 表(§44)', () => {
     await db.insertInto('revisions').values({ id: REV3, tenant_id: TENANT, change_request_id: CR, base_sha: 'base', head_sha: 'head-3', merge_base_sha: null, source_branch: 'feat', target_branch: 'main', created_at: new Date() }).execute();
     const c = ctx(db);
     (c.payload as { revisionId: string }).revisionId = REV3;
-    const usage = { inputTokens: 10, outputTokens: 5, totalTokens: 15, costUsd: 0.02, turns: 1, cacheReadTokens: 0, reasoningTokens: 0 } as ReviewOutcome['usage'];
+    const usage = { inputTokens: 10, outputTokens: 5, totalTokens: 15, costUsd: 0.02, turns: 1, cacheReadTokens: 0, reasoningTokens: 0, models: [] } as ReviewOutcome['usage'];
     const reviewed = async () =>
       (await db.selectFrom('review_costs').select('id').where('revision_id', '=', REV3).where('cancelled', '=', false).executeTakeFirst()) !== undefined;
 

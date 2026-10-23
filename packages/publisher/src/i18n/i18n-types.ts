@@ -276,7 +276,7 @@ type RootTranslation = {
 		 */
 		fixHint: RequiredParams<'bot'>
 		/**
-		 * M​o​d​e​l
+		 * {​{​M​o​d​e​l​|​M​o​d​e​l​s​}​}
 		 */
 		model: string
 	}
@@ -587,9 +587,9 @@ export type TranslationFunctions = {
 		 */
 		fixHint: (arg: { bot: string }) => LocalizedString
 		/**
-		 * Model
+		 * {{Model|Models}}
 		 */
-		model: () => LocalizedString
+		model: (arg0: number | string | boolean) => LocalizedString
 	}
 	finding: {
 		/**

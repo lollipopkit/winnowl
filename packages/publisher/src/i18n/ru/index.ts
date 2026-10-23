@@ -61,7 +61,7 @@ const ru = {
     skippedAs: '`{path}` пропущен как {reason}',
     allPromptsForAgents: 'Prompt для AI-агентов — все находки',
     fixHint: 'Чтобы бот исправил эти находки, оставьте комментарий `{bot} fix`.',
-    model: 'Модель',
+    model: '{{Модель|Модели}}',
   },
   finding: {
     analysis: 'Анализ',

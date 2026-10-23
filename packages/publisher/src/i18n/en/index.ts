@@ -65,7 +65,7 @@ const en = {
     skippedAs: '`{path:string}` is skipped as {reason:string}',
     allPromptsForAgents: 'Prompt for AI agents — all findings',
     fixHint: 'To have the bot fix these findings, comment `{bot:string} fix`.',
-    model: 'Model',
+    model: '{{Model|Models}}',
   },
   finding: {
     analysis: 'Analysis',

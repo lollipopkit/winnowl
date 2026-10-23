@@ -31,6 +31,7 @@ describe('classifyStreamFailure(§LLM 失败归因)', () => {
     for (const m of [
       'OpenAI API error (529): {"code":"model_unavailable","message":"All credentials for model gpt-6-luna are temporarily unavailable"}',
       '429 {"error":{"code":"model_cooldown","message":"All credentials for model gpt-6-luna are cooling down","reset_seconds":8163,"type":"rate_limit_error"}}',
+      '404 {"error":{"message":"no channel serves model claude-haiku-5-5","type":"invalid_request_error","code":"model_not_found"}}',
     ]) {
       expect(classifyStreamFailure(m)).toBe('model_unavailable');
     }

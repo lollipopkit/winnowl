@@ -61,6 +61,8 @@ export interface InvocationUsage {
   /** Subset of `outputTokens`; 0 if not reported. */
   reasoningTokens: number;
   turns: number;
+  /** Ids of the models that served turns, first use first (fallbacks included). */
+  models: string[];
 }
 
 /** The single usage summation; use it everywhere so new fields are never dropped on some path. */
@@ -76,6 +78,7 @@ export function sumUsage(...parts: (InvocationUsage | undefined)[]): InvocationU
     cacheWriteTokens: a.cacheWriteTokens + b.cacheWriteTokens,
     reasoningTokens: a.reasoningTokens + b.reasoningTokens,
     turns: a.turns + b.turns,
+    models: [...new Set([...a.models, ...b.models])],
   }));
 }
 

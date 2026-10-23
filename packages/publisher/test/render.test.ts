@@ -580,12 +580,25 @@ describe('render 模板标签本地化(§37 i18n / typesafe-i18n)', () => {
       validation: [],
       coverage: { completed: 1, total: 1 },
     };
-    const en = renderReviewSummary({ ...base, model: 'gpt-5.6-luna' });
+    const en = renderReviewSummary({ ...base, models: ['gpt-5.6-luna'] });
     expect(en).toContain('**Model**: gpt-5.6-luna');
     expect(en).toMatch(/<summary>ℹ️ Review info<\/summary>[\s\S]*\*\*Model\*\*/);
-    const zh = renderReviewSummary({ ...base, model: 'gpt-5.6-luna' }, 'zh');
+    const zh = renderReviewSummary({ ...base, models: ['gpt-5.6-luna'] }, 'zh');
     expect(zh).toContain('**模型**');
     expect(renderReviewSummary(base)).not.toContain('**Model**');
+    expect(renderReviewSummary({ ...base, models: [] })).not.toContain('**Model');
+  });
+
+  it('renderReviewSummary:多个模型用复数标签逐个列出', () => {
+    const md = renderReviewSummary({
+      changeIntent: 'x',
+      actionableCount: 0,
+      confirmedFindings: [],
+      validation: [],
+      coverage: { completed: 1, total: 1 },
+      models: ['deepseek-v4.1-flash', 'gpt-6-luna', 'claude-haiku-5-5'],
+    });
+    expect(md).toContain('**Models**: deepseek-v4.1-flash, gpt-6-luna, claude-haiku-5-5');
   });
 });
 

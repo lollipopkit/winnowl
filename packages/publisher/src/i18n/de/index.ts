@@ -62,7 +62,7 @@ const de = {
 		skippedAs: '`{path}` übersprungen als {reason}',
 		allPromptsForAgents: 'Prompt für KI-Agenten — alle Findings',
 		fixHint: 'Damit der Bot diese Findings behebt, kommentieren Sie `{bot} fix`.',
-		model: 'Modell',
+		model: '{{Modell|Modelle}}',
 	},
 	finding: {
 		analysis: 'Analyse',

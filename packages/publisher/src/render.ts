@@ -238,8 +238,8 @@ export interface ReviewSummaryData {
   agentPrompts?: AgentPrompt[];
   /** Bot mention; when set and something is fixable, one "let the bot fix it" hint is printed (only here). */
   botMention?: string;
-  /** Model id only, never endpoint or key. */
-  model?: string;
+  /** Model ids only, never endpoints or keys. */
+  models?: string[];
   runConfig?: { source: 'repository' | 'panel' | 'default'; profile: string };
   commits?: { base: string; head: string };
   selectedFiles?: string[];
@@ -608,7 +608,8 @@ export function renderReviewSummary(data: ReviewSummaryData, language?: string):
     config.push(`**${escapeStructural(L.configSource())}**: ${source}`, '', `**${escapeStructural(L.profile())}**: ${mdInline(data.runConfig.profile)}`, '');
   }
   // Model id only; never endpoint or key.
-  if (data.model) config.push(`**${escapeStructural(L.model())}**: ${mdInline(data.model)}`, '');
+  if (data.models && data.models.length > 0)
+    config.push(`**${escapeStructural(L.model(data.models.length))}**: ${data.models.map(mdInline).join(', ')}`, '');
   info.push(...foldedBlock('⚙️', L.runConfiguration(), config));
   if (data.commits) {
     const commitLines: string[] = [L.commitsRange({ base: data.commits.base.slice(0, 7), head: data.commits.head.slice(0, 7) })];

@@ -1779,6 +1779,7 @@ async function publishProduced(
         ? 'comment'
         : 'approve';
   recordReview(event);
+  const usage = sumUsage([ledger.usage, ...staged.map((s) => s.usage)]);
   {
     // With description support the walkthrough goes into the PR description, so omit changeIntent here.
     const hasDescription = deps.updateSummaryDescription !== undefined;
@@ -1904,13 +1905,8 @@ async function publishProduced(
           })),
         ],
         ...(deps.botMention !== undefined ? { botMention: deps.botMention } : {}),
-        // Every model actually used (fallbacks included); ids only, never endpoints or keys.
-        model: [
-          ...new Set([
-            deps.model.id,
-            ...staged.map((s) => s.verdict.modelId).filter((m): m is string => !!m),
-          ]),
-        ].join(', '),
+        // Every model that served a turn, across stages and fallbacks; ids only, never endpoints or keys.
+        models: usage && usage.models.length > 0 ? usage.models : [deps.model.id],
       },
       deps.language,
     );
@@ -1992,7 +1988,6 @@ async function publishProduced(
     // duplicate / superseded / other degraded: idempotent, not re-sent.
   }
 
-  const usage = sumUsage([ledger.usage, ...staged.map((s) => s.usage)]);
   const verifyUsage = sumUsage(staged.map((s) => s.usage));
   const stageUsage = {
     ...(ledger.stageUsage ?? {}),

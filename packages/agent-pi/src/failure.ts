@@ -26,9 +26,9 @@ export function classifyStreamFailure(errorMessage?: string): StreamFailureKind 
   ) {
     return 'context_overflow';
   }
-  // Per-model cooldown (gateway 429 `model_cooldown` / 529): must precede rate_limit, which it resembles,
-  // because it is model-scoped, so switching models helps.
-  if (/model_cooldown|model_unavailable|credentials for model|cooling down/.test(m)) {
+  // Per-model cooldown (gateway 429 `model_cooldown` / 529) or a model the gateway does not serve: must precede
+  // rate_limit, which it resembles, because it is model-scoped, so switching models helps.
+  if (/model_cooldown|model_unavailable|model_not_found|credentials for model|cooling down/.test(m)) {
     return 'model_unavailable';
   }
   // Rate limits are key-scoped, so they must not trigger a model fallback; must precede gateway_transport.

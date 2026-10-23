@@ -225,15 +225,16 @@ async function runInvocationOnce<T extends TSchema>(
   let usageCacheRead = 0;
   let usageCacheWrite = 0;
   let usageReasoning = 0;
+  const usageModels = new Set<string>();
   const unsubscribe = agent.subscribe((event) => {
     if (event.type === 'turn_end') {
       turns += 1;
-      const u = (
-        event.message as {
-          usage?: { input?: number; output?: number; totalTokens?: number; cacheRead?: number; cacheWrite?: number; reasoning?: number; cost?: { total?: number } };
-        }
-      ).usage;
+      const { usage: u, model } = event.message as {
+        usage?: { input?: number; output?: number; totalTokens?: number; cacheRead?: number; cacheWrite?: number; reasoning?: number; cost?: { total?: number } };
+        model?: string;
+      };
       if (u) {
+        if (model) usageModels.add(model);
         usageInput += u.input ?? 0;
         usageOutput += u.output ?? 0;
         usageTotal += u.totalTokens ?? 0;
@@ -260,6 +261,7 @@ async function runInvocationOnce<T extends TSchema>(
           cacheWriteTokens: usageCacheWrite,
           reasoningTokens: usageReasoning,
           turns,
+          models: [...usageModels],
         }
       : undefined;
   const transcriptOf = (): AgentMessage[] => pruneFinalizationCalls(agent.state.messages, finalizationName);

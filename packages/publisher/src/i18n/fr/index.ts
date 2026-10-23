@@ -61,7 +61,7 @@ const fr = {
     skippedAs: '`{path}` est ignoré en tant que {reason}',
     allPromptsForAgents: "Prompt pour agents d'IA — tous les findings",
     fixHint: 'Pour que le bot corrige ces findings, commentez `{bot} fix`.',
-    model: 'Modèle',
+    model: '{{Modèle|Modèles}}',
   },
   finding: {
     analysis: 'Analyse',

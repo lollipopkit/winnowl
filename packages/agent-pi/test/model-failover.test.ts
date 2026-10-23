@@ -1,6 +1,7 @@
 import { createAssistantMessageEventStream, type Model } from '@earendil-works/pi-ai';
 import { afterEach, describe, expect, it } from 'vitest';
-import { resetModelCooldowns, withModelFailover, type ResolvedModelSource, type StreamFn } from '../src/index.js';
+import { Type } from '@earendil-works/pi-ai';
+import { resetModelCooldowns, runAgentInvocation, sumUsage, withModelFailover, type ResolvedModelSource, type StreamFn } from '../src/index.js';
 
 const usage = { input: 1, output: 1, cacheRead: 0, cacheWrite: 0, totalTokens: 2, cost: { input: 0, output: 0, cacheRead: 0, cacheWrite: 0, total: 0 } };
 const model = (id: string) => ({ id, provider: 'openai', api: 'openai-completions' }) as unknown as Model<string>;
@@ -55,5 +56,21 @@ describe('withModelFailover', () => {
   it('a single-model chain is the model itself', () => {
     const only = source('luna', 'ok', []);
     expect(withModelFailover([only])).toBe(only);
+  });
+
+  it('usage names the model that actually served the turns, and sums keep every model once', async () => {
+    const chain = withModelFailover([source('luna', 'cooldown', []), source('ds', 'ok', [])]);
+    const result = await runAgentInvocation({
+      systemPrompt: 's',
+      task: 't',
+      model: chain.model,
+      streamFn: chain.streamFn,
+      readTools: [],
+      finalization: { name: 'submit', description: 'd', label: 'l', schema: Type.Object({}) },
+      budget: { maxTurns: 1, maxToolCalls: 1 },
+    });
+    expect(result.usage?.models).toEqual(['ds']);
+    const other = { ...result.usage!, models: ['haiku', 'ds'] };
+    expect(sumUsage(result.usage, other)?.models).toEqual(['ds', 'haiku']);
   });
 });
