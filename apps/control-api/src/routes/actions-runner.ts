@@ -35,6 +35,8 @@ export interface ActionsRunnerOptions {
 interface PullRequestClaims {
   repositoryId: string;
   number: number;
+  /** The workflow run, kept so a retry can re-run it. */
+  runId?: string;
 }
 
 function fail(reply: FastifyReply, status: number, error: ActionsErrorCode, message: string): FastifyReply {
@@ -56,7 +58,8 @@ function pullRequestClaims(payload: JWTPayload): PullRequestClaims | null {
   const ref = typeof payload.ref === 'string' ? payload.ref : '';
   const m = /^refs\/pull\/(\d+)\/(merge|head)$/.exec(ref);
   if (!repositoryId || !m) return null;
-  return { repositoryId, number: Number(m[1]) };
+  const runId = typeof payload.run_id === 'string' && /^\d+$/.test(payload.run_id) ? payload.run_id : undefined;
+  return { repositoryId, number: Number(m[1]), ...(runId ? { runId } : {}) };
 }
 
 function bearer(header: string | undefined): string | undefined {
@@ -93,14 +96,15 @@ export function registerActionsRunnerRoutes(app: FastifyInstance, db: Db, option
     if (typeof headSha !== 'string' || !SHA.test(headSha)) {
       return fail(reply, 400, 'invalid_request', 'headSha must be the pull request head commit (40 hex)');
     }
-    const { repositoryId, number } = claims;
+    const { repositoryId, number, runId } = claims;
 
     return runWithoutTenant(async () => {
       const runToken = randomBytes(32).toString('base64url');
       // Atomic: two runs of the same workflow cannot both claim one review.
       const claimed = await sql<{ id: string; spec: Record<string, unknown> }>`
         update actions_runs
-        set status = 'running', token_hash = ${hashToken(runToken)}, claimed_at = now(), heartbeat_at = now()
+        set status = 'running', token_hash = ${hashToken(runToken)}, claimed_at = now(), heartbeat_at = now(),
+          github_run_id = ${runId ?? null}
         where id = (
           select a.id from actions_runs a
           join repositories r on r.id = a.repository_id
@@ -236,6 +240,7 @@ async function explainNothingToClaim(
   if (active.rows.length === 0) {
     if (input.continuation) return fail(reply, 404, 'nothing_to_claim', 'the review of this commit is finished');
     await enqueueManualReview(db, {
+      startedByWorkflow: true,
       tenantId: target.tenantId,
       repositoryId: target.repoId,
       changeRequestId: target.changeRequestId,

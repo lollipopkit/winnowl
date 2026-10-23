@@ -224,6 +224,8 @@ const ru = {
     actionsTimedOut: 'Задача GitHub Actions превысила лимит времени ревью. Перезапустите workflow, чтобы попробовать снова.',
     actionsNoKey: 'У задачи GitHub Actions нет ключа модели. Добавьте secret репозитория (например, `WINNOWL_LLM_API_KEY`), передайте его action как `llm-api-key` и перезапустите workflow.',
     actionsVersionMismatch: 'Executor в GitHub Actions не совпадает с версией сервера winnowl. Используйте action, как описано в документации winnowl, не закрепляя старый образ, и перезапустите workflow.',
+    actionsNoRerunRun: 'Для этого commit workflow с winnowl ещё не запускался, перезапускать нечего. Отправьте commit или запустите workflow на вкладке Actions.',
+    actionsNoRerunPermission: 'winnowl не смог перезапустить workflow: приложению нужно разрешение Actions (чтение и запись) для этого репозитория. Примите обновлённые разрешения приложения winnowl или перезапустите workflow на вкладке Actions.',
     actionsFailed: 'Ревью в GitHub Actions завершилось ошибкой: {detail}. Перезапустите workflow, чтобы попробовать снова.',
   },
   checks: {

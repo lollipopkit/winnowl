@@ -4,6 +4,7 @@ import { reviewTriggerTicked } from '@reviewbot/domain';
 import { uuidv7 } from '@reviewbot/ids';
 import type { SourceControlProvider } from '@reviewbot/provider-contracts';
 import { startMigratedPostgres } from '@reviewbot/testkit';
+import { RunnerSetupError } from '../src/executor-error.js';
 import { createStatusComment, type ReviewedSummary } from '../src/status-comment.js';
 
 const TENANT = uuidv7();
@@ -127,6 +128,18 @@ describe('status comment', () => {
     expect(body).toContain('40 file(s); 51 remain. The next round has started on its own.');
     expect(body).not.toContain('Continue with the remaining files');
     expect(body).not.toContain('- [ ]');
+  });
+
+  it('a failure in GitHub Actions offers the retry box, unless a re-run cannot help', async () => {
+    const body = () => [...comments.values()][0]!;
+    await status().failed(target, new RunnerSetupError('actions-failed', 'deadline exceeded'));
+    expect(body()).toContain('deadline exceeded');
+    expect(body()).toContain('- [ ]');
+    await status().failed(target, new RunnerSetupError('actions-no-rerun', 'permission'));
+    expect(body()).toContain('Actions (read and write) permission');
+    expect(body()).not.toContain('- [ ]');
+    await status().failed(target, new RunnerSetupError('actions-fork'));
+    expect(body()).not.toContain('- [ ]');
   });
 
   it('lists suggested reviewers without mentioning them', async () => {

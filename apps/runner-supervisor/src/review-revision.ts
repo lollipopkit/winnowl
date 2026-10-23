@@ -52,6 +52,8 @@ export interface ReviewRevisionPayload {
   initiatedByUserId?: string;
   /** Set on rounds started by the previous round of the same head (review-continue.ts). */
   continueRound?: number;
+  /** Requested by a workflow run already waiting to claim it (actions-runner.ts). */
+  startedByWorkflow?: boolean;
 }
 
 export type { ReviewEnv };
@@ -93,6 +95,11 @@ export interface ReviewRevisionDeps {
    * way (the stored config then decides the gate, and buildEnv its own).
    */
   resolveRunner?: (ctx: ReviewRevisionContext) => Promise<'platform' | 'actions' | undefined>;
+  /**
+   * For a manual review in GitHub Actions: re-runs the workflow run that last claimed this head, since no
+   * event starts one. Throws RunnerSetupError('actions-no-rerun') when that cannot be done.
+   */
+  rerunActionsWorkflow?: (ctx: ReviewRevisionContext) => Promise<void>;
   /** Decided before clone/model spend; block=true skips the review. Degrade is handled by buildEnv. */
   quotaGate?: (
     ctx: ReviewRevisionContext,
@@ -114,6 +121,14 @@ export interface ReviewRevisionDeps {
   listChangedPaths?: (ctx: ReviewRevisionContext) => Promise<string[] | null>;
   /** Posts a status comment with a "review now" checkbox for skips a human can override. */
   onAutoReviewSkipped?: (ctx: ReviewRevisionContext, skip: AutoReviewSkip) => Promise<void>;
+}
+
+/**
+ * A GitHub Actions review whose workflow run has to be started by winnowl: webhook events start one,
+ * a run asked for by a workflow run is already waiting, and continuation rounds go to the running one.
+ */
+export function needsWorkflowRerun(payload: Pick<ReviewRevisionPayload, 'trigger' | 'startedByWorkflow' | 'continueRound'>): boolean {
+  return payload.trigger === 'manual' && !payload.startedByWorkflow && payload.continueRound === undefined;
 }
 
 /** Superseded heads are skipped here; the publish gate also rejects stale heads. */
@@ -459,6 +474,7 @@ export function createReviewRevisionHandler(deps: ReviewRevisionDeps): JobHandle
           if (!env.executorSpec) throw new Error('the GitHub Actions runner needs a configured model (no executor spec)');
           // The user's own key pays for these calls.
           ctx.modelSourceKind = 'byok';
+          if (needsWorkflowRerun(payload)) await deps.rerunActionsWorkflow?.(ctx);
           const { produced, pluginCalls } = await runReviewInActions(env.executorSpec, {
             db: ctx.db,
             tenantId: payload.tenantId,

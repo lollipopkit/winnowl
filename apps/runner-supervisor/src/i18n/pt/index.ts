@@ -224,6 +224,8 @@ const pt = {
     actionsTimedOut: 'O job do GitHub Actions passou do limite de tempo da revisão. Execute o workflow de novo para tentar outra vez.',
     actionsNoKey: 'O job do GitHub Actions não tem chave de modelo. Adicione um secret do repositório (por exemplo `WINNOWL_LLM_API_KEY`), passe-o para a action como `llm-api-key` e execute o workflow de novo.',
     actionsVersionMismatch: 'O executor no GitHub Actions não corresponde à versão do servidor do winnowl. Use a action como indicado na documentação do winnowl, sem fixar uma imagem antiga, e execute o workflow de novo.',
+    actionsNoRerunRun: 'Nenhuma execução do workflow deste commit rodou o winnowl ainda, então não há nada para executar de novo. Envie um commit ou rode o workflow pela aba Actions.',
+    actionsNoRerunPermission: 'O winnowl não conseguiu executar o workflow de novo: o app precisa da permissão Actions (leitura e escrita) neste repositório. Aceite as permissões atualizadas do app winnowl ou execute o workflow de novo pela aba Actions.',
     actionsFailed: 'A revisão falhou no GitHub Actions: {detail}. Execute o workflow de novo para tentar outra vez.',
   },
   checks: {

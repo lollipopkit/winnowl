@@ -233,6 +233,8 @@ const ko = {
     actionsTimedOut: 'GitHub Actions 작업이 리뷰 제한 시간을 넘겼습니다. workflow를 다시 실행해 다시 시도하세요.',
     actionsNoKey: 'GitHub Actions 작업에 모델 키가 없습니다. 저장소 secret(예: `WINNOWL_LLM_API_KEY`)을 추가해 action에 `llm-api-key`로 전달한 뒤 workflow를 다시 실행하세요.',
     actionsVersionMismatch: 'GitHub Actions의 executor가 winnowl 서버 버전과 맞지 않습니다. 오래된 이미지를 고정하지 말고 winnowl 문서대로 action을 사용한 뒤 workflow를 다시 실행하세요.',
+    actionsNoRerunRun: '이 commit에서 아직 winnowl workflow가 실행된 적이 없어 다시 실행할 대상이 없습니다. commit을 푸시하거나 Actions 탭에서 workflow를 실행하세요.',
+    actionsNoRerunPermission: 'winnowl이 workflow를 다시 실행하지 못했습니다. app에 이 저장소의 Actions(읽기 및 쓰기) 권한이 필요합니다. winnowl app의 업데이트된 권한을 수락하거나 Actions 탭에서 workflow를 다시 실행하세요.',
     actionsFailed: 'GitHub Actions에서 리뷰가 실패했습니다: {detail}. workflow를 다시 실행해 다시 시도하세요.',
   },
   checks: {

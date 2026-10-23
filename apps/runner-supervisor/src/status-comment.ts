@@ -3,7 +3,7 @@ import type { Db } from '@reviewbot/db';
 import { botMention, reviewTriggerCheckbox, type ChangeRequestRef } from '@reviewbot/domain';
 import type { SourceControlProvider } from '@reviewbot/provider-contracts';
 import { escapeStructural, publishTopLevelComment } from '@reviewbot/publisher';
-import { runnerSetupMessage } from './executor-error.js';
+import { retryableInActions, runnerSetupMessage } from './executor-error.js';
 import { loadEffectiveConfig } from '@reviewbot/review-runtime';
 import { botMessages } from './locale.js';
 
@@ -191,11 +191,12 @@ export function createStatusComment(deps: StatusCommentDeps): {
         return withTrigger(m, `${head}${walk}`, partial ? m.continueTrigger() : m.reviewAgain());
       }),
     /** Terminal failure: don't leave "reviewing" hanging; includes a retry checkbox. */
-    // A runner-setup failure needs a change in the repository or a workflow re-run; the box would not help.
+    // In GitHub Actions the box re-runs the workflow; a fork pull request or a refused re-run gets the reason only.
     failed: (target, error) =>
       publish(target, (m, all) => {
         const reason = runnerSetupMessage(all.runnerSetup, error);
-        return reason ? alert(m.failedTitle(), [reason]) : withTrigger(m, alert(m.failedTitle(), [m.failedText()]));
+        if (!reason) return withTrigger(m, alert(m.failedTitle(), [m.failedText()]));
+        return retryableInActions(error) ? withTrigger(m, alert(m.failedTitle(), [reason])) : alert(m.failedTitle(), [reason]);
       }),
     denied: (target, login) =>
       // Deliberate ping: the actor gets no other feedback that their request was refused.

@@ -32,7 +32,14 @@ export type RunnerSetupReason =
   | 'actions-timed-out'
   | 'actions-no-key'
   | 'actions-version-mismatch'
-  | 'actions-failed';
+  | 'actions-failed'
+  /** A retry asked for a workflow re-run that cannot be made; detail `no-run` or `permission`. */
+  | 'actions-no-rerun';
+
+/** Failures a re-run of the workflow can fix, so the status comment offers the retry box. */
+export function retryableInActions(error: unknown): boolean {
+  return error instanceof RunnerSetupError && error.reason !== 'actions-fork' && error.reason !== 'actions-no-rerun';
+}
 
 export class RunnerSetupError extends JobExecutionError {
   readonly reason: RunnerSetupReason;
@@ -66,6 +73,8 @@ export function runnerSetupMessage(m: ReturnType<typeof botMessages>['runnerSetu
       return m.actionsNoKey();
     case 'actions-version-mismatch':
       return m.actionsVersionMismatch();
+    case 'actions-no-rerun':
+      return error.detail === 'permission' ? m.actionsNoRerunPermission() : m.actionsNoRerunRun();
     case 'actions-failed':
       // Written by the user's own workflow: rendered inert and on one line.
       return m.actionsFailed({ detail: escapeStructural(error.detail ?? '').replace(/\s*\n\s*/g, ' ').slice(0, 500) });

@@ -221,6 +221,8 @@ const zhHant = {
     actionsTimedOut: 'GitHub Actions 工作執行時間超過了 review 的時限。請重新執行 workflow 再試一次。',
     actionsNoKey: 'GitHub Actions 工作沒有模型 key。請新增一個儲存庫 secret（例如 `WINNOWL_LLM_API_KEY`），以 `llm-api-key` 傳給 action，然後重新執行 workflow。',
     actionsVersionMismatch: 'GitHub Actions 中的 executor 與 winnowl 伺服器版本不一致。請依 winnowl 文件使用 action，不要固定舊映像，然後重新執行 workflow。',
+    actionsNoRerunRun: '這個 commit 還沒有執行過 winnowl 的 workflow，沒有可以重新執行的記錄。請推送一個 commit，或在 Actions 頁面執行 workflow。',
+    actionsNoRerunPermission: 'winnowl 無法重新執行 workflow：app 需要本儲存庫的 Actions（讀寫）權限。請接受 winnowl app 更新後的權限，或在 Actions 頁面重新執行 workflow。',
     actionsFailed: 'review 在 GitHub Actions 中失敗：{detail}。請重新執行 workflow 再試一次。',
   },
   checks: {

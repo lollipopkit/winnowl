@@ -198,6 +198,8 @@ export interface PipelineApi {
   listRuns(ref: ChangeRequestRef): Promise<PipelineRun[]>;
   getJobs(run: PipelineRunRef): Promise<PipelineJob[]>;
   getLogs(job: PipelineJobRef): Promise<PipelineLogs>;
+  /** Runs a finished run again with its original event (its failed jobs only, when some failed); no-op while it runs. */
+  rerun?(run: PipelineRunRef): Promise<void>;
 }
 
 export interface BranchApi {

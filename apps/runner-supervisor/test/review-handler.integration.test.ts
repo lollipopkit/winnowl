@@ -19,7 +19,8 @@ import { ensureRunnerPool, enqueueJob, registerWorker } from '@reviewbot/queue';
 import type { SandboxBackend } from '@reviewbot/sandbox';
 import { currentLlmTraceContext, type LlmTraceContext } from '@reviewbot/telemetry';
 import { startMigratedPostgres } from '@reviewbot/testkit';
-import { createReviewRevisionHandler, type ReviewEnv } from '../src/review-revision.js';
+import { createReviewRevisionHandler, needsWorkflowRerun, type ReviewEnv } from '../src/review-revision.js';
+import { RunnerSetupError } from '../src/executor-error.js';
 import { Supervisor } from '../src/supervisor.js';
 
 const TENANT = uuidv7();
@@ -1940,10 +1941,43 @@ describe('review_revision handler 端到端', () => {
       type: 'review_revision',
       payload: { tenantId: TENANT, repositoryId: REPO, changeRequestId: CR_ID, revisionId: REVISION_ID, headSha: HEAD, configDigest: '' },
       dedupeKey: 'review-runner-resolved',
+      maxAttempts: 1,
     });
     expect(await supervisor.runOnce()).toBe(true);
     expect(gateRunners).toEqual(['actions']);
     expect(envRunners).toEqual(['actions']);
+  });
+
+  it('a manual review in GitHub Actions re-runs the workflow before waiting for it', async () => {
+    const reruns: string[] = [];
+    const handler = createReviewRevisionHandler({
+      newId: () => uuidv7(),
+      rerunActionsWorkflow: async (ctx) => {
+        reruns.push(ctx.payload.revisionId);
+        throw new RunnerSetupError('actions-no-rerun', 'permission');
+      },
+      buildEnv: async () => ({ runner: 'actions', executorSpec: {}, disposeWorkspace: async () => undefined }) as never,
+    });
+    const supervisor = new Supervisor({ db, sandbox: noopSandbox, workerId, handlers: { review_revision: handler } });
+    await enqueueJob(db, {
+      tenantId: TENANT,
+      type: 'review_revision',
+      payload: { tenantId: TENANT, repositoryId: REPO, changeRequestId: CR_ID, revisionId: REVISION_ID, headSha: HEAD, configDigest: '', trigger: 'manual' },
+      dedupeKey: 'rerun-manual',
+      maxAttempts: 1,
+    });
+    expect(await supervisor.runOnce()).toBe(true);
+    expect(reruns).toEqual([REVISION_ID]);
+    const job = await db.selectFrom('jobs').select(['status', 'last_error']).where('dedupe_key', '=', 'rerun-manual').executeTakeFirstOrThrow();
+    expect(job.status).toBe('failed');
+    expect(JSON.stringify(job.last_error)).toContain('actions-no-rerun');
+  });
+
+  it('only a review no workflow run is coming for needs a re-run', () => {
+    expect(needsWorkflowRerun({ trigger: 'manual' })).toBe(true);
+    expect(needsWorkflowRerun({})).toBe(false);
+    expect(needsWorkflowRerun({ trigger: 'manual', startedByWorkflow: true })).toBe(false);
+    expect(needsWorkflowRerun({ trigger: 'manual', continueRound: 1 })).toBe(false);
   });
 
   // A non-retryable error on an earlier attempt must also fire the terminal-failure ack, or the check-run

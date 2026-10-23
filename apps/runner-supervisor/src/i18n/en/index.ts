@@ -232,6 +232,8 @@ const en = {
     actionsTimedOut: 'The GitHub Actions job ran past the review\'s time limit. Re-run the workflow to try again.',
     actionsNoKey: 'The GitHub Actions job has no model key. Add a repository secret (for example `WINNOWL_LLM_API_KEY`), pass it to the action as `llm-api-key`, then re-run the workflow.',
     actionsVersionMismatch: 'The executor in GitHub Actions does not match the winnowl server version. Use the action from the winnowl docs without pinning an old image, then re-run the workflow.',
+    actionsNoRerunRun: 'No workflow run of this commit has run winnowl yet, so there is nothing to re-run. Push a commit or run the workflow from the Actions tab.',
+    actionsNoRerunPermission: 'winnowl could not re-run the workflow: the app needs the Actions (read and write) permission on this repository. Accept the updated permissions of the winnowl app, or re-run the workflow from the Actions tab.',
     actionsFailed: 'The review failed in GitHub Actions: {detail:string}. Re-run the workflow to try again.',
   },
   checks: {

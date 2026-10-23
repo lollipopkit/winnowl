@@ -794,6 +794,15 @@ export class GithubProvider implements SourceControlProvider {
       const text = typeof res.data === 'string' ? res.data : '';
       return { text, truncated: false };
     },
+    rerun: async (run: PipelineRunRef): Promise<void> => {
+      if (!run.repositoryId) throw new ProviderError('invalid_request', 'pipelines.rerun needs run.repositoryId');
+      const coords = await this.coords(run.repositoryId);
+      const base = `repos/${coords.owner}/${coords.repo}/actions/runs/${run.nativeId}`;
+      const current = await this.options.client.get<{ status: string; conclusion: string | null }>(base);
+      // A run still going takes the next review itself (continuation claim); GitHub refuses to re-run it anyway.
+      if (current.data.status !== 'completed') return;
+      await this.options.client.post(current.data.conclusion === 'failure' ? `${base}/rerun-failed-jobs` : `${base}/rerun`, {});
+    },
   };
 
   branches = {

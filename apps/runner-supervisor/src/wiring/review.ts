@@ -19,6 +19,8 @@ import {
   tenantConfigLayers,
 } from '@reviewbot/review-runtime';
 import { createReviewRevisionHandler } from '../review-revision.js';
+import { RunnerSetupError } from '../executor-error.js';
+import { ProviderError } from '@reviewbot/provider-contracts';
 import { continueReview } from '../review-continue.js';
 import { enqueueKnowledgeJobs } from '../knowledge-jobs.js';
 import { createAutoIssueProposer } from '../auto-issue.js';
@@ -417,6 +419,27 @@ export async function reviewHandlers(rt: RunnerRuntime): Promise<Record<string, 
         const layers = await tenantConfigLayers(db, ctx.payload);
         const cfg = file.text !== null ? await loadRepoConfigFromReader(async () => file.text, layers) : loadedConfigFromLayers(layers);
         return cfg.config.sandbox.runner;
+      },
+      rerunActionsWorkflow: async (ctx) => {
+        const last = await db
+          .selectFrom('actions_runs')
+          .select('github_run_id')
+          .where('tenant_id', '=', ctx.payload.tenantId)
+          .where('repository_id', '=', ctx.payload.repositoryId)
+          .where('change_request_number', '=', ctx.changeRequest.number)
+          .where('head_sha', '=', ctx.payload.headSha)
+          .where('github_run_id', 'is not', null)
+          .orderBy('created_at', 'desc')
+          .executeTakeFirst();
+        if (!last?.github_run_id) throw new RunnerSetupError('actions-no-rerun', 'no-run');
+        const provider = await buildProviderForRepository(ctx.payload.repositoryId);
+        if (!provider.pipelines.rerun) throw new RunnerSetupError('actions-no-rerun', 'no-run');
+        try {
+          await provider.pipelines.rerun({ nativeId: last.github_run_id, repositoryId: ctx.payload.repositoryId });
+        } catch (err) {
+          if (err instanceof ProviderError && err.status === 403) throw new RunnerSetupError('actions-no-rerun', 'permission');
+          throw err;
+        }
       },
       quotaGate: createReviewQuotaGate(db),
       // Superseded by a newer head: record usage only and skip all post-publish steps (they need a complete,
