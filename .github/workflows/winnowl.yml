@@ -1,0 +1,22 @@
+name: winnowl
+
+on:
+  pull_request:
+    types: [opened, synchronize, reopened, ready_for_review]
+
+permissions:
+  contents: read
+  id-token: write
+
+jobs:
+  review:
+    runs-on: ubuntu-latest
+    steps:
+      # The action from this branch, so a change to action.yml reviews itself.
+      - uses: actions/checkout@v7
+        with:
+          persist-credentials: false
+      - uses: ./
+        with:
+          llm-api-key: ${{ secrets.WINNOWL_LLM_API_KEY }}
+          llm-base-url: ${{ secrets.WINNOWL_LLM_BASE_URL }}
