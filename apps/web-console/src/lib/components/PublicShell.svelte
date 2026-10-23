@@ -8,6 +8,7 @@
   import BrandMark from './BrandMark.svelte';
   import LoginDialog from './LoginDialog.svelte';
   import { loginDialog, openLogin } from '$lib/login-dialog.svelte.js';
+  import { REPO_URL } from '$lib/seo';
 
   import { Button, buttonVariants } from '$lib/components/ui/button/index.js';
   import * as DropdownMenu from '$lib/components/ui/dropdown-menu/index.js';
@@ -33,6 +34,7 @@
     </a>
     <div class="flex items-center gap-2">
       <a class={buttonVariants({ variant: 'ghost', size: 'sm' })} href="/docs">{$LL.nav.docs()}</a>
+      <a class={buttonVariants({ variant: 'ghost', size: 'sm' })} href={REPO_URL} rel="noopener">GitHub</a>
       <Button size="sm" onclick={openLogin}>{$LL.landing.signIn()}</Button>
     </div>
   </header>
@@ -47,7 +49,9 @@
     >
       <span>{$LL.landing.tagline()}</span>
       <DropdownMenu.Root>
-        <DropdownMenu.Trigger class={buttonVariants({ variant: 'ghost', size: 'sm' })} aria-label={$LL.common.language()}>
+        <!-- The accessible name must contain the visible text (WCAG 2.5.3), so the label is extra text, not aria-label. -->
+        <DropdownMenu.Trigger class={buttonVariants({ variant: 'ghost', size: 'sm' })}>
+          <span class="sr-only">{$LL.common.language()}:</span>
           {LOCALE_NAMES[cur] ?? cur.toUpperCase()}
           <ChevronDown class="size-3.5 opacity-60" />
         </DropdownMenu.Trigger>

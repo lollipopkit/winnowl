@@ -329,17 +329,22 @@ h1 + .meta {
   }
 }
 
+/* In the base layer so utility classes (e.g. the landing h1) can still override it. */
+@layer base {
+  @media (max-width: 560px) {
+    h1 {
+      font-size: 23px;
+    }
+
+    h2 {
+      font-size: 17px;
+    }
+  }
+}
+
 @media (max-width: 560px) {
   .content {
     padding: 68px 16px 24px;
-  }
-
-  h1 {
-    font-size: 23px;
-  }
-
-  h2 {
-    font-size: 17px;
   }
 
   .stat-row {
@@ -2566,4 +2571,267 @@ a.overview-row:hover {
 
 .setting-history li > span {
   color: var(--muted-foreground);
+}
+
+/* Landing: one review's candidates and the stage each reached (WinnowLedger.svelte). */
+.winnow {
+  margin: 0;
+  padding: 20px 20px 16px;
+  border: 1px solid var(--border);
+  border-radius: var(--radius-xl);
+  background: var(--card);
+}
+
+.winnow-caption,
+.winnow-stages,
+.winnow-reason,
+.winnow-posted code {
+  font-family: var(--font-mono, ui-monospace, SFMono-Regular, Menlo, monospace);
+}
+
+.winnow-caption {
+  font-size: 11px;
+  font-weight: 600;
+  letter-spacing: 0.08em;
+  text-transform: uppercase;
+  color: var(--muted-foreground);
+}
+
+.winnow-stages {
+  position: relative;
+  height: 16px;
+  margin: 18px 0 10px;
+  font-size: 10.5px;
+  color: var(--muted-foreground);
+}
+
+.winnow-stages span {
+  position: absolute;
+  top: 0;
+  white-space: nowrap;
+}
+
+.winnow-stages span:nth-child(1) { left: 0; }
+.winnow-stages span:nth-child(2) { left: 33.333%; transform: translateX(-50%); }
+.winnow-stages span:nth-child(3) { left: 66.667%; transform: translateX(-50%); }
+.winnow-stages span:nth-child(4) { right: 0; color: var(--foreground); font-weight: 600; }
+
+.winnow-rows {
+  display: grid;
+  gap: 14px;
+  margin: 0;
+  padding: 0;
+  list-style: none;
+}
+
+.winnow-claim {
+  margin: 0 0 6px;
+  font-size: 13.5px;
+  line-height: 1.35;
+  color: var(--muted-foreground);
+}
+
+.winnow-row.is-kept .winnow-claim {
+  color: var(--foreground);
+  font-weight: 500;
+}
+
+.winnow-track {
+  position: relative;
+  height: 9px;
+}
+
+.winnow-track::before {
+  content: '';
+  position: absolute;
+  inset: 4px 0 auto;
+  border-top: 1px dashed var(--border);
+}
+
+.winnow-fill {
+  position: absolute;
+  top: 3.5px;
+  left: 0;
+  height: 2px;
+  width: calc(var(--reach) * 100%);
+  border-radius: 1px;
+  background: var(--muted-foreground);
+  animation: winnow-grow calc(0.3s + var(--reach) * 0.7s) ease-out calc(0.15s + var(--row) * 0.11s) both;
+}
+
+.winnow-row.is-kept .winnow-fill {
+  background: var(--chart-1);
+}
+
+.winnow-stop {
+  position: absolute;
+  top: 1px;
+  left: calc(var(--at) * 100%);
+  width: 7px;
+  height: 7px;
+  border: 1px solid var(--border);
+  border-radius: 999px;
+  background: var(--card);
+  transform: translateX(calc(var(--at) * -100%));
+}
+
+.winnow-stop.is-passed {
+  border-color: var(--muted-foreground);
+  background: var(--muted-foreground);
+  animation: winnow-pop 0.2s ease-out calc(0.15s + var(--row) * 0.11s + var(--at) * 0.7s) both;
+}
+
+.winnow-row.is-kept .winnow-stop.is-passed {
+  border-color: var(--chart-1);
+  background: var(--chart-1);
+}
+
+/* An × where the candidate was dropped. */
+.winnow-stop.is-drop {
+  top: -0.5px;
+  width: 10px;
+  height: 10px;
+  border: 0;
+  background: none;
+  animation: winnow-pop 0.2s ease-out calc(0.15s + var(--row) * 0.11s + var(--reach) * 0.7s) both;
+}
+
+.winnow-stop.is-drop::before,
+.winnow-stop.is-drop::after {
+  content: '';
+  position: absolute;
+  top: 4.5px;
+  left: 0;
+  width: 10px;
+  height: 1.5px;
+  border-radius: 1px;
+  background: var(--foreground);
+  transform: rotate(45deg);
+}
+
+.winnow-stop.is-drop::after {
+  transform: rotate(-45deg);
+}
+
+.winnow-reason {
+  margin: 7px 0 0;
+  font-size: 11.5px;
+  line-height: 1.45;
+  color: var(--muted-foreground);
+}
+
+.winnow-posted {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: 4px 10px;
+  margin: 7px 0 0;
+  font-size: 11.5px;
+}
+
+.winnow-posted code {
+  padding: 0;
+  background: none;
+  font-size: 11.5px;
+  color: var(--muted-foreground);
+}
+
+.winnow-tag {
+  padding: 1px 8px;
+  border-radius: 999px;
+  background: color-mix(in oklch, var(--chart-1) 24%, transparent);
+  color: var(--foreground);
+  font-weight: 600;
+}
+
+.winnow-note {
+  margin: 16px 0 0;
+  font-size: 11px;
+  color: var(--muted-foreground);
+}
+
+@keyframes winnow-grow {
+  from { width: 0; }
+}
+
+@keyframes winnow-pop {
+  from { opacity: 0; transform: translateX(calc(var(--at, 0) * -100%)) scale(0.4); }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .winnow-fill,
+  .winnow-stop {
+    animation: none;
+  }
+}
+
+/* Landing: monospace command list ("Ask in the thread"). */
+.command-list {
+  display: grid;
+  gap: 0;
+  margin: 0;
+  padding: 0;
+  border-top: 1px solid var(--border);
+}
+
+.command-list > div {
+  display: grid;
+  grid-template-columns: minmax(0, 18rem) minmax(0, 1fr);
+  gap: 4px 24px;
+  padding: 11px 0;
+  border-bottom: 1px solid var(--border);
+}
+
+.command-list dt {
+  font-family: var(--font-mono, ui-monospace, SFMono-Regular, Menlo, monospace);
+  font-size: 13px;
+  color: var(--foreground);
+}
+
+.command-list dt span {
+  color: var(--muted-foreground);
+}
+
+.command-list dd {
+  margin: 0;
+  font-size: 13.5px;
+  color: var(--muted-foreground);
+}
+
+@media (max-width: 640px) {
+  .command-list > div {
+    grid-template-columns: minmax(0, 1fr);
+  }
+}
+
+/* Landing: summary of a later round, one line per finding state. */
+.round-summary {
+  margin: 0;
+  padding: 18px 20px;
+  border: 1px solid var(--border);
+  border-radius: var(--radius-xl);
+  background: var(--card);
+  list-style: none;
+  display: grid;
+  gap: 12px;
+}
+
+.round-summary li {
+  display: grid;
+  grid-template-columns: 2.25rem minmax(0, 1fr);
+  align-items: baseline;
+  font-size: 13.5px;
+  color: var(--muted-foreground);
+}
+
+.round-summary strong {
+  font-family: var(--font-heading, var(--font-sans));
+  font-size: 20px;
+  font-weight: 600;
+  color: var(--foreground);
+  font-variant-numeric: tabular-nums;
+}
+
+.round-summary li.is-blocking span {
+  color: var(--foreground);
 }

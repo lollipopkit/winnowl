@@ -58,6 +58,8 @@ export function initI18n(): Locales {
   const loc = initialLocale();
   loadLocale(loc);
   setLocale(loc);
+  // app.html is prerendered as `en`; screen readers and translators read the language from here.
+  if (typeof document !== 'undefined') document.documentElement.lang = loc;
   return loc;
 }
 

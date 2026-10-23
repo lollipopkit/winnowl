@@ -18,7 +18,9 @@ export const SITE_NAME = 'Winnowl';
 export const LANDING_TITLE = 'Winnowl — AI code review that verifies before it posts';
 
 export const LANDING_DESCRIPTION =
-  'AI code review for GitHub, GitLab and Forgejo. Winnowl re-checks each finding before it comments, and blocks dependencies with known advisories. Self-hostable.';
+  'Open-source AI code review for GitHub, GitLab and Forgejo. Every finding is verified and challenged before it is posted. Self-hostable, Apache-2.0.';
+
+export const REPO_URL = 'https://github.com/lollipopkit/winnowl';
 
 /** 1200x630; crawlers require an absolute URL (see `absoluteUrl`). */
 export const OG_IMAGE_PATH = '/og-image.png';
@@ -38,5 +40,6 @@ export function landingJsonLd(): string {
     operatingSystem: 'Web',
     url: absoluteUrl('/'),
     description: LANDING_DESCRIPTION,
+    sameAs: [REPO_URL],
   });
 }

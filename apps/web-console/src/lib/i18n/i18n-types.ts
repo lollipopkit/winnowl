@@ -2081,7 +2081,7 @@ type RootTranslation = {
 	}
 	landing: {
 		/**
-		 * A​I​ ​c​o​d​e​ ​r​e​v​i​e​w
+		 * O​p​e​n​-​s​o​u​r​c​e​ ​A​I​ ​c​o​d​e​ ​r​e​v​i​e​w
 		 */
 		eyebrow: string
 		/**
@@ -2089,7 +2089,7 @@ type RootTranslation = {
 		 */
 		title: string
 		/**
-		 * B​u​i​l​t​ ​f​o​r​ ​s​e​c​u​r​i​t​y​ ​a​u​d​i​t​s​.​ ​N​o​w​ ​i​t​ ​b​r​i​n​g​s​ ​t​h​e​ ​s​a​m​e​ ​c​a​r​e​f​u​l​ ​a​n​a​l​y​s​i​s​ ​t​o​ ​e​v​e​r​y​ ​c​o​d​e​ ​r​e​v​i​e​w​.
+		 * E​a​c​h​ ​p​o​s​s​i​b​l​e​ ​i​s​s​u​e​ ​i​s​ ​c​h​e​c​k​e​d​ ​a​g​a​i​n​s​t​ ​y​o​u​r​ ​c​o​d​e​,​ ​t​h​e​n​ ​a​r​g​u​e​d​ ​a​g​a​i​n​s​t​,​ ​b​e​f​o​r​e​ ​a​n​y​t​h​i​n​g​ ​r​e​a​c​h​e​s​ ​t​h​e​ ​p​u​l​l​ ​r​e​q​u​e​s​t​.​ ​O​n​l​y​ ​f​i​n​d​i​n​g​s​ ​t​h​a​t​ ​h​o​l​d​ ​u​p​ ​a​r​e​ ​p​o​s​t​e​d​.
 		 */
 		subtitle: string
 		/**
@@ -2097,77 +2097,238 @@ type RootTranslation = {
 		 */
 		signIn: string
 		/**
+		 * V​i​e​w​ ​o​n​ ​G​i​t​H​u​b
+		 */
+		github: string
+		/**
+		 * R​e​a​d​ ​t​h​e​ ​d​o​c​s
+		 */
+		docs: string
+		/**
+		 * W​o​r​k​s​ ​w​i​t​h​ ​G​i​t​H​u​b​,​ ​G​i​t​L​a​b​ ​a​n​d​ ​F​o​r​g​e​j​o​.
+		 */
+		forges: string
+		/**
+		 * O​n​e​ ​r​e​v​i​e​w​,​ ​s​i​x​ ​c​a​n​d​i​d​a​t​e​s
+		 */
+		demoLabel: string
+		/**
 		 * I​l​l​u​s​t​r​a​t​i​v​e​ ​e​x​a​m​p​l​e
 		 */
 		demoNote: string
 		/**
-		 * C​a​n​d​i​d​a​t​e​s
+		 * F​o​u​n​d
 		 */
-		demoCandidates: string
+		stageFound: string
 		/**
-		 * P​o​s​t​e​d​ ​t​o​ ​t​h​e​ ​p​u​l​l​ ​r​e​q​u​e​s​t
+		 * V​e​r​i​f​i​e​d
 		 */
-		demoKept: string
+		stageVerified: string
+		/**
+		 * C​h​a​l​l​e​n​g​e​d
+		 */
+		stageChallenged: string
+		/**
+		 * P​o​s​t​e​d
+		 */
+		stagePosted: string
+		/**
+		 * D​r​o​p​p​e​d​ ​a​t​ ​{​s​t​a​g​e​}​:​ 
+		 * @param {string} stage
+		 */
+		demoDroppedAt: RequiredParams<'stage'>
+		/**
+		 * M​a​j​o​r
+		 */
+		demoMajor: string
+		/**
+		 * B​l​o​c​k​s​ ​m​e​r​g​e
+		 */
+		demoBlocks: string
+		/**
+		 * T​o​k​e​n​ ​r​e​f​r​e​s​h​ ​r​e​t​r​i​e​s​ ​f​o​r​e​v​e​r​ ​w​h​e​n​ ​t​h​e​ ​i​d​e​n​t​i​t​y​ ​p​r​o​v​i​d​e​r​ ​i​s​ ​d​o​w​n
+		 */
+		demo1Claim: string
 		/**
 		 * P​o​s​s​i​b​l​e​ ​n​i​l​ ​d​e​r​e​f​e​r​e​n​c​e​ ​i​n​ ​c​a​c​h​e​ ​w​a​r​m​u​p
 		 */
-		demoDropped1: string
+		demo2Claim: string
 		/**
-		 * U​n​u​s​e​d​ ​p​a​r​a​m​e​t​e​r​ ​i​n​ ​a​d​a​p​t​o​r​ ​f​a​c​t​o​r​y
+		 * c​a​c​h​e​ ​i​s​ ​a​s​s​i​g​n​e​d​ ​o​n​ ​l​i​n​e​ ​3​1​,​ ​b​e​f​o​r​e​ ​t​h​e​ ​f​i​r​s​t​ ​r​e​a​d
 		 */
-		demoDropped2: string
+		demo2Reason: string
 		/**
-		 * P​r​e​f​e​r​ ​e​a​r​l​y​ ​r​e​t​u​r​n​ ​h​e​r​e
+		 * S​e​a​r​c​h​ ​q​u​e​r​y​ ​i​s​ ​b​u​i​l​t​ ​f​r​o​m​ ​u​s​e​r​ ​i​n​p​u​t
 		 */
-		demoDropped3: string
+		demo3Claim: string
 		/**
-		 * N​e​w​ ​d​e​p​e​n​d​e​n​c​y​ ​c​a​r​r​i​e​s​ ​a​ ​k​n​o​w​n​ ​a​d​v​i​s​o​r​y​ ​w​i​t​h​ ​n​o​ ​p​a​t​c​h​e​d​ ​r​e​l​e​a​s​e
+		 * t​h​e​ ​c​o​l​u​m​n​ ​n​a​m​e​ ​c​o​m​e​s​ ​f​r​o​m​ ​a​ ​f​i​x​e​d​ ​a​l​l​o​w​l​i​s​t​;​ ​v​a​l​u​e​s​ ​a​r​e​ ​b​o​u​n​d​ ​p​a​r​a​m​e​t​e​r​s
 		 */
-		demoKeptClaim: string
+		demo3Reason: string
 		/**
-		 * g​o​.​m​o​d
+		 * O​f​f​-​b​y​-​o​n​e​ ​w​h​e​n​ ​s​l​i​c​i​n​g​ ​a​ ​p​a​g​e​ ​o​f​ ​r​e​s​u​l​t​s
 		 */
-		demoKeptLoc: string
+		demo4Claim: string
 		/**
-		 * F​e​a​t​u​r​e​s
+		 * s​t​a​r​t​ ​i​s​ ​(​p​a​g​e​ ​−​ ​1​)​ ​×​ ​s​i​z​e​,​ ​s​o​ ​t​h​e​ ​f​i​r​s​t​ ​p​a​g​e​ ​b​e​g​i​n​s​ ​a​t​ ​0
 		 */
-		featuresTitle: string
+		demo4Reason: string
 		/**
-		 * R​e​p​o​r​t​s​ ​o​n​l​y​ ​w​h​a​t​ ​i​t​ ​c​a​n​ ​v​e​r​i​f​y
+		 * N​e​w​ ​d​e​p​e​n​d​e​n​c​y​ ​h​a​s​ ​a​ ​k​n​o​w​n​ ​a​d​v​i​s​o​r​y​ ​w​i​t​h​ ​n​o​ ​p​a​t​c​h​e​d​ ​r​e​l​e​a​s​e
 		 */
-		verifyTitle: string
+		demo5Claim: string
 		/**
-		 * I​t​ ​c​h​e​c​k​s​ ​p​o​t​e​n​t​i​a​l​ ​i​s​s​u​e​s​ ​a​g​a​i​n​ ​a​n​d​ ​c​o​m​m​e​n​t​s​ ​o​n​l​y​ ​w​h​e​n​ ​t​h​e​ ​e​v​i​d​e​n​c​e​ ​h​o​l​d​s​ ​u​p​.
+		 * C​a​n​c​e​l​ ​a​n​d​ ​p​u​b​l​i​s​h​ ​c​a​n​ ​r​a​c​e​ ​o​n​ ​t​h​e​ ​s​a​m​e​ ​r​e​v​i​e​w
 		 */
-		verifyBody: string
+		demo6Claim: string
 		/**
-		 * S​e​l​f​-​h​o​s​t​a​b​l​e
+		 * b​o​t​h​ ​p​a​t​h​s​ ​t​a​k​e​ ​t​h​e​ ​r​e​v​i​e​w​ ​r​o​w​ ​l​o​c​k​ ​b​e​f​o​r​e​ ​w​r​i​t​i​n​g
 		 */
-		selfHostTitle: string
+		demo6Reason: string
 		/**
-		 * P​i​c​k​ ​y​o​u​r​ ​o​w​n​ ​m​o​d​e​l​ ​a​n​d​ ​p​r​o​v​i​d​e​r​,​ ​s​o​ ​y​o​u​r​ ​c​o​d​e​ ​s​t​a​y​s​ ​p​r​i​v​a​t​e​.
+		 * H​o​w​ ​o​n​e​ ​r​e​v​i​e​w​ ​r​u​n​s
 		 */
-		selfHostBody: string
+		flowTitle: string
 		/**
-		 * L​i​v​e​s​ ​i​n​ ​y​o​u​r​ ​i​s​s​u​e​s​ ​a​n​d​ ​p​u​l​l​ ​r​e​q​u​e​s​t​s
+		 * I​t​ ​m​a​p​s​ ​t​h​e​ ​c​h​a​n​g​e​,​ ​t​h​e​n​ ​e​x​p​l​o​r​e​s​ ​e​a​c​h​ ​a​r​e​a​ ​w​i​t​h​ ​t​h​e​ ​r​e​p​o​s​i​t​o​r​y​’​s​ ​o​w​n​ ​c​o​d​e​:​ ​c​a​l​l​e​r​s​,​ ​t​e​s​t​s​ ​a​n​d​ ​h​i​s​t​o​r​y​.
+		 */
+		flowFoundBody: string
+		/**
+		 * E​a​c​h​ ​c​a​n​d​i​d​a​t​e​ ​i​s​ ​c​h​e​c​k​e​d​ ​a​g​a​i​n​ ​a​g​a​i​n​s​t​ ​t​h​e​ ​c​o​d​e​.​ ​W​h​a​t​ ​i​t​ ​c​a​n​n​o​t​ ​c​o​n​f​i​r​m​ ​s​t​a​y​s​ ​o​u​t​ ​o​f​ ​t​h​e​ ​i​n​l​i​n​e​ ​c​o​m​m​e​n​t​s​.
+		 */
+		flowVerifiedBody: string
+		/**
+		 * A​ ​s​e​p​a​r​a​t​e​ ​p​a​s​s​ ​a​r​g​u​e​s​ ​a​g​a​i​n​s​t​ ​e​v​e​r​y​ ​r​e​m​a​i​n​i​n​g​ ​f​i​n​d​i​n​g​,​ ​o​n​ ​a​ ​d​i​f​f​e​r​e​n​t​ ​m​o​d​e​l​ ​i​f​ ​y​o​u​ ​c​h​o​o​s​e​.
+		 */
+		flowChallengedBody: string
+		/**
+		 * I​n​l​i​n​e​ ​c​o​m​m​e​n​t​s​ ​w​i​t​h​ ​s​e​v​e​r​i​t​y​ ​a​n​d​ ​e​v​i​d​e​n​c​e​,​ ​o​n​e​ ​s​u​m​m​a​r​y​,​ ​a​n​d​ ​s​u​g​g​e​s​t​i​o​n​s​ ​y​o​u​ ​c​a​n​ ​c​o​m​m​i​t​.
+		 */
+		flowPostedBody: string
+		/**
+		 * E​v​e​r​y​ ​r​e​v​i​e​w​ ​a​f​t​e​r​ ​t​h​e​ ​f​i​r​s​t
+		 */
+		roundsTitle: string
+		/**
+		 * L​a​t​e​r​ ​r​e​v​i​e​w​s​ ​r​e​a​d​ ​o​n​l​y​ ​t​h​e​ ​c​o​m​m​i​t​s​ ​a​d​d​e​d​ ​s​i​n​c​e​ ​t​h​e​ ​l​a​s​t​ ​o​n​e​.​ ​F​i​n​d​i​n​g​s​ ​k​e​e​p​ ​t​h​e​i​r​ ​s​t​a​t​e​ ​a​c​r​o​s​s​ ​r​o​u​n​d​s​,​ ​s​o​ ​n​o​t​h​i​n​g​ ​i​s​ ​p​o​s​t​e​d​ ​t​w​i​c​e​ ​a​n​d​ ​f​i​x​e​d​ ​i​s​s​u​e​s​ ​c​l​o​s​e​ ​o​n​ ​t​h​e​i​r​ ​o​w​n​.
+		 */
+		roundsBody: string
+		/**
+		 * n​e​w​ ​f​i​n​d​i​n​g​s​ ​i​n​ ​t​h​i​s​ ​r​o​u​n​d
+		 */
+		roundsNew: string
+		/**
+		 * s​t​i​l​l​ ​o​p​e​n​ ​f​r​o​m​ ​t​h​e​ ​l​a​s​t​ ​r​e​v​i​e​w​ ​—​ ​b​l​o​c​k​s​ ​t​h​e​ ​m​e​r​g​e
+		 */
+		roundsOpen: string
+		/**
+		 * f​i​x​e​d​ ​s​i​n​c​e​ ​t​h​e​ ​l​a​s​t​ ​r​e​v​i​e​w​ ​—​ ​r​e​s​o​l​v​e​d
+		 */
+		roundsFixed: string
+		/**
+		 * r​e​p​o​r​t​e​d​ ​b​e​f​o​r​e​ ​—​ ​f​o​l​d​e​d​,​ ​n​o​t​ ​p​o​s​t​e​d​ ​a​g​a​i​n
+		 */
+		roundsFolded: string
+		/**
+		 * A​s​k​ ​i​n​ ​t​h​e​ ​t​h​r​e​a​d
 		 */
 		commandsTitle: string
 		/**
-		 * C​o​m​m​e​n​t​ ​`​@​w​i​n​n​o​w​l​ ​h​e​l​p​`​ ​f​o​r​ ​e​v​e​r​y​ ​s​u​p​p​o​r​t​e​d​ ​c​o​m​m​a​n​d​.
+		 * C​o​m​m​e​n​t​ ​o​n​ ​a​ ​p​u​l​l​ ​r​e​q​u​e​s​t​,​ ​a​n​ ​i​s​s​u​e​ ​o​r​ ​a​ ​f​i​n​d​i​n​g​.​ ​C​h​a​n​g​e​s​ ​a​r​e​ ​d​e​l​i​v​e​r​e​d​ ​a​s​ ​a​ ​s​e​p​a​r​a​t​e​ ​s​t​a​c​k​e​d​ ​p​u​l​l​ ​r​e​q​u​e​s​t​,​ ​n​e​v​e​r​ ​p​u​s​h​e​d​ ​t​o​ ​y​o​u​r​ ​b​r​a​n​c​h​.​ ​`​@​w​i​n​n​o​w​l​ ​h​e​l​p​`​ ​l​i​s​t​s​ ​e​v​e​r​y​ ​c​o​m​m​a​n​d​.
 		 */
 		commandsBody: string
 		/**
-		 * D​e​p​e​n​d​e​n​c​y​ ​g​a​t​e
+		 * E​x​p​l​a​i​n​ ​a​ ​f​i​n​d​i​n​g​ ​a​n​d​ ​t​h​e​ ​e​v​i​d​e​n​c​e​ ​b​e​h​i​n​d​ ​i​t​.
+		 */
+		cmdExplain: string
+		/**
+		 * D​i​s​p​u​t​e​ ​a​ ​f​i​n​d​i​n​g​;​ ​a​ ​f​r​e​s​h​ ​v​e​r​i​f​i​e​r​ ​j​u​d​g​e​s​ ​i​t​ ​w​i​t​h​ ​y​o​u​r​ ​r​e​a​s​o​n​.
+		 */
+		cmdChallenge: string
+		/**
+		 * M​a​r​k​ ​a​ ​f​i​n​d​i​n​g​ ​f​i​x​e​d​ ​o​r​ ​n​o​t​ ​a​ ​p​r​o​b​l​e​m​;​ ​i​t​ ​i​s​ ​c​h​e​c​k​e​d​ ​b​e​f​o​r​e​ ​i​t​ ​c​l​o​s​e​s​.
+		 */
+		cmdResolve: string
+		/**
+		 * I​g​n​o​r​e​ ​a​ ​f​i​n​d​i​n​g​ ​o​n​ ​t​h​i​s​ ​p​u​l​l​ ​r​e​q​u​e​s​t​;​ ​i​t​ ​s​t​o​p​s​ ​b​l​o​c​k​i​n​g​ ​t​h​e​ ​m​e​r​g​e​.
+		 */
+		cmdIgnore: string
+		/**
+		 * F​i​x​ ​a​ ​f​i​n​d​i​n​g​ ​i​n​ ​a​ ​s​t​a​c​k​e​d​ ​p​u​l​l​ ​r​e​q​u​e​s​t​,​ ​a​f​t​e​r​ ​y​o​u​ ​c​o​n​f​i​r​m​.
+		 */
+		cmdFix: string
+		/**
+		 * W​r​i​t​e​ ​t​e​s​t​s​ ​f​o​r​ ​t​h​e​ ​c​h​a​n​g​e​ ​i​n​ ​a​ ​s​t​a​c​k​e​d​ ​p​u​l​l​ ​r​e​q​u​e​s​t​.
+		 */
+		cmdTests: string
+		/**
+		 * R​u​n​ ​a​ ​c​o​m​m​a​n​d​ ​i​n​ ​a​ ​s​a​n​d​b​o​x​ ​o​n​ ​t​h​e​ ​p​u​l​l​ ​r​e​q​u​e​s​t​ ​a​n​d​ ​p​o​s​t​ ​t​h​e​ ​o​u​t​p​u​t​.
+		 */
+		cmdRun: string
+		/**
+		 * A​d​d​ ​a​ ​r​u​l​e​ ​f​o​r​ ​l​a​t​e​r​ ​r​e​v​i​e​w​s​ ​o​f​ ​t​h​i​s​ ​r​e​p​o​s​i​t​o​r​y​,​ ​y​o​u​r​ ​o​r​g​a​n​i​z​a​t​i​o​n​ ​o​r​ ​y​o​u​r​ ​o​w​n​ ​p​u​l​l​ ​r​e​q​u​e​s​t​s​.
+		 */
+		cmdLearn: string
+		/**
+		 * A​l​s​o​ ​p​a​r​t​ ​o​f​ ​e​v​e​r​y​ ​r​e​v​i​e​w
+		 */
+		moreTitle: string
+		/**
+		 * M​e​r​g​e​ ​g​a​t​e
 		 */
 		gateTitle: string
 		/**
-		 * N​e​w​l​y​ ​i​n​t​r​o​d​u​c​e​d​ ​d​e​p​e​n​d​e​n​c​i​e​s​ ​w​i​t​h​ ​k​n​o​w​n​ ​a​d​v​i​s​o​r​i​e​s​ ​b​l​o​c​k​ ​t​h​e​ ​m​e​r​g​e​ ​i​n​s​t​e​a​d​ ​o​f​ ​q​u​i​e​t​l​y​ ​l​a​n​d​i​n​g​.
+		 * A​ ​c​h​e​c​k​ ​r​u​n​ ​b​l​o​c​k​s​ ​t​h​e​ ​m​e​r​g​e​ ​w​h​i​l​e​ ​b​l​o​c​k​i​n​g​ ​f​i​n​d​i​n​g​s​ ​a​r​e​ ​u​n​r​e​s​o​l​v​e​d​ ​o​r​ ​a​ ​n​e​w​ ​d​e​p​e​n​d​e​n​c​y​ ​h​a​s​ ​a​ ​k​n​o​w​n​ ​a​d​v​i​s​o​r​y​.
 		 */
 		gateBody: string
 		/**
-		 * G​i​t​H​u​b​,​ ​G​i​t​L​a​b​,​ ​F​o​r​g​e​j​o
+		 * Y​o​u​r​ ​t​e​a​m​’​s​ ​r​u​l​e​s
 		 */
-		forgesTitle: string
+		learnTitle: string
+		/**
+		 * W​r​i​t​e​ ​r​u​l​e​s​ ​i​n​ ​t​h​e​ ​r​e​p​o​s​i​t​o​r​y​,​ ​o​r​ ​a​d​d​ ​t​h​e​m​ ​f​r​o​m​ ​a​ ​r​e​v​i​e​w​ ​c​o​m​m​e​n​t​.​ ​R​u​l​e​s​ ​p​r​o​p​o​s​e​d​ ​b​y​ ​n​o​n​-​m​a​i​n​t​a​i​n​e​r​s​ ​w​a​i​t​ ​f​o​r​ ​a​p​p​r​o​v​a​l​.
+		 */
+		learnBody: string
+		/**
+		 * P​a​c​k​a​g​e​ ​f​a​c​t​s​,​ ​c​h​e​c​k​e​d
+		 */
+		factsTitle: string
+		/**
+		 * C​l​a​i​m​s​ ​a​b​o​u​t​ ​l​i​b​r​a​r​i​e​s​ ​a​n​d​ ​v​e​r​s​i​o​n​s​ ​a​r​e​ ​c​h​e​c​k​e​d​ ​o​n​l​i​n​e​ ​a​n​d​ ​a​g​a​i​n​s​t​ ​r​e​l​e​a​s​e​ ​n​o​t​e​s​,​ ​a​n​d​ ​r​e​u​s​e​d​ ​i​n​ ​l​a​t​e​r​ ​r​e​v​i​e​w​s​ ​o​n​c​e​ ​a​p​p​r​o​v​e​d​.
+		 */
+		factsBody: string
+		/**
+		 * M​o​d​e​l​s​ ​p​e​r​ ​s​t​a​g​e
+		 */
+		modelsTitle: string
+		/**
+		 * P​i​c​k​ ​a​ ​m​o​d​e​l​ ​f​o​r​ ​e​a​c​h​ ​s​t​a​g​e​,​ ​m​i​x​ ​p​r​o​v​i​d​e​r​s​,​ ​o​r​ ​b​r​i​n​g​ ​y​o​u​r​ ​o​w​n​ ​k​e​y​ ​f​o​r​ ​a​n​ ​o​r​g​a​n​i​z​a​t​i​o​n​,​ ​a​ ​r​e​p​o​s​i​t​o​r​y​ ​o​r​ ​y​o​u​r​s​e​l​f​.
+		 */
+		modelsBody: string
+		/**
+		 * L​a​r​g​e​ ​a​n​d​ ​s​t​a​c​k​e​d​ ​p​u​l​l​ ​r​e​q​u​e​s​t​s
+		 */
+		largeTitle: string
+		/**
+		 * L​a​r​g​e​ ​p​u​l​l​ ​r​e​q​u​e​s​t​s​ ​a​r​e​ ​r​e​v​i​e​w​e​d​ ​i​n​ ​r​o​u​n​d​s​ ​u​n​t​i​l​ ​e​v​e​r​y​ ​f​i​l​e​ ​i​s​ ​c​o​v​e​r​e​d​.​ ​S​t​a​c​k​e​d​ ​p​u​l​l​ ​r​e​q​u​e​s​t​s​ ​a​r​e​ ​r​e​v​i​e​w​e​d​ ​o​n​e​ ​l​a​y​e​r​ ​a​t​ ​a​ ​t​i​m​e​.
+		 */
+		largeBody: string
+		/**
+		 * C​o​n​f​i​g​u​r​a​t​i​o​n​ ​i​n​ ​t​h​e​ ​r​e​p​o​s​i​t​o​r​y
+		 */
+		configTitle: string
+		/**
+		 * S​e​t​t​i​n​g​s​ ​l​i​v​e​ ​i​n​ ​`​.​w​i​n​n​o​w​l​.​y​a​m​l​`​,​ ​w​i​t​h​ ​a​ ​J​S​O​N​ ​S​c​h​e​m​a​ ​f​o​r​ ​y​o​u​r​ ​e​d​i​t​o​r​,​ ​o​r​ ​i​n​ ​t​h​e​ ​c​o​n​s​o​l​e​.
+		 */
+		configBody: string
+		/**
+		 * O​p​e​n​ ​s​o​u​r​c​e​,​ ​A​p​a​c​h​e​-​2​.​0
+		 */
+		osTitle: string
+		/**
+		 * R​u​n​ ​t​h​e​ ​w​h​o​l​e​ ​p​l​a​t​f​o​r​m​ ​o​n​ ​y​o​u​r​ ​o​w​n​ ​s​e​r​v​e​r​s​ ​w​i​t​h​ ​D​o​c​k​e​r​ ​C​o​m​p​o​s​e​ ​a​n​d​ ​y​o​u​r​ ​o​w​n​ ​m​o​d​e​l​ ​k​e​y​s​,​ ​o​r​ ​u​s​e​ ​t​h​e​ ​h​o​s​t​e​d​ ​v​e​r​s​i​o​n​.
+		 */
+		osBody: string
 		/**
 		 * G​e​t​t​i​n​g​ ​s​t​a​r​t​e​d
 		 */
@@ -2177,7 +2338,7 @@ type RootTranslation = {
 		 */
 		step1Title: string
 		/**
-		 * A​d​d​ ​i​t​ ​t​o​ ​y​o​u​r​ ​o​r​g​a​n​i​z​a​t​i​o​n​ ​a​n​d​ ​p​i​c​k​ ​w​h​o​ ​i​t​ ​c​a​n​ ​s​e​e​.
+		 * A​d​d​ ​i​t​ ​t​o​ ​y​o​u​r​ ​o​r​g​a​n​i​z​a​t​i​o​n​ ​a​n​d​ ​c​h​o​o​s​e​ ​w​h​i​c​h​ ​r​e​p​o​s​i​t​o​r​i​e​s​ ​i​t​ ​c​a​n​ ​s​e​e​.
 		 */
 		step1Body: string
 		/**
@@ -2189,7 +2350,7 @@ type RootTranslation = {
 		 */
 		step2Body: string
 		/**
-		 * A​I​ ​R​e​v​i​e​w​ ​c​o​-​p​i​l​o​t
+		 * O​p​e​n​-​s​o​u​r​c​e​ ​A​I​ ​c​o​d​e​ ​r​e​v​i​e​w
 		 */
 		tagline: string
 	}
@@ -3592,7 +3753,7 @@ type RootTranslation = {
 		 */
 		searchAccount: string
 		/**
-		 * S​e​a​r​c​h​ ​n​a​m​e​s​p​a​c​e​ ​/​ ​n​a​m​e​…
+		 * S​e​a​r​c​h​ ​n​a​m​e​s​p​a​c​e​ ​o​r​ ​r​e​p​o​s​i​t​o​r​y​ ​n​a​m​e​…
 		 */
 		searchRepo: string
 		/**
@@ -5661,7 +5822,7 @@ export type TranslationFunctions = {
 	}
 	landing: {
 		/**
-		 * AI code review
+		 * Open-source AI code review
 		 */
 		eyebrow: () => LocalizedString
 		/**
@@ -5669,7 +5830,7 @@ export type TranslationFunctions = {
 		 */
 		title: () => LocalizedString
 		/**
-		 * Built for security audits. Now it brings the same careful analysis to every code review.
+		 * Each possible issue is checked against your code, then argued against, before anything reaches the pull request. Only findings that hold up are posted.
 		 */
 		subtitle: () => LocalizedString
 		/**
@@ -5677,77 +5838,237 @@ export type TranslationFunctions = {
 		 */
 		signIn: () => LocalizedString
 		/**
+		 * View on GitHub
+		 */
+		github: () => LocalizedString
+		/**
+		 * Read the docs
+		 */
+		docs: () => LocalizedString
+		/**
+		 * Works with GitHub, GitLab and Forgejo.
+		 */
+		forges: () => LocalizedString
+		/**
+		 * One review, six candidates
+		 */
+		demoLabel: () => LocalizedString
+		/**
 		 * Illustrative example
 		 */
 		demoNote: () => LocalizedString
 		/**
-		 * Candidates
+		 * Found
 		 */
-		demoCandidates: () => LocalizedString
+		stageFound: () => LocalizedString
 		/**
-		 * Posted to the pull request
+		 * Verified
 		 */
-		demoKept: () => LocalizedString
+		stageVerified: () => LocalizedString
+		/**
+		 * Challenged
+		 */
+		stageChallenged: () => LocalizedString
+		/**
+		 * Posted
+		 */
+		stagePosted: () => LocalizedString
+		/**
+		 * Dropped at {stage}: 
+		 */
+		demoDroppedAt: (arg: { stage: string }) => LocalizedString
+		/**
+		 * Major
+		 */
+		demoMajor: () => LocalizedString
+		/**
+		 * Blocks merge
+		 */
+		demoBlocks: () => LocalizedString
+		/**
+		 * Token refresh retries forever when the identity provider is down
+		 */
+		demo1Claim: () => LocalizedString
 		/**
 		 * Possible nil dereference in cache warmup
 		 */
-		demoDropped1: () => LocalizedString
+		demo2Claim: () => LocalizedString
 		/**
-		 * Unused parameter in adaptor factory
+		 * cache is assigned on line 31, before the first read
 		 */
-		demoDropped2: () => LocalizedString
+		demo2Reason: () => LocalizedString
 		/**
-		 * Prefer early return here
+		 * Search query is built from user input
 		 */
-		demoDropped3: () => LocalizedString
+		demo3Claim: () => LocalizedString
 		/**
-		 * New dependency carries a known advisory with no patched release
+		 * the column name comes from a fixed allowlist; values are bound parameters
 		 */
-		demoKeptClaim: () => LocalizedString
+		demo3Reason: () => LocalizedString
 		/**
-		 * go.mod
+		 * Off-by-one when slicing a page of results
 		 */
-		demoKeptLoc: () => LocalizedString
+		demo4Claim: () => LocalizedString
 		/**
-		 * Features
+		 * start is (page − 1) × size, so the first page begins at 0
 		 */
-		featuresTitle: () => LocalizedString
+		demo4Reason: () => LocalizedString
 		/**
-		 * Reports only what it can verify
+		 * New dependency has a known advisory with no patched release
 		 */
-		verifyTitle: () => LocalizedString
+		demo5Claim: () => LocalizedString
 		/**
-		 * It checks potential issues again and comments only when the evidence holds up.
+		 * Cancel and publish can race on the same review
 		 */
-		verifyBody: () => LocalizedString
+		demo6Claim: () => LocalizedString
 		/**
-		 * Self-hostable
+		 * both paths take the review row lock before writing
 		 */
-		selfHostTitle: () => LocalizedString
+		demo6Reason: () => LocalizedString
 		/**
-		 * Pick your own model and provider, so your code stays private.
+		 * How one review runs
 		 */
-		selfHostBody: () => LocalizedString
+		flowTitle: () => LocalizedString
 		/**
-		 * Lives in your issues and pull requests
+		 * It maps the change, then explores each area with the repository’s own code: callers, tests and history.
+		 */
+		flowFoundBody: () => LocalizedString
+		/**
+		 * Each candidate is checked again against the code. What it cannot confirm stays out of the inline comments.
+		 */
+		flowVerifiedBody: () => LocalizedString
+		/**
+		 * A separate pass argues against every remaining finding, on a different model if you choose.
+		 */
+		flowChallengedBody: () => LocalizedString
+		/**
+		 * Inline comments with severity and evidence, one summary, and suggestions you can commit.
+		 */
+		flowPostedBody: () => LocalizedString
+		/**
+		 * Every review after the first
+		 */
+		roundsTitle: () => LocalizedString
+		/**
+		 * Later reviews read only the commits added since the last one. Findings keep their state across rounds, so nothing is posted twice and fixed issues close on their own.
+		 */
+		roundsBody: () => LocalizedString
+		/**
+		 * new findings in this round
+		 */
+		roundsNew: () => LocalizedString
+		/**
+		 * still open from the last review — blocks the merge
+		 */
+		roundsOpen: () => LocalizedString
+		/**
+		 * fixed since the last review — resolved
+		 */
+		roundsFixed: () => LocalizedString
+		/**
+		 * reported before — folded, not posted again
+		 */
+		roundsFolded: () => LocalizedString
+		/**
+		 * Ask in the thread
 		 */
 		commandsTitle: () => LocalizedString
 		/**
-		 * Comment `@winnowl help` for every supported command.
+		 * Comment on a pull request, an issue or a finding. Changes are delivered as a separate stacked pull request, never pushed to your branch. `@winnowl help` lists every command.
 		 */
 		commandsBody: () => LocalizedString
 		/**
-		 * Dependency gate
+		 * Explain a finding and the evidence behind it.
+		 */
+		cmdExplain: () => LocalizedString
+		/**
+		 * Dispute a finding; a fresh verifier judges it with your reason.
+		 */
+		cmdChallenge: () => LocalizedString
+		/**
+		 * Mark a finding fixed or not a problem; it is checked before it closes.
+		 */
+		cmdResolve: () => LocalizedString
+		/**
+		 * Ignore a finding on this pull request; it stops blocking the merge.
+		 */
+		cmdIgnore: () => LocalizedString
+		/**
+		 * Fix a finding in a stacked pull request, after you confirm.
+		 */
+		cmdFix: () => LocalizedString
+		/**
+		 * Write tests for the change in a stacked pull request.
+		 */
+		cmdTests: () => LocalizedString
+		/**
+		 * Run a command in a sandbox on the pull request and post the output.
+		 */
+		cmdRun: () => LocalizedString
+		/**
+		 * Add a rule for later reviews of this repository, your organization or your own pull requests.
+		 */
+		cmdLearn: () => LocalizedString
+		/**
+		 * Also part of every review
+		 */
+		moreTitle: () => LocalizedString
+		/**
+		 * Merge gate
 		 */
 		gateTitle: () => LocalizedString
 		/**
-		 * Newly introduced dependencies with known advisories block the merge instead of quietly landing.
+		 * A check run blocks the merge while blocking findings are unresolved or a new dependency has a known advisory.
 		 */
 		gateBody: () => LocalizedString
 		/**
-		 * GitHub, GitLab, Forgejo
+		 * Your team’s rules
 		 */
-		forgesTitle: () => LocalizedString
+		learnTitle: () => LocalizedString
+		/**
+		 * Write rules in the repository, or add them from a review comment. Rules proposed by non-maintainers wait for approval.
+		 */
+		learnBody: () => LocalizedString
+		/**
+		 * Package facts, checked
+		 */
+		factsTitle: () => LocalizedString
+		/**
+		 * Claims about libraries and versions are checked online and against release notes, and reused in later reviews once approved.
+		 */
+		factsBody: () => LocalizedString
+		/**
+		 * Models per stage
+		 */
+		modelsTitle: () => LocalizedString
+		/**
+		 * Pick a model for each stage, mix providers, or bring your own key for an organization, a repository or yourself.
+		 */
+		modelsBody: () => LocalizedString
+		/**
+		 * Large and stacked pull requests
+		 */
+		largeTitle: () => LocalizedString
+		/**
+		 * Large pull requests are reviewed in rounds until every file is covered. Stacked pull requests are reviewed one layer at a time.
+		 */
+		largeBody: () => LocalizedString
+		/**
+		 * Configuration in the repository
+		 */
+		configTitle: () => LocalizedString
+		/**
+		 * Settings live in `.winnowl.yaml`, with a JSON Schema for your editor, or in the console.
+		 */
+		configBody: () => LocalizedString
+		/**
+		 * Open source, Apache-2.0
+		 */
+		osTitle: () => LocalizedString
+		/**
+		 * Run the whole platform on your own servers with Docker Compose and your own model keys, or use the hosted version.
+		 */
+		osBody: () => LocalizedString
 		/**
 		 * Getting started
 		 */
@@ -5757,7 +6078,7 @@ export type TranslationFunctions = {
 		 */
 		step1Title: () => LocalizedString
 		/**
-		 * Add it to your organization and pick who it can see.
+		 * Add it to your organization and choose which repositories it can see.
 		 */
 		step1Body: () => LocalizedString
 		/**
@@ -5769,7 +6090,7 @@ export type TranslationFunctions = {
 		 */
 		step2Body: () => LocalizedString
 		/**
-		 * AI Review co-pilot
+		 * Open-source AI code review
 		 */
 		tagline: () => LocalizedString
 	}
@@ -7117,7 +7438,7 @@ export type TranslationFunctions = {
 		 */
 		searchAccount: () => LocalizedString
 		/**
-		 * Search namespace / name…
+		 * Search namespace or repository name…
 		 */
 		searchRepo: () => LocalizedString
 		/**
