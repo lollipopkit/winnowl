@@ -4,8 +4,8 @@
 #   scripts/deploy-pages.sh <commit> [--dry-run]
 #
 # The tree comes from `git archive <commit>`, never the working tree. The account-wide Cloudflare
-# token stays in the macOS keychain (`cloudflare-api-token`, `cloudflare-account-id`) and reaches
-# wrangler only via its environment.
+# token stays in 1Password (`op`; items `cloudflare-api-token`, `cloudflare-account-id` in the
+# vault $OP_VAULT, default Dev) and reaches wrangler only via its environment.
 #
 # Env: PAGES_PROJECT (default winnowl), API_BASE (default https://winnowl-api.lollipopkit.com),
 #      SITE_URL (default https://winnowl.lollipopkit.com).
@@ -51,7 +51,10 @@ if [[ "$DRY" == 1 ]]; then
   echo "dry run: would deploy $DIST to Pages project $PROJECT (branch main)"
   exit 0
 fi
-CLOUDFLARE_API_TOKEN="$(security find-generic-password -s cloudflare-api-token -w)" \
-CLOUDFLARE_ACCOUNT_ID="$(security find-generic-password -s cloudflare-account-id -w)" \
+# Read first: a failed read in a prefix assignment wouldn't stop wrangler.
+vault="${OP_VAULT:-Dev}"
+token="$(op read --no-newline "op://$vault/cloudflare-api-token/password")" || die "no Cloudflare token in 1Password"
+account="$(op read --no-newline "op://$vault/cloudflare-account-id/password")" || die "no Cloudflare account id in 1Password"
+CLOUDFLARE_API_TOKEN="$token" CLOUDFLARE_ACCOUNT_ID="$account" \
   pnpm --dir "$WORK" dlx wrangler@4 pages deploy "$DIST" \
   --project-name "$PROJECT" --branch main --commit-hash "$SHA" --commit-dirty=false
